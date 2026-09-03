@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Feature Engineering — Course Mind Map</title>
+<style>
+  :root {
+    --teal-dark: #0B3D3F;
+    --teal: #028090;
+    --teal-light: #E8F4F3;
+    --blue: #185FA5;
+    --blue-light: #E8F1FB;
+    --coral: #B5451B;
+    --coral-light: #FBEDE7;
+    --purple: #5A3E9B;
+    --purple-light: #F1EDFB;
+    --pink: #99355B;
+    --pink-light: #FBEAF0;
+    --amber: #A66B00;
+    --amber-light: #FBF1E0;
+    --ink: #24312F;
+    --muted: #5B6B69;
+    --paper: #FAF9F6;
+    --line: #D8DEDC;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 40px 32px 64px;
+    background: var(--paper);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+  }
+
+  .page-title { text-align: center; margin-bottom: 4px; }
+  .page-title h1 { font-size: 28px; font-weight: 700; color: var(--teal-dark); margin: 0; letter-spacing: 0.2px; }
+  .page-title p { color: var(--muted); font-size: 14px; margin: 6px 0 0; font-style: italic; }
+
+  .dataset-banner {
+    max-width: 780px;
+    margin: 22px auto 0;
+    background: #fff;
+    border: 1.5px dashed var(--teal);
+    border-radius: 10px;
+    padding: 12px 18px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .dataset-banner b { color: var(--teal-dark); }
+  .dataset-banner .cols {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    margin-top: 5px;
+  }
+
+  .root-wrap { display: flex; justify-content: center; margin: 32px 0 0; }
+  .root-node {
+    background: var(--teal-dark);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 16px 40px;
+    border-radius: 12px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.08);
+    letter-spacing: 0.3px;
+  }
+
+  .trunk { width: 2px; height: 28px; background: var(--line); margin: 0 auto; }
+
+  .category-row {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    position: relative;
+    align-items: flex-start;
+  }
+  .category-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12.5%;
+    right: 12.5%;
+    height: 2px;
+    background: var(--line);
+  }
+  .category-col {
+    flex: 1 1 0;
+    max-width: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 9px;
+  }
+  .cat-stem { width: 2px; height: 20px; background: var(--line); }
+
+  .category-header {
+    width: 100%;
+    text-align: center;
+    padding: 12px 10px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14.5px;
+    line-height: 1.3;
+    margin-bottom: 18px;
+    position: sticky;
+    top: 10px;
+    z-index: 2;
+  }
+  .category-header .num {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    opacity: 0.75;
+    margin-bottom: 4px;
+  }
+
+  .cat-foundations .category-header { background: var(--teal); color: #fff; }
+  .cat-prep .category-header        { background: var(--blue); color: #fff; }
+  .cat-creation .category-header    { background: var(--coral); color: #fff; }
+  .cat-selection .category-header   { background: var(--purple); color: #fff; }
+  .cat-reduction .category-header   { background: var(--pink); color: #fff; }
+  .cat-applied .category-header     { background: var(--amber); color: #fff; }
+
+  .topic-card {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 13px 10px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .cat-foundations .topic-card { border-top: 4px solid var(--teal); }
+  .cat-prep .topic-card        { border-top: 4px solid var(--blue); }
+  .cat-creation .topic-card    { border-top: 4px solid var(--coral); }
+  .cat-selection .topic-card   { border-top: 4px solid var(--purple); }
+  .cat-reduction .topic-card   { border-top: 4px solid var(--pink); }
+  .cat-applied .topic-card     { border-top: 4px solid var(--amber); }
+
+  .topic-title { font-weight: 700; font-size: 13.5px; margin: 0 0 3px; color: var(--ink); }
+  .topic-analogy { font-size: 11.5px; font-style: italic; color: var(--muted); margin: 0 0 9px; line-height: 1.35; }
+
+  .subitem-list { display: flex; flex-direction: column; gap: 7px; }
+  .subitem { border-radius: 7px; padding: 5px 8px; }
+  .cat-foundations .subitem { background: var(--teal-light); }
+  .cat-prep .subitem        { background: var(--blue-light); }
+  .cat-creation .subitem    { background: var(--coral-light); }
+  .cat-selection .subitem   { background: var(--purple-light); }
+  .cat-reduction .subitem   { background: var(--pink-light); }
+  .cat-applied .subitem     { background: var(--amber-light); }
+
+  .subitem-name { font-size: 11.5px; font-weight: 700; margin: 0 0 2px; }
+  .cat-foundations .subitem-name { color: var(--teal-dark); }
+  .cat-prep .subitem-name        { color: var(--blue); }
+  .cat-creation .subitem-name    { color: var(--coral); }
+  .cat-selection .subitem-name   { color: var(--purple); }
+  .cat-reduction .subitem-name   { color: var(--pink); }
+  .cat-applied .subitem-name     { color: var(--amber); }
+
+  .subitem-example {
+    font-size: 10.5px;
+    font-family: "Consolas", "Courier New", monospace;
+    color: var(--ink);
+    line-height: 1.35;
+    margin: 0;
+  }
+  .subitem-example b { font-family: inherit; }
+
+  .legend {
+    max-width: 900px;
+    margin: 36px auto 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+
+  @media print {
+    body { padding: 12px; }
+    .category-row { flex-wrap: wrap; }
+    .category-col { max-width: 32%; flex: 1 1 32%; margin-bottom: 20px; }
+    .category-header { position: static; }
+  }
+
+  @media (max-width: 1150px) {
+    .category-row { flex-wrap: wrap; }
+    .category-row::before { display: none; }
+    .category-col { max-width: 46%; flex: 1 1 46%; margin-bottom: 24px; }
+    .cat-stem { display: none; }
+    .category-header { position: static; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-title">
+    <h1>Feature Engineering — Course Mind Map</h1>
+    <p>22 topics, 6 phases — from raw data to a production-ready ML system</p>
+  </div>
+
+  <div class="dataset-banner">
+    <b>Running example used throughout:</b> a coaching-institute "Student Exam Performance" dataset
+    <span class="cols">student_id · city · course · study_hours · attendance_pct · income_bracket · mock_test_1/2/3 · exam_date · final_score</span>
+  </div>
+
+  <div class="root-wrap"><div class="root-node">Feature Engineering</div></div>
+  <div class="trunk"></div>
+
+  <div class="category-row">
+
+    <div class="category-col cat-foundations">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 1</span>Foundations</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Intro to Feature Engineering</p>
+        <p class="topic-analogy">Features are the model's only vocabulary</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">ML lifecycle</p><p class="subitem-example">data → features → model → prediction → feedback</p></div>
+          <div class="subitem"><p class="subitem-name">Bias–variance</p><p class="subitem-example">too few features underfits; too many noisy ones overfits</p></div>
+          <div class="subitem"><p class="subitem-name">Raw vs engineered</p><p class="subitem-example"><b>enrollment_date</b> (raw) → <b>tenure_days</b> (engineered)</p></div>
+          <div class="subitem"><p class="subitem-name">FE vs feature learning</p><p class="subitem-example">you engineer tenure_days; a CNN would learn features from raw pixels</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Data → Feature → Model Pipeline</p>
+        <p class="topic-analogy">One reusable recipe, not loose notebook steps</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Ingestion</p><p class="subitem-example">reading student_performance_raw.csv</p></div>
+          <div class="subitem"><p class="subitem-name">Preprocessing</p><p class="subitem-example">fixing types, trimming stray spaces in city names</p></div>
+          <div class="subitem"><p class="subitem-name">Train/test split</p><p class="subitem-example">80% train / 20% test — split before scaling anything</p></div>
+          <div class="subitem"><p class="subitem-name">Pipeline automation</p><p class="subitem-example">one Pipeline object reused for every new student</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Types</p>
+        <p class="topic-analogy">Sorting the toy box before playing with it</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Numerical</p><p class="subitem-example"><b>attendance_pct</b>, <b>study_hours</b></p></div>
+          <div class="subitem"><p class="subitem-name">Categorical</p><p class="subitem-example"><b>city</b>, <b>course</b>, <b>income_bracket</b></p></div>
+          <div class="subitem"><p class="subitem-name">Binary / text / image</p><p class="subitem-example"><b>passed</b> (0/1), <b>feedback_text</b></p></div>
+          <div class="subitem"><p class="subitem-name">Derived vs raw</p><p class="subitem-example"><b>tenure_days</b> (derived) from <b>enrollment_date</b> (raw)</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-prep">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 2</span>Cleaning &amp; Prep</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Missing Values</p>
+        <p class="topic-analogy">Why matters more than what to fill in</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">MCAR / MAR / MNAR</p><p class="subitem-example">study_hours missing at random vs mock_test_3 missing for low scorers</p></div>
+          <div class="subitem"><p class="subitem-name">Mean / median / mode</p><p class="subitem-example">fill study_hours with its median</p></div>
+          <div class="subitem"><p class="subitem-name">Conditional impute</p><p class="subitem-example">fill prev_score using the median for that attendance bucket</p></div>
+          <div class="subitem"><p class="subitem-name">Missing indicator</p><p class="subitem-example"><b>mock_test_3_was_missing</b> flag column</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Scaling Techniques</p>
+        <p class="topic-analogy">Fair comparison needs the same-size ruler</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">StandardScaler</p><p class="subitem-example">z-score attendance_pct around its mean</p></div>
+          <div class="subitem"><p class="subitem-name">MinMaxScaler</p><p class="subitem-example">squeeze study_hours into a 0–1 range</p></div>
+          <div class="subitem"><p class="subitem-name">RobustScaler</p><p class="subitem-example">scale age using median/IQR despite two typo outliers</p></div>
+          <div class="subitem"><p class="subitem-name">Distance/gradient models</p><p class="subitem-example">KNN needs scaling; a Decision Tree doesn't</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Categorical Encoding</p>
+        <p class="topic-analogy">Turning words into numbers, without lying</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">One-hot</p><p class="subitem-example">city → city_Mumbai, city_Delhi, ...</p></div>
+          <div class="subitem"><p class="subitem-name">Label / ordinal</p><p class="subitem-example">income_bracket → 0,1,2,3 (a real order)</p></div>
+          <div class="subitem"><p class="subitem-name">Target / mean</p><p class="subitem-example">school_name → its average final_score</p></div>
+          <div class="subitem"><p class="subitem-name">Leakage risk</p><p class="subitem-example">compute that average from TRAIN rows only</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Transformations</p>
+        <p class="topic-analogy">Squishing a lopsided spike into a round hill</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Log / sqrt</p><p class="subitem-example">log(study_hours + 1)</p></div>
+          <div class="subitem"><p class="subitem-name">Box-Cox</p><p class="subitem-example">auto-picks the best power transform (needs positive values)</p></div>
+          <div class="subitem"><p class="subitem-name">Yeo-Johnson</p><p class="subitem-example">works even with a column that has negative values</p></div>
+          <div class="subitem"><p class="subitem-name">Skew correction</p><p class="subitem-example">study_hours' long right tail, fixed</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-creation">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 3</span>Feature Creation</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Time-based Features</p>
+        <p class="topic-analogy">A diary: yesterday, this week, and the seasons</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Lag features</p><p class="subitem-example">yesterday's attendance → lag_1</p></div>
+          <div class="subitem"><p class="subitem-name">Rolling mean/std</p><p class="subitem-example">7-day rolling average mock score</p></div>
+          <div class="subitem"><p class="subitem-name">Cyclical sin/cos</p><p class="subitem-example">Monday and Sunday sit next to each other on a circle</p></div>
+          <div class="subitem"><p class="subitem-name">Trend &amp; seasonality</p><p class="subitem-example">scores dip every festival season, rise every year overall</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Creation</p>
+        <p class="topic-analogy">Fruit salad: new flavor from combining ingredients</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Polynomial features</p><p class="subitem-example">study_hours² captures diminishing returns</p></div>
+          <div class="subitem"><p class="subitem-name">Interaction terms</p><p class="subitem-example">study_hours × attendance_pct</p></div>
+          <div class="subitem"><p class="subitem-name">Cross-features</p><p class="subitem-example">income_bracket + course combined into one group</p></div>
+          <div class="subitem"><p class="subitem-name">Curse of dimensionality</p><p class="subitem-example">100 students spread across 50 new features = too sparse</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Text Features</p>
+        <p class="topic-analogy">A checklist of words instead of a sentence a model can't read</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Text normalization</p><p class="subitem-example">"Great!!!" and "great" → the same word</p></div>
+          <div class="subitem"><p class="subitem-name">Bag of Words</p><p class="subitem-example">count every word in each student's <b>feedback_text</b></p></div>
+          <div class="subitem"><p class="subitem-name">TF-IDF</p><p class="subitem-example">"itm" (in 4/5 reviews) scores low; "mba" (in 1/5) scores high</p></div>
+          <div class="subitem"><p class="subitem-name">N-grams</p><p class="subitem-example">"not good" ≠ "good" — bigrams catch the pair</p></div>
+          <div class="subitem"><p class="subitem-name">Sparsity</p><p class="subitem-example">500 students × 300 vocabulary words = mostly zeros</p></div>
+          <div class="subitem"><p class="subitem-name">Vocabulary pruning</p><p class="subitem-example">drop words seen in only 1 review, or in almost all of them</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Image Features</p>
+        <p class="topic-analogy">Teaching a model to see: a photo turned into numbers</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Pixels as features</p><p class="subitem-example">an 8×8 digit photo → 64 plain numbers</p></div>
+          <div class="subitem"><p class="subitem-name">HOG descriptors</p><p class="subitem-example">"which direction do the edges point?" — 98.2% vs 96.2% for raw pixels</p></div>
+          <div class="subitem"><p class="subitem-name">CNN features</p><p class="subitem-example">the network learns its own edges and shapes — no hand-crafting</p></div>
+          <div class="subitem"><p class="subitem-name">Transfer learning</p><p class="subitem-example">reusing conv layers from digits 0-4 to learn digits 5-9 faster</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Business Features</p>
+        <p class="topic-analogy">Good features start with the business, not the code</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">RFM features</p><p class="subitem-example">Recency, Frequency, Monetary — how recent, how often, how much</p></div>
+          <div class="subitem"><p class="subitem-name">Churn indicators</p><p class="subitem-example"><b>days_since_last_login</b> creeping steadily upward</p></div>
+          <div class="subitem"><p class="subitem-name">Fraud signals</p><p class="subitem-example">10 transactions in 2 minutes → transaction_velocity spike</p></div>
+          <div class="subitem"><p class="subitem-name">Behavioral aggregates</p><p class="subitem-example"><b>transaction_count_7d</b>, login_frequency</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-selection">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 4</span>Feature Selection</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Filter Methods</p>
+        <p class="topic-analogy">Sorting the toy box with quick rules, no playing</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Variance threshold</p><p class="subitem-example">drop a column that's 99% the same value</p></div>
+          <div class="subitem"><p class="subitem-name">Correlation filter</p><p class="subitem-example">attendance_pct and its near-duplicate copy — drop one</p></div>
+          <div class="subitem"><p class="subitem-name">Chi-square / ANOVA</p><p class="subitem-example">does course really affect pass/fail?</p></div>
+          <div class="subitem"><p class="subitem-name">Mutual information</p><p class="subitem-example">catches non-linear links the other tests miss</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Wrapper Methods</p>
+        <p class="topic-analogy">Actually testing squads in real practice rounds</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">RFE</p><p class="subitem-example">train, drop the weakest feature, repeat</p></div>
+          <div class="subitem"><p class="subitem-name">Forward / backward</p><p class="subitem-example">start empty, add the single best feature each round</p></div>
+          <div class="subitem"><p class="subitem-name">Computational cost</p><p class="subitem-example">RFE retrains the model 10 times; a filter test runs once</p></div>
+          <div class="subitem"><p class="subitem-name">Model dependency</p><p class="subitem-example">Logistic Regression and Random Forest pick different top features</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Embedded Methods</p>
+        <p class="topic-analogy">A toy box that tidies itself while you play</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Lasso (L1)</p><p class="subitem-example">shrinks a useless column's weight to exactly zero</p></div>
+          <div class="subitem"><p class="subitem-name">ElasticNet</p><p class="subitem-example">keeps two correlated features together, instead of picking one</p></div>
+          <div class="subitem"><p class="subitem-name">Tree importance</p><p class="subitem-example">Random Forest ranks study_hours as most useful</p></div>
+          <div class="subitem"><p class="subitem-name">Stability of selection</p><p class="subitem-example">same top features chosen across 50 resamples of the data</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Evaluation &amp; Interpretability</p>
+        <p class="topic-analogy">Dividing the model's prediction credit among the features</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Built-in importance</p><p class="subitem-example">fast, but biased toward continuous/noisy columns</p></div>
+          <div class="subitem"><p class="subitem-name">Permutation importance</p><p class="subitem-example">shuffle one column, watch accuracy drop</p></div>
+          <div class="subitem"><p class="subitem-name">SHAP values</p><p class="subitem-example">why did THIS applicant get declined?</p></div>
+          <div class="subitem"><p class="subitem-name">Global vs local</p><p class="subitem-example">what matters overall vs. what mattered for one prediction</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-reduction">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 5</span>Dimensionality Reduction</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Dimensionality Reduction</p>
+        <p class="topic-analogy">One "excitement score" instead of six rulers</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Curse of dimensionality</p><p class="subitem-example">in 100 dimensions, every student looks equally "far" from every other</p></div>
+          <div class="subitem"><p class="subitem-name">Projection vs selection</p><p class="subitem-example">blend all 3 mock tests vs just picking mock_test_3</p></div>
+          <div class="subitem"><p class="subitem-name">PCA vs SVD</p><p class="subitem-example">two different routes to the same compressed score</p></div>
+          <div class="subitem"><p class="subitem-name">Linear vs non-linear</p><p class="subitem-example">PCA only finds straight-line patterns</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">PCA Practical</p>
+        <p class="topic-analogy">Naming the new ruler after you've built it</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Eigenvalues/vectors</p><p class="subitem-example">the direction and strength of each new axis</p></div>
+          <div class="subitem"><p class="subitem-name">Explained variance ratio</p><p class="subitem-example">PC1 explains 62% of the spread in scores</p></div>
+          <div class="subitem"><p class="subitem-name">Scree plot</p><p class="subitem-example">the point where the chart's drop-off flattens out</p></div>
+          <div class="subitem"><p class="subitem-name">Choosing components</p><p class="subitem-example">keep 2 components — 90% of variance covered</p></div>
+          <div class="subitem"><p class="subitem-name">Loss of interpretability</p><p class="subitem-example">"PC1 = 1.8" means nothing without checking what it's made of</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-applied">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 6</span>Feature Ops &amp; Governance</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Data Leakage</p>
+        <p class="topic-analogy">Giving a student the answer key before the exam</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Target leakage</p><p class="subitem-example"><b>cancellation_date</b> "predicts" churn perfectly — because it IS churn</p></div>
+          <div class="subitem"><p class="subitem-name">Look-ahead bias</p><p class="subitem-example">using next month's data to predict this month</p></div>
+          <div class="subitem"><p class="subitem-name">Preprocessing leakage</p><p class="subitem-example">scaler fit on train+test combined, instead of train only</p></div>
+          <div class="subitem"><p class="subitem-name">Detection checklist</p><p class="subitem-example">"could this feature have existed at prediction time?"</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Engineering Pipelines</p>
+        <p class="topic-analogy">An assembly line: raw data in, consistent features out</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">sklearn Pipeline</p><p class="subitem-example">chain imputer → scaler → model into one object</p></div>
+          <div class="subitem"><p class="subitem-name">ColumnTransformer</p><p class="subitem-example">numeric and categorical columns, handled differently, together</p></div>
+          <div class="subitem"><p class="subitem-name">Reproducibility</p><p class="subitem-example">training and production run the exact same steps</p></div>
+          <div class="subitem"><p class="subitem-name">Feature consistency</p><p class="subitem-example">no more "we scaled it differently in production"</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Metadata &amp; Cards</p>
+        <p class="topic-analogy">Six months later, nobody remembers how a feature was built</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Feature description</p><p class="subitem-example">what does <b>days_since_last_login</b> actually mean?</p></div>
+          <div class="subitem"><p class="subitem-name">Owner &amp; freshness</p><p class="subitem-example">who owns it, how often is it updated</p></div>
+          <div class="subitem"><p class="subitem-name">Feature card</p><p class="subitem-example">a one-page ID card for <b>transaction_velocity_24h</b></p></div>
+          <div class="subitem"><p class="subitem-name">Governance</p><p class="subitem-example">"am I even allowed to use this feature for training?"</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Stores</p>
+        <p class="topic-analogy">A supermarket for already-prepared ML features</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Offline store</p><p class="subitem-example">the warehouse — used for training</p></div>
+          <div class="subitem"><p class="subitem-name">Online store</p><p class="subitem-example">the fast counter — used for real-time predictions</p></div>
+          <div class="subitem"><p class="subitem-name">Feature reuse</p><p class="subitem-example">3 teams stop calculating avg_spend 3 different ways</p></div>
+          <div class="subitem"><p class="subitem-name">Training-serving skew</p><p class="subitem-example">training used 30 days of data, production used all-time by mistake</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    Each phase flows into the next: clean the data (Phase 2) before creating new signal from it
+    (Phase 3), create before selecting what's worth keeping (Phase 4), and reduce dimensionality
+    (Phase 5) only once you know what survived selection. Phase 3 now covers feature creation
+    across every raw data type — time, text, images, and domain-driven business behavior — and
+    Phase 4 pairs classic selection methods with the importance/interpretability tools that
+    answer the same "what actually matters?" question. Phase 6 is where all of this meets the
+    real world: keeping features honest (no leakage), reproducible (pipelines), documented
+    (metadata), and reliably served (feature stores).
+  </div>
+
+</body>
+</html>
