@@ -1,0 +1,601 @@
+
+################################################################################
+# PART A: END-TO-END CLASSROOM DEMONSTRATION (20 steps)
+################################################################################
+
+------------------------------------------------------------------------------
+STEP 1/20: Run existing Exam Score model (already trained via `python -m src.train`).
+------------------------------------------------------------------------------
+API health: {'status': 'ok', 'model_loaded': True, 'model_version': '1790103422238753263'}
+
+------------------------------------------------------------------------------
+STEP 2/20: Generate normal production predictions.
+------------------------------------------------------------------------------
+Sent 150 requests successfully, 0 failed (normal traffic).
+Check monitoring/predictions.csv, then run: python -m src.drift
+
+
+------------------------------------------------------------------------------
+STEP 3/20: Predictions are logged automatically (src/monitoring.py, on every /predict).
+------------------------------------------------------------------------------
+monitoring/predictions.csv now has 150 rows.
+
+------------------------------------------------------------------------------
+STEP 4/20: Show monitoring summary.
+------------------------------------------------------------------------------
+{
+  "total_predictions": 150,
+  "success_count": 150,
+  "error_count": 0,
+  "avg_latency_ms": 12.5,
+  "avg_predicted_score": 81.62
+}
+
+
+------------------------------------------------------------------------------
+STEP 5/20: Introduce CHANGED production data (simulated cohort shift).
+------------------------------------------------------------------------------
+Sent 150 requests successfully, 0 failed (drift-simulated traffic).
+Check monitoring/predictions.csv, then run: python -m src.drift
+
+
+------------------------------------------------------------------------------
+STEP 6/20: Run drift detection (numeric KS test + categorical chi-square test).
+------------------------------------------------------------------------------
+
+Data drift report (KS test, p_value_threshold=0.05)
+--------------------------------------------------------------------
+feature                statistic     p_value       drift
+--------------------------------------------------------------------
+study_hours                0.344       0.000         YES
+attendance_pct             0.359       0.000         YES
+mock_test_1                0.072       0.315          NO
+mock_test_2                0.050       0.768          NO
+mock_test_3                0.112       0.026         YES
+shoe_size                  0.083       0.185          NO
+lucky_number               0.040       0.938          NO
+
+[ALERT] Drift detected in 3 feature(s): study_hours, attendance_pct, mock_test_3
+Reminder: statistical significance != business significance. Inspect the actual distributions before deciding this needs action (see src/retrain.py for how this project gates retraining decisions).
+
+Categorical drift report (chi-square test, p_value_threshold=0.05)
+------------------------------------------------------------------------------
+feature                 chi2     p_value     drift   new_categories
+------------------------------------------------------------------------------
+city                   1.025       0.795        NO   
+income_bracket         0.099       0.952        NO   
+
+No statistically significant categorical drift detected.
+
+
+------------------------------------------------------------------------------
+STEP 7/20: Drift alert is raised (src/alerts.py -- print + log + report file).
+------------------------------------------------------------------------------
+[ALERT:DATA_DRIFT] Numeric data drift (KS test) detected in 3 feature(s): study_hours, attendance_pct, mock_test_3.
+
+1 alert(s) raised -- see reports/alerts_report.json
+
+
+------------------------------------------------------------------------------
+STEP 8/20: Introduce delayed labels for the ORIGINAL relationship first (students really did just study/attend less -- P(Y|X) unchanged).
+------------------------------------------------------------------------------
+Sent 120 delayed labels (true relationship unchanged).
+
+------------------------------------------------------------------------------
+STEP 9/20: Show performance monitoring -- expect performance roughly intact (this alone is Scenario 2: drift + no real decay -> no retrain).
+------------------------------------------------------------------------------
+
+==================================================================
+Model performance-decay report
+==================================================================
+Baseline (training-time held-out test set): MAE=3.91  RMSE=4.91  R2=0.807
+Recent   (120 labeled production predictions): MAE=2.98  RMSE=3.77  R2=0.717
+
+Status: OK
+Reason: Recent RMSE (3.77) is -1.14 vs. baseline (4.91); threshold is +2.00.
+
+
+==================================================================
+Retraining decision: NO_RETRAIN
+==================================================================
+Reason: Data drift detected, but performance has NOT meaningfully decayed -- input distribution changed without hurting real accuracy (yet). Keep monitoring; this is not, by itself, a reason to retrain.
+
+Data drift detected:       True (numeric: ['study_hours', 'attendance_pct', 'mock_test_3']; categorical: none)
+Performance decayed:       False (status=OK)
+New labeled rows:          120 (need >= 20)
+
+[Scenario 2 checkpoint] decision=NO_RETRAIN (expected NO_RETRAIN)
+
+------------------------------------------------------------------------------
+STEP 10/20: NOW introduce a genuine CONCEPT DRIFT on top (harder exam / changed rubric) via delayed labels for a fresh batch of production traffic.
+------------------------------------------------------------------------------
+Sent 150 requests successfully, 0 failed (normal traffic).
+Check monitoring/predictions.csv, then run: python -m src.drift
+
+Sent 150 delayed labels under the CHANGED (concept-drift) relationship.
+
+------------------------------------------------------------------------------
+STEP 11/20: Re-run performance monitoring -- expect DECAY now.
+------------------------------------------------------------------------------
+
+==================================================================
+Model performance-decay report
+==================================================================
+Baseline (training-time held-out test set): MAE=3.91  RMSE=4.91  R2=0.807
+Recent   (270 labeled production predictions): MAE=13.40  RMSE=17.11  R2=-3.401
+
+Status: DECAYED
+Reason: Recent RMSE (17.11) is +12.20 vs. baseline (4.91); threshold is +2.00.
+
+[ALERT] Model performance has decayed beyond the configured threshold.
+Reminder: performance decay is NOT the same as data drift -- this is measured from ACTUAL outcomes, and can happen even when src/drift.py reports no input drift at all (see src/concept_drift_demo.py). It is one of the required inputs to a retraining decision (src/retrain_decision.py), but not, by itself, a reason to retrain automatically.
+
+
+------------------------------------------------------------------------------
+STEP 12/20: Re-run the retraining trigger decision -- expect RETRAIN now.
+------------------------------------------------------------------------------
+
+==================================================================
+Retraining decision: RETRAIN
+==================================================================
+Reason: Performance decay confirmed with 270 new labeled rows (>= 20 required).
+
+Data drift detected:       True (numeric: ['study_hours', 'attendance_pct', 'mock_test_3']; categorical: none)
+Performance decayed:       True (status=DECAYED)
+New labeled rows:          270 (need >= 20)
+
+[Scenario 3 checkpoint] decision=RETRAIN (expected RETRAIN)
+
+------------------------------------------------------------------------------
+STEP 13/20: Start the Kubeflow Pipeline (local runner -- see kubeflow/run_local.py).
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+STEP 14/20:   -> Validate data
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+STEP 15/20:   -> Train candidate model ON UPDATED DATA reflecting the new reality
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+STEP 16/20:   -> Log experiment to MLflow (inside the same training step)
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+STEP 17/20:   -> Evaluate candidate
+------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------
+STEP 18/20:   -> Compare candidate with current (stale) champion; Promote / Reject
+------------------------------------------------------------------------------
+Generating a fresh, full-sized training batch under the NEW (concept-drift) relationship -- what enough accumulated real-world labels would look like:
+  -> /home/claude/work/exam-score-mlops/data/scenarios/updated_training_data.csv
+
+Running the full Kubeflow pipeline now (covers steps 13-18 as one DAG run):
+19:04:02.368 - INFO - Running pipeline: [95m'exam-score-mlops-pipeline'[0m
+--------------------------------------------------------------------------------
+/home/claude/work/exam-score-mlops/.venv/lib/python3.11/site-packages/kfp/local/orchestrator/task_executor.py:100: UserWarning: Task 'data-validation-component': settings ['display_name'] have no effect in the current local runner and will be ignored.
+  _warn_local_only_noops(task_name, task_spec, executor_spec.container)
+19:04:02.372 - INFO - Executing task [96m'data-validation-component'[0m
+19:04:02.372 - INFO - Streamed logs:
+
+    [KFP Executor 2026-09-22 19:04:02,801 INFO]: Looking for component `data_validation_component` in --component_module_path `/tmp/tmp.PsXIqVaCQb/ephemeral_component.py`
+    [KFP Executor 2026-09-22 19:04:02,801 INFO]: Loading KFP component "data_validation_component" from /tmp/tmp.PsXIqVaCQb/ephemeral_component.py (directory "/tmp/tmp.PsXIqVaCQb" and module name "ephemeral_component")
+    [KFP Executor 2026-09-22 19:04:02,802 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "repo_root": "/home/claude/work/exam-score-mlops"
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "Output": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/data-validation-component/Output"
+                }
+            },
+            "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/data-validation-component/executor_output.json"
+        }
+    }
+    Validated 500 rows -- OK
+    
+    [KFP Executor 2026-09-22 19:04:04,070 INFO]: Wrote executor output file to /home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/data-validation-component/executor_output.json.
+    
+
+19:04:04.081 - INFO - Task [96m'data-validation-component'[0m finished with status [92mSUCCESS[0m
+19:04:04.081 - INFO - Task [96m'data-validation-component'[0m outputs:
+    Output: 'OK'
+--------------------------------------------------------------------------------
+/home/claude/work/exam-score-mlops/.venv/lib/python3.11/site-packages/kfp/local/orchestrator/task_executor.py:100: UserWarning: Task 'train-and-evaluate-component': settings ['display_name'] have no effect in the current local runner and will be ignored.
+  _warn_local_only_noops(task_name, task_spec, executor_spec.container)
+19:04:04.082 - INFO - Executing task [96m'train-and-evaluate-component'[0m
+19:04:04.082 - INFO - Streamed logs:
+
+    [KFP Executor 2026-09-22 19:04:04,537 INFO]: Looking for component `train_and_evaluate_component` in --component_module_path `/tmp/tmp.8BVDscHVzB/ephemeral_component.py`
+    [KFP Executor 2026-09-22 19:04:04,537 INFO]: Loading KFP component "train_and_evaluate_component" from /tmp/tmp.8BVDscHVzB/ephemeral_component.py (directory "/tmp/tmp.8BVDscHVzB" and module name "ephemeral_component")
+    [KFP Executor 2026-09-22 19:04:04,538 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "repo_root": "/home/claude/work/exam-score-mlops"
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "model_path": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/train-and-evaluate-component/model_path"
+                },
+                "rmse": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/train-and-evaluate-component/rmse"
+                },
+                "mae": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/train-and-evaluate-component/mae"
+                },
+                "r2": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/train-and-evaluate-component/r2"
+                },
+                "mlflow_run_id": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/train-and-evaluate-component/mlflow_run_id"
+                }
+            },
+            "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/train-and-evaluate-component/executor_output.json"
+        }
+    }
+    MLflow run: 0c623947a4e945e7b214d800f524023a
+    R2=0.807  MAE=3.91  RMSE=4.91
+    Saved pipeline -> /home/claude/work/exam-score-mlops/models/exam_score_pipeline.joblib
+    Saved evaluation report -> /home/claude/work/exam-score-mlops/reports/evaluation_report.json
+    
+    [KFP Executor 2026-09-22 19:04:11,570 INFO]: Wrote executor output file to /home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/train-and-evaluate-component/executor_output.json.
+    
+
+19:04:11.585 - INFO - Task [96m'train-and-evaluate-component'[0m finished with status [92mSUCCESS[0m
+19:04:11.585 - INFO - Task [96m'train-and-evaluate-component'[0m outputs:
+    r2: 0.807276222024603
+    mae: 3.90770170253569
+    rmse: 4.90819459175384
+    model_path: '/home/claude/work/exam-score-mlops/models/exam_score_pipeline.joblib'
+    mlflow_run_id: '0c623947a4e945e7b214d800f524023a'
+--------------------------------------------------------------------------------
+/home/claude/work/exam-score-mlops/.venv/lib/python3.11/site-packages/kfp/local/orchestrator/task_executor.py:100: UserWarning: Task 'drift-detection-component': settings ['display_name'] have no effect in the current local runner and will be ignored.
+  _warn_local_only_noops(task_name, task_spec, executor_spec.container)
+19:04:11.586 - INFO - Executing task [96m'drift-detection-component'[0m
+19:04:11.586 - INFO - Streamed logs:
+
+    [KFP Executor 2026-09-22 19:04:12,036 INFO]: Looking for component `drift_detection_component` in --component_module_path `/tmp/tmp.1fvlcSqTYW/ephemeral_component.py`
+    [KFP Executor 2026-09-22 19:04:12,036 INFO]: Loading KFP component "drift_detection_component" from /tmp/tmp.1fvlcSqTYW/ephemeral_component.py (directory "/tmp/tmp.1fvlcSqTYW" and module name "ephemeral_component")
+    [KFP Executor 2026-09-22 19:04:12,038 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "repo_root": "/home/claude/work/exam-score-mlops"
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "n_categorical_drifted": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/drift-detection-component/n_categorical_drifted"
+                },
+                "data_drift_detected": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/drift-detection-component/data_drift_detected"
+                },
+                "n_numeric_drifted": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/drift-detection-component/n_numeric_drifted"
+                }
+            },
+            "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/drift-detection-component/executor_output.json"
+        }
+    }
+    
+    Data drift report (KS test, p_value_threshold=0.05)
+    --------------------------------------------------------------------
+    feature                statistic     p_value       drift
+    --------------------------------------------------------------------
+    study_hours                0.242       0.000         YES
+    attendance_pct             0.254       0.000         YES
+    mock_test_1                0.072       0.204          NO
+    mock_test_2                0.050       0.643          NO
+    mock_test_3                0.112       0.009         YES
+    shoe_size                  0.083       0.105          NO
+    lucky_number               0.040       0.871          NO
+    
+    [ALERT] Drift detected in 3 feature(s): study_hours, attendance_pct, mock_test_3
+    Reminder: statistical significance != business significance. Inspect the actual distributions before deciding this needs action (see src/retrain.py for how this project gates retraining decisions).
+    
+    Categorical drift report (chi-square test, p_value_threshold=0.05)
+    ------------------------------------------------------------------------------
+    feature                 chi2     p_value     drift   new_categories
+    ------------------------------------------------------------------------------
+    city                   1.259       0.739        NO   
+    income_bracket         0.122       0.941        NO   
+    
+    No statistically significant categorical drift detected.
+    
+    [KFP Executor 2026-09-22 19:04:13,212 INFO]: Wrote executor output file to /home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/drift-detection-component/executor_output.json.
+    
+
+19:04:13.223 - INFO - Task [96m'drift-detection-component'[0m finished with status [92mSUCCESS[0m
+19:04:13.223 - INFO - Task [96m'drift-detection-component'[0m outputs:
+    data_drift_detected: True
+    n_categorical_drifted: 0
+    n_numeric_drifted: 3
+--------------------------------------------------------------------------------
+/home/claude/work/exam-score-mlops/.venv/lib/python3.11/site-packages/kfp/local/orchestrator/task_executor.py:100: UserWarning: Task 'retrain-trigger-decision-component': settings ['display_name'] have no effect in the current local runner and will be ignored.
+  _warn_local_only_noops(task_name, task_spec, executor_spec.container)
+19:04:13.224 - INFO - Executing task [96m'retrain-trigger-decision-component'[0m
+19:04:13.224 - INFO - Streamed logs:
+
+    [KFP Executor 2026-09-22 19:04:13,648 INFO]: Looking for component `retrain_trigger_decision_component` in --component_module_path `/tmp/tmp.AkGitoMuqo/ephemeral_component.py`
+    [KFP Executor 2026-09-22 19:04:13,648 INFO]: Loading KFP component "retrain_trigger_decision_component" from /tmp/tmp.AkGitoMuqo/ephemeral_component.py (directory "/tmp/tmp.AkGitoMuqo" and module name "ephemeral_component")
+    [KFP Executor 2026-09-22 19:04:13,649 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "repo_root": "/home/claude/work/exam-score-mlops"
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "Output": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/retrain-trigger-decision-component/Output"
+                }
+            },
+            "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/retrain-trigger-decision-component/executor_output.json"
+        }
+    }
+    
+    ==================================================================
+    Retraining decision: RETRAIN
+    ==================================================================
+    Reason: Performance decay confirmed with 270 new labeled rows (>= 20 required).
+    
+    Data drift detected:       True (numeric: ['study_hours', 'attendance_pct', 'mock_test_3']; categorical: none)
+    Performance decayed:       True (status=DECAYED)
+    New labeled rows:          270 (need >= 20)
+    
+    reason: Performance decay confirmed with 270 new labeled rows (>= 20 required).
+    [KFP Executor 2026-09-22 19:04:15,163 INFO]: Wrote executor output file to /home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/retrain-trigger-decision-component/executor_output.json.
+    
+
+19:04:15.175 - INFO - Task [96m'retrain-trigger-decision-component'[0m finished with status [92mSUCCESS[0m
+19:04:15.175 - INFO - Task [96m'retrain-trigger-decision-component'[0m outputs:
+    Output: 'RETRAIN'
+--------------------------------------------------------------------------------
+/home/claude/work/exam-score-mlops/.venv/lib/python3.11/site-packages/kfp/local/orchestrator/task_executor.py:100: UserWarning: Task 'retrain-and-promote-component': settings ['display_name'] have no effect in the current local runner and will be ignored.
+  _warn_local_only_noops(task_name, task_spec, executor_spec.container)
+19:04:15.176 - INFO - Executing task [96m'retrain-and-promote-component'[0m
+19:04:15.176 - INFO - Streamed logs:
+
+    [KFP Executor 2026-09-22 19:04:15,635 INFO]: Looking for component `retrain_and_promote_component` in --component_module_path `/tmp/tmp.k01XtEaVpd/ephemeral_component.py`
+    [KFP Executor 2026-09-22 19:04:15,635 INFO]: Loading KFP component "retrain_and_promote_component" from /tmp/tmp.k01XtEaVpd/ephemeral_component.py (directory "/tmp/tmp.k01XtEaVpd" and module name "ephemeral_component")
+    [KFP Executor 2026-09-22 19:04:15,636 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "data_path": "/home/claude/work/exam-score-mlops/data/scenarios/updated_training_data.csv",
+                "repo_root": "/home/claude/work/exam-score-mlops"
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "Output": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/retrain-and-promote-component/Output"
+                }
+            },
+            "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/retrain-and-promote-component/executor_output.json"
+        }
+    }
+    
+    [PROMOTED] candidate MLflow version 9
+      candidate metrics: {'r2': 0.8066332730292576, 'mae': 3.0747888727785626, 'rmse': 3.9428847893778167}
+      champion metrics:  {'r2': -5.471566195617021, 'mae': 21.709496692341624, 'rmse': 22.810138015106663}
+      quality bar (MAE <= 6.0): PASS
+      reason: MAE improved by 18.635 (champion=21.709, candidate=3.075, required>=0.05)
+    
+    candidate_mae: 3.0747888727785626
+    [KFP Executor 2026-09-22 19:04:23,083 INFO]: Wrote executor output file to /home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/retrain-and-promote-component/executor_output.json.
+    
+
+19:04:23.094 - INFO - Task [96m'retrain-and-promote-component'[0m finished with status [92mSUCCESS[0m
+19:04:23.094 - INFO - Task [96m'retrain-and-promote-component'[0m outputs:
+    Output: 'PROMOTED'
+--------------------------------------------------------------------------------
+/home/claude/work/exam-score-mlops/.venv/lib/python3.11/site-packages/kfp/local/orchestrator/task_executor.py:100: UserWarning: Task 'deployment-gate-component': settings ['display_name'] have no effect in the current local runner and will be ignored.
+  _warn_local_only_noops(task_name, task_spec, executor_spec.container)
+19:04:23.095 - INFO - Executing task [96m'deployment-gate-component'[0m
+19:04:23.096 - INFO - Streamed logs:
+
+    [KFP Executor 2026-09-22 19:04:23,549 INFO]: Looking for component `deployment_gate_component` in --component_module_path `/tmp/tmp.dA14fetbMo/ephemeral_component.py`
+    [KFP Executor 2026-09-22 19:04:23,549 INFO]: Loading KFP component "deployment_gate_component" from /tmp/tmp.dA14fetbMo/ephemeral_component.py (directory "/tmp/tmp.dA14fetbMo" and module name "ephemeral_component")
+    [KFP Executor 2026-09-22 19:04:23,550 INFO]: Got executor_input:
+    {
+        "inputs": {
+            "parameterValues": {
+                "repo_root": "/home/claude/work/exam-score-mlops",
+                "run_docker_build": false,
+                "promotion_decision": "PROMOTED"
+            }
+        },
+        "outputs": {
+            "parameters": {
+                "Output": {
+                    "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/deployment-gate-component/Output"
+                }
+            },
+            "outputFile": "/home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/deployment-gate-component/executor_output.json"
+        }
+    }
+    A new champion model was promoted (models/exam_score_pipeline.joblib updated).
+    Next, MANUAL steps (deliberately not automated -- see this component's docstring):
+      1. docker build -t <you>/exam-score-api:<new-tag> .
+      2. docker push <you>/exam-score-api:<new-tag>
+      3. Roll out the new image to wherever the API is actually running.
+    [KFP Executor 2026-09-22 19:04:23,552 INFO]: Wrote executor output file to /home/claude/work/exam-score-mlops/local_outputs/exam-score-mlops-pipeline-2026-09-22-19-04-02-368297/deployment-gate-component/executor_output.json.
+    
+
+19:04:23.562 - INFO - Task [96m'deployment-gate-component'[0m finished with status [92mSUCCESS[0m
+19:04:23.562 - INFO - Task [96m'deployment-gate-component'[0m outputs:
+    Output: 'PROMOTED_MANUAL_DEPLOY_PENDING'
+--------------------------------------------------------------------------------
+19:04:23.563 - INFO - Pipeline [95m'exam-score-mlops-pipeline'[0m finished with status [92mSUCCESS[0m
+
+Pipeline's retraining outcome: PROMOTED (this is Scenario 5: a candidate trained on data reflecting the new reality legitimately beats the stale champion and is PROMOTED).
+
+------------------------------------------------------------------------------
+STEP 19/20: Deploy the promoted model (models/exam_score_pipeline.joblib already swapped by src.retrain if promoted; restart the API process to pick it up).
+------------------------------------------------------------------------------
+API restarted with new model: {'status': 'ok', 'model_loaded': True, 'model_version': '1790103422238753263'}
+
+------------------------------------------------------------------------------
+STEP 20/20: Continue monitoring the newly deployed model.
+------------------------------------------------------------------------------
+Sent 50 requests successfully, 0 failed (normal traffic).
+Check monitoring/predictions.csv, then run: python -m src.drift
+
+{
+  "total_predictions": 500,
+  "success_count": 500,
+  "error_count": 0,
+  "avg_latency_ms": 12.62,
+  "avg_predicted_score": 76.13
+}
+
+
+[Resetting to a fresh, canonical champion before Part B's independent scenarios...]
+MLflow run: dfd6dbc97d54487e8d92149a2f98453a
+R2=0.807  MAE=3.91  RMSE=4.91
+Saved pipeline -> /home/claude/work/exam-score-mlops/models/exam_score_pipeline.joblib
+Saved evaluation report -> /home/claude/work/exam-score-mlops/reports/evaluation_report.json
+
+
+################################################################################
+# PART B: THE FIVE TEACHING SCENARIOS
+################################################################################
+
+================================================================================
+SCENARIO 1: No drift -> No retraining
+================================================================================
+Sent 120 requests successfully, 0 failed (normal traffic).
+Check monitoring/predictions.csv, then run: python -m src.drift
+
+
+Data drift report (KS test, p_value_threshold=0.05)
+--------------------------------------------------------------------
+feature                statistic     p_value       drift
+--------------------------------------------------------------------
+study_hours                0.066       0.802          NO
+attendance_pct             0.106       0.236          NO
+mock_test_1                0.103       0.260          NO
+mock_test_2                0.107       0.228          NO
+mock_test_3                0.147       0.033         YES
+shoe_size                  0.122       0.120          NO
+lucky_number               0.060       0.874          NO
+
+[ALERT] Drift detected in 1 feature(s): mock_test_3
+Reminder: statistical significance != business significance. Inspect the actual distributions before deciding this needs action (see src/retrain.py for how this project gates retraining decisions).
+
+Categorical drift report (chi-square test, p_value_threshold=0.05)
+------------------------------------------------------------------------------
+feature                 chi2     p_value     drift   new_categories
+------------------------------------------------------------------------------
+city                   0.357       0.949        NO   
+income_bracket         0.446       0.800        NO   
+
+No statistically significant categorical drift detected.
+
+
+==================================================================
+Retraining decision: NO_RETRAIN
+==================================================================
+Reason: Data drift detected, but performance has NOT meaningfully decayed -- input distribution changed without hurting real accuracy (yet). Keep monitoring; this is not, by itself, a reason to retrain.
+
+Data drift detected:       True (numeric: ['mock_test_3']; categorical: none)
+Performance decayed:       False (status=NO_LABELS_YET)
+New labeled rows:          0 (need >= 20)
+
+
+[VERIFIED] decision=NO_RETRAIN -- normal traffic, nothing to act on.
+
+================================================================================
+SCENARIO 2: Data drift -> Alert -> Performance still acceptable -> No retraining
+================================================================================
+Sent 150 requests successfully, 0 failed (drift-simulated traffic).
+Check monitoring/predictions.csv, then run: python -m src.drift
+
+
+Data drift report (KS test, p_value_threshold=0.05)
+--------------------------------------------------------------------
+feature                statistic     p_value       drift
+--------------------------------------------------------------------
+study_hours                0.669       0.000         YES
+attendance_pct             0.687       0.000         YES
+mock_test_1                0.072       0.591          NO
+mock_test_2                0.050       0.936          NO
+mock_test_3                0.112       0.123          NO
+shoe_size                  0.083       0.426          NO
+lucky_number               0.040       0.992          NO
+
+[ALERT] Drift detected in 2 feature(s): study_hours, attendance_pct
+Reminder: statistical significance != business significance. Inspect the actual distributions before deciding this needs action (see src/retrain.py for how this project gates retraining decisions).
+
+Categorical drift report (chi-square test, p_value_threshold=0.05)
+------------------------------------------------------------------------------
+feature                 chi2     p_value     drift   new_categories
+------------------------------------------------------------------------------
+city                   0.659       0.883        NO   
+income_bracket         0.063       0.969        NO   
+
+No statistically significant categorical drift detected.
+
+Sent 120 delayed labels using the UNCHANGED true relationship.
+
+==================================================================
+Model performance-decay report
+==================================================================
+Baseline (training-time held-out test set): MAE=3.91  RMSE=4.91  R2=0.807
+Recent   (120 labeled production predictions): MAE=2.98  RMSE=3.77  R2=0.717
+
+Status: OK
+Reason: Recent RMSE (3.77) is -1.14 vs. baseline (4.91); threshold is +2.00.
+
+
+==================================================================
+Retraining decision: NO_RETRAIN
+==================================================================
+Reason: Data drift detected, but performance has NOT meaningfully decayed -- input distribution changed without hurting real accuracy (yet). Keep monitoring; this is not, by itself, a reason to retrain.
+
+Data drift detected:       True (numeric: ['study_hours', 'attendance_pct']; categorical: none)
+Performance decayed:       False (status=OK)
+New labeled rows:          120 (need >= 20)
+
+
+[VERIFIED] decision=NO_RETRAIN -- drift alone did not trigger a retrain.
+
+================================================================================
+SCENARIO 3: Data drift + Performance degradation -> Retraining (see Part A above)
+================================================================================
+Already demonstrated end to end in Part A (steps 5-19): drift was detected, concept drift then caused real performance decay, and the retraining trigger correctly fired (src/retrain_decision.py's decision=RETRAIN).
+
+================================================================================
+SCENARIO 4: Retraining produces a WORSE (not-better) model -> Candidate REJECTED
+================================================================================
+Retraining on the SAME, unmodified original training data (no new information, and NOT the updated data Part A used) should not beat the existing champion by the required margin -- src/retrain.py's own promotion gate should reject it.
+
+[REJECTED] candidate MLflow version 11
+  candidate metrics: {'r2': 0.807276222024603, 'mae': 3.90770170253569, 'rmse': 4.90819459175384}
+  champion metrics:  {'r2': 0.807276222024603, 'mae': 3.90770170253569, 'rmse': 4.90819459175384}
+  quality bar (MAE <= 6.0): PASS
+  reason: MAE improved by 0.000 (champion=3.908, candidate=3.908, required>=0.05)
+
+[VERIFIED] decision=REJECTED (REJECTED is the expected, correct outcome here -- retraining on the same old data the champion already knows cannot legitimately clear the min-improvement bar).
+
+================================================================================
+SCENARIO 5: Retraining produces a BETTER model -> Candidate PROMOTED
+================================================================================
+Already demonstrated, genuinely, in Part A (step 18): a candidate trained on data that actually reflects the new (concept-drifted) relationship was evaluated against the STALE champion (which only ever knew the OLD relationship) on the same held-out split. The candidate legitimately cleared the promotion gate's min-improvement bar and was PROMOTED -- see Part A's printed retrain report above for the exact champion vs. candidate MAE.
+
+################################################################################
+# CLASSROOM DEMO COMPLETE
+################################################################################
+Key teaching point reinforced throughout: DRIFT DETECTED != AUTOMATIC RETRAINING. Retraining happened exactly once (Part A / Scenario 3), only after BOTH data drift AND confirmed performance decay -- never from drift alone (Scenario 2), and a retrain that could not legitimately improve on the champion was correctly rejected (Scenario 4).

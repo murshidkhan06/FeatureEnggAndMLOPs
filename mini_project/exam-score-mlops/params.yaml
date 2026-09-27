@@ -1,0 +1,84 @@
+# params.yaml
+#
+# WHY this file exists: hardcoding numbers like `test_size=0.2` or `alpha=0.3` inside
+# Python means every experiment requires editing code. Pulling them into one YAML file
+# means: (1) DVC can detect "a parameter changed" and know the pipeline needs to re-run,
+# (2) MLflow can log exactly what configuration produced a given run, and (3) anyone
+# reproducing your results changes ONE file, not several scattered constants.
+
+data:
+  raw_path: "data/raw/student_exam_scores.csv"
+  target_column: "final_score"
+  id_column: "student_id"
+
+split:
+  test_size: 0.2
+  random_state: 42
+
+preprocessing:
+  numeric_impute_strategy: "median"
+  mock_test_columns: ["mock_test_1", "mock_test_2", "mock_test_3"]
+  nominal_columns: ["city"]
+  ordinal_columns: ["income_bracket"]
+  ordinal_categories: ["Low", "Medium", "High"]
+
+pca:
+  n_components: 1
+  random_state: 42
+
+feature_selection:
+  lasso_alpha: 0.3
+  random_state: 42
+
+model:
+  type: "LinearRegression"
+
+evaluation:
+  # a candidate model must beat this MAE (on the held-out test set) to be considered
+  # "acceptable" at all -- used by retrain.py's promotion gate, not by train.py itself.
+  max_acceptable_mae: 6.0
+
+mlflow:
+  tracking_uri: "sqlite:///mlflow.db"
+  experiment_name: "exam_score_prediction"
+  registered_model_name: "exam_score_predictor"
+
+drift:
+  # KS-test significance threshold: a feature is flagged as "drifted" when p_value < this.
+  # NOTE: this is a *statistical* significance threshold, not a business-impact threshold --
+  # see src/drift.py and the README for why the two are not the same thing.
+  ks_p_value_threshold: 0.05
+  # Categorical drift (src/drift.py's categorical check): chi-square test significance
+  # threshold, and which raw categorical columns to compare (same idea as the numeric
+  # KS test above, but for frequency tables instead of continuous distributions).
+  categorical_p_value_threshold: 0.05
+  categorical_columns: ["city", "income_bracket"]
+
+performance:
+  # Model performance-decay monitoring (src/performance_monitor.py) -- DIFFERENT from
+  # data drift: this compares ACTUAL prediction accuracy (requires delayed labels) against
+  # the model's own baseline test-set performance, not input distributions.
+  # A recent-window RMSE this many points above the training-time baseline RMSE is flagged.
+  max_rmse_increase: 2.0
+  # Minimum number of (prediction, actual_label) pairs required before a performance
+  # report is considered statistically meaningful rather than noise.
+  min_labeled_samples: 20
+
+alerting:
+  # Threshold-based alerts (src/alerts.py). Deliberately reuses the SAME thresholds drift/
+  # performance monitoring already use, rather than inventing separate alert-only numbers --
+  # one source of truth for "what counts as a problem" per metric.
+  api_error_rate_threshold: 0.05
+
+retraining:
+  # A retrained model is only promoted to production if it improves MAE by at least this
+  # much AND still passes evaluation.max_acceptable_mae. Prevents "drift detected" alone
+  # from triggering a swap to a model that isn't actually better.
+  min_mae_improvement: 0.05
+  # Trigger-based retraining gate (src/retrain_decision.py): retraining is only
+  # RECOMMENDED when a REAL performance problem is confirmed, not merely because drift
+  # was flagged. See src/retrain_decision.py's docstring for the full decision table.
+  require_performance_decay_to_trigger: true
+  # A drift/performance check needs at least this many new labeled production rows to be
+  # trusted at all -- avoids triggering a costly retrain off five noisy data points.
+  min_new_rows_to_consider_retrain: 20

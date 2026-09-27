@@ -1,0 +1,24 @@
+# dvc.yaml
+#
+# Defines the ML TRAINING pipeline as a DAG that DVC can reproduce and cache. This is
+# deliberately separate from the "just run python -m src.train" workflow described in
+# README's Quickstart -- both work, but dvc.yaml is what lets `dvc repro` know to SKIP
+# retraining when nothing relevant (data, code, or params) has actually changed, and lets
+# a teammate reproduce your exact result with one command.
+stages:
+  train:
+    cmd: python -m src.train
+    deps:
+      - data/raw/student_exam_scores.csv
+      - src/train.py
+      - src/pipeline_builder.py
+      - src/features.py
+      - src/data_processing.py
+      - src/evaluate.py
+    params:
+      - params.yaml:
+    outs:
+      - models/exam_score_pipeline.joblib
+    metrics:
+      - reports/evaluation_report.json:
+          cache: false

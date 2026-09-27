@@ -1,0 +1,18 @@
+# requirements-dev.txt
+#
+# Extra tooling needed for DEVELOPMENT and the classroom exercises, but not needed to run
+# the deployed API -- kept separate from requirements.txt so the Docker image (PHASE 13)
+# doesn't have to carry test/versioning tooling it will never use at runtime.
+-r requirements.txt
+
+# Testing
+pytest==9.1.1
+pytest-cov
+
+# Dataset versioning
+dvc==3.67.1
+
+# Notebook + plotting (used by notebooks/exam_score_pipeline.ipynb)
+matplotlib==3.11.2
+jupyter
+ipykernel

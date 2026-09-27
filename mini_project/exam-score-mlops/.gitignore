@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+*.egg
+
+# Data (tracked by DVC instead, see data/raw/student_exam_scores.csv.dvc)
+/data/raw/student_exam_scores.csv
+/data/processed/*
+!/data/processed/.gitkeep
+/data/reference/*
+!/data/reference/.gitkeep
+
+# Models (tracked by DVC / MLflow artifacts, not committed to Git directly)
+/models/*.joblib
+
+# MLflow
+mlruns/
+mlflow.db
+mlartifacts/
+
+# Monitoring / reports (generated at runtime)
+/monitoring/predictions.csv
+/monitoring/labels.csv
+/monitoring/*.log
+/reports/*.json
+/reports/*.csv
+
+# Unit 4: Kubeflow local-run outputs, compiled pipeline spec (regenerate with
+# `python -m kubeflow.compile_pipeline`), and generated demo/scenario data
+/local_outputs/
+/kubeflow/pipeline.yaml
+/data/scenarios/
+
+# Env / secrets
+.env
+*.env.local
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Docker
+*.pyc

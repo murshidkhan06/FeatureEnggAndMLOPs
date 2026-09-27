@@ -1,0 +1,28 @@
+# requirements.txt
+#
+# Core dependencies needed to TRAIN and SERVE this project -- this is what gets installed
+# both in a student's local venv and inside the Docker image. Versions are pinned to what
+# this project was actually built and tested against (PHASE 7: "pin important dependencies
+# sufficiently for reproducibility" -- an unpinned `scikit-learn` can silently change
+# imputer/encoder defaults between versions and quietly break a saved pipeline).
+
+# Core ML / data
+pandas==3.0.5
+numpy==2.4.6
+scikit-learn==1.9.1
+scipy==1.17.1
+joblib==1.6.0
+
+# Config
+PyYAML==6.0.3
+
+# Experiment tracking / registry
+mlflow==3.16.0
+
+# API layer
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+pydantic==2.13.5
+
+# Used by src/generate_traffic.py (and the test suite's TestClient) to make HTTP requests
+httpx==0.28.1

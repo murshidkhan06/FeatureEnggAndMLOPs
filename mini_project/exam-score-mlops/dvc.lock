@@ -1,0 +1,79 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python -m src.train
+    deps:
+    - path: data/raw/student_exam_scores.csv
+      hash: md5
+      md5: d541d1db4e87e654ebd80f5e662b0f84
+      size: 31966
+    - path: src/data_processing.py
+      hash: md5
+      md5: 25fe686e3a20c373711fe019d6a4b484
+      size: 4151
+    - path: src/evaluate.py
+      hash: md5
+      md5: aba55b33f03fa724193194f5d9ef26ed
+      size: 1501
+    - path: src/features.py
+      hash: md5
+      md5: df26f641d988ece359c95eaa91ebde12
+      size: 2023
+    - path: src/pipeline_builder.py
+      hash: md5
+      md5: d182413d312c7473bb608f6cfdb96698
+      size: 3684
+    - path: src/train.py
+      hash: md5
+      md5: 52de8e73b3808783e8cec83964327082
+      size: 6174
+    params:
+      params.yaml:
+        data:
+          raw_path: data/raw/student_exam_scores.csv
+          target_column: final_score
+          id_column: student_id
+        drift:
+          ks_p_value_threshold: 0.05
+        evaluation:
+          max_acceptable_mae: 6.0
+        feature_selection:
+          lasso_alpha: 0.3
+          random_state: 42
+        mlflow:
+          tracking_uri: sqlite:///mlflow.db
+          experiment_name: exam_score_prediction
+          registered_model_name: exam_score_predictor
+        model:
+          type: LinearRegression
+        pca:
+          n_components: 1
+          random_state: 42
+        preprocessing:
+          numeric_impute_strategy: median
+          mock_test_columns:
+          - mock_test_1
+          - mock_test_2
+          - mock_test_3
+          nominal_columns:
+          - city
+          ordinal_columns:
+          - income_bracket
+          ordinal_categories:
+          - Low
+          - Medium
+          - High
+        retraining:
+          min_mae_improvement: 0.05
+        split:
+          test_size: 0.2
+          random_state: 42
+    outs:
+    - path: models/exam_score_pipeline.joblib
+      hash: md5
+      md5: 0d4538dbaf3efdf356370e4f82fa4e22
+      size: 7738
+    - path: reports/evaluation_report.json
+      hash: md5
+      md5: 1f61974bf3a34889c83c50617fbafa0a
+      size: 679

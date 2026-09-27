@@ -1,0 +1,35 @@
+# docker-compose.yml
+#
+# PHASE 27: runs multiple containers together for local demonstration. Docker = packaging
+# ONE application into ONE container; Docker Compose = running several of those together
+# (here: the prediction API + a local MLflow UI) with one command, instead of juggling
+# several `docker run` invocations by hand.
+#
+# Usage:
+#     docker compose up --build
+#     -> API:        http://localhost:8000/docs
+#     -> MLflow UI:  http://localhost:5000
+
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      # mounted so predictions logged inside the container are visible on the host too --
+      # useful for running src/drift.py against them without reaching into the container
+      - ./monitoring:/app/monitoring
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  mlflow-ui:
+    build: .
+    command: ["mlflow", "ui", "--backend-store-uri", "sqlite:///mlflow.db", "--host", "0.0.0.0", "--port", "5000"]
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlflow.db:/app/mlflow.db
+      - ./mlartifacts:/app/mlartifacts
