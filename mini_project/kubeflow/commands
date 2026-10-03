@@ -1,0 +1,16 @@
+python3 -m venv .venv-kubeflow
+source .venv-kubeflow/bin/activate
+pip install kfp
+--> Install minikube
+-- Install kubectl
+kubectl cluster-info  
+export PIPELINE_VERSION=2.17.0
+
+kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
+kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
+kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic?ref=$PIPELINE_VERSION"
+
+kubectl get all -n kubeflow
+kubectl port-forward -n kubeflow svc/ml-pipeline-ui 8080:80
+python kubeflow_pipeline.py 
+kfp pipeline create -p IrisProject kubeflow_pipeline.yaml
