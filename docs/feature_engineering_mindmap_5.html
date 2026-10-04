@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Feature Engineering &amp; MLOps — Course Mind Map</title>
+<style>
+  :root {
+    --teal-dark: #0B3D3F;
+    --teal: #028090;
+    --teal-light: #E8F4F3;
+    --blue: #185FA5;
+    --blue-light: #E8F1FB;
+    --coral: #B5451B;
+    --coral-light: #FBEDE7;
+    --purple: #5A3E9B;
+    --purple-light: #F1EDFB;
+    --pink: #99355B;
+    --pink-light: #FBEAF0;
+    --amber: #A66B00;
+    --amber-light: #FBF1E0;
+
+    --slate: #3E4C59;
+    --slate-light: #EDF0F2;
+    --indigo: #3D4FA0;
+    --indigo-light: #EEF0FB;
+    --emerald: #1B7A5B;
+    --emerald-light: #E7F5EF;
+    --cyan: #0E7C90;
+    --cyan-light: #E5F5F7;
+    --rust: #C1571A;
+    --rust-light: #FBEEE3;
+    --crimson: #A23B3B;
+    --crimson-light: #FBEAEA;
+    --navy: #1F2A44;
+
+    --graphite: #2D3748;
+    --graphite-light: #EDEFF3;
+    --flame: #C9421B;
+    --flame-light: #FCEBE4;
+    --plum: #7A2E6E;
+    --plum-light: #F6EAF3;
+    --kf: #3F6FD8;
+    --kf-light: #EAF0FC;
+    --olive: #4F7A1F;
+    --olive-light: #EEF5E4;
+    --sec: #8B1E3F;
+    --sec-light: #FAE8EE;
+
+    --ink: #24312F;
+    --muted: #5B6B69;
+    --paper: #FAF9F6;
+    --line: #D8DEDC;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 40px 32px 64px;
+    background: var(--paper);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+  }
+
+  .page-title { text-align: center; margin-bottom: 4px; }
+  .page-title h1 { font-size: 27px; font-weight: 700; color: var(--teal-dark); margin: 0; letter-spacing: 0.2px; }
+  .page-title p { color: var(--muted); font-size: 13.5px; margin: 6px 0 0; font-style: italic; }
+
+  .dataset-banner {
+    max-width: 780px;
+    margin: 22px auto 0;
+    background: #fff;
+    border: 1.5px dashed var(--teal);
+    border-radius: 10px;
+    padding: 12px 18px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--ink);
+  }
+  .dataset-banner b { color: var(--teal-dark); }
+  .dataset-banner .cols {
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    margin-top: 5px;
+  }
+  .dataset-banner.ops { border-color: var(--rust); }
+  .dataset-banner.ops b { color: var(--rust); }
+
+  .root-wrap { display: flex; justify-content: center; margin: 32px 0 0; }
+  .root-node {
+    background: var(--teal-dark);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 16px 40px;
+    border-radius: 12px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.08);
+    letter-spacing: 0.3px;
+  }
+  .root-node.ops { background: var(--navy); }
+
+  .trunk { width: 2px; height: 28px; background: var(--line); margin: 0 auto; }
+
+  .category-row {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    position: relative;
+    align-items: flex-start;
+  }
+  .category-row::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 12.5%;
+    right: 12.5%;
+    height: 2px;
+    background: var(--line);
+  }
+  .category-col {
+    flex: 1 1 0;
+    max-width: 250px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 9px;
+  }
+  .cat-stem { width: 2px; height: 20px; background: var(--line); }
+
+  .category-header {
+    width: 100%;
+    text-align: center;
+    padding: 12px 10px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14.5px;
+    line-height: 1.3;
+    margin-bottom: 18px;
+    position: sticky;
+    top: 10px;
+    z-index: 2;
+  }
+  .category-header .num {
+    display: block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    opacity: 0.75;
+    margin-bottom: 4px;
+  }
+
+  .cat-foundations .category-header { background: var(--teal); color: #fff; }
+  .cat-prep .category-header        { background: var(--blue); color: #fff; }
+  .cat-creation .category-header    { background: var(--coral); color: #fff; }
+  .cat-selection .category-header   { background: var(--purple); color: #fff; }
+  .cat-reduction .category-header   { background: var(--pink); color: #fff; }
+  .cat-applied .category-header     { background: var(--amber); color: #fff; }
+
+  .cat-lifecycle .category-header { background: var(--slate); color: #fff; }
+  .cat-version .category-header   { background: var(--indigo); color: #fff; }
+  .cat-tracking .category-header  { background: var(--emerald); color: #fff; }
+  .cat-serving .category-header   { background: var(--cyan); color: #fff; }
+  .cat-deploy .category-header    { background: var(--rust); color: #fff; }
+  .cat-monitor .category-header   { background: var(--crimson); color: #fff; }
+
+  .topic-card {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 13px 10px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .cat-foundations .topic-card { border-top: 4px solid var(--teal); }
+  .cat-prep .topic-card        { border-top: 4px solid var(--blue); }
+  .cat-creation .topic-card    { border-top: 4px solid var(--coral); }
+  .cat-selection .topic-card   { border-top: 4px solid var(--purple); }
+  .cat-reduction .topic-card   { border-top: 4px solid var(--pink); }
+  .cat-applied .topic-card     { border-top: 4px solid var(--amber); }
+
+  .cat-lifecycle .topic-card { border-top: 4px solid var(--slate); }
+  .cat-version .topic-card   { border-top: 4px solid var(--indigo); }
+  .cat-tracking .topic-card  { border-top: 4px solid var(--emerald); }
+  .cat-serving .topic-card   { border-top: 4px solid var(--cyan); }
+  .cat-deploy .topic-card    { border-top: 4px solid var(--rust); }
+  .cat-monitor .topic-card   { border-top: 4px solid var(--crimson); }
+
+  .topic-title { font-weight: 700; font-size: 13.5px; margin: 0 0 3px; color: var(--ink); }
+  .topic-analogy { font-size: 11.5px; font-style: italic; color: var(--muted); margin: 0 0 9px; line-height: 1.35; }
+
+  .subitem-list { display: flex; flex-direction: column; gap: 7px; }
+  .subitem { border-radius: 7px; padding: 5px 8px; }
+  .cat-foundations .subitem { background: var(--teal-light); }
+  .cat-prep .subitem        { background: var(--blue-light); }
+  .cat-creation .subitem    { background: var(--coral-light); }
+  .cat-selection .subitem   { background: var(--purple-light); }
+  .cat-reduction .subitem   { background: var(--pink-light); }
+  .cat-applied .subitem     { background: var(--amber-light); }
+
+  .cat-lifecycle .subitem { background: var(--slate-light); }
+  .cat-version .subitem   { background: var(--indigo-light); }
+  .cat-tracking .subitem  { background: var(--emerald-light); }
+  .cat-serving .subitem   { background: var(--cyan-light); }
+  .cat-deploy .subitem    { background: var(--rust-light); }
+  .cat-monitor .subitem   { background: var(--crimson-light); }
+
+  .subitem-name { font-size: 11.5px; font-weight: 700; margin: 0 0 2px; }
+  .cat-foundations .subitem-name { color: var(--teal-dark); }
+  .cat-prep .subitem-name        { color: var(--blue); }
+  .cat-creation .subitem-name    { color: var(--coral); }
+  .cat-selection .subitem-name   { color: var(--purple); }
+  .cat-reduction .subitem-name   { color: var(--pink); }
+  .cat-applied .subitem-name     { color: var(--amber); }
+
+  .cat-lifecycle .subitem-name { color: var(--slate); }
+  .cat-version .subitem-name   { color: var(--indigo); }
+  .cat-tracking .subitem-name  { color: var(--emerald); }
+  .cat-serving .subitem-name   { color: var(--cyan); }
+  .cat-deploy .subitem-name    { color: var(--rust); }
+  .cat-monitor .subitem-name   { color: var(--crimson); }
+
+  .subitem-example {
+    font-size: 10.5px;
+    font-family: "Consolas", "Courier New", monospace;
+    color: var(--ink);
+    line-height: 1.35;
+    margin: 0;
+  }
+  .subitem-example b { font-family: inherit; }
+
+  /* --- third row: automate, observe, govern --- */
+  .row-ops2 .subitem-example { overflow-wrap: anywhere; }
+  .cat-cicd .category-header { background: var(--graphite); color: #fff; }
+  .cat-prom .category-header { background: var(--flame); color: #fff; }
+  .cat-gov .category-header  { background: var(--plum); color: #fff; }
+  .cat-next .category-header { background: #fff; color: var(--kf); border: 2px dashed var(--kf); }
+  .cat-cicd .topic-card { border-top: 4px solid var(--graphite); }
+  .cat-prom .topic-card { border-top: 4px solid var(--flame); }
+  .cat-gov .topic-card  { border-top: 4px solid var(--plum); }
+  .cat-next .topic-card { border: 1.5px dashed var(--kf); border-top: 4px dashed var(--kf); background: #FCFDFF; }
+  .cat-cicd .subitem { background: var(--graphite-light); }
+  .cat-prom .subitem { background: var(--flame-light); }
+  .cat-gov .subitem  { background: var(--plum-light); }
+  .cat-next .subitem { background: var(--kf-light); }
+  .cat-cicd .subitem-name { color: var(--graphite); }
+  .cat-prom .subitem-name { color: var(--flame); }
+  .cat-gov .subitem-name  { color: var(--plum); }
+  .cat-next .subitem-name { color: var(--kf); }
+  .dataset-banner.ops2 { border-color: var(--plum); }
+  .dataset-banner.ops2 b { color: var(--plum); }
+  .new-tag {
+    display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;
+    color: #fff; background: var(--flame); border-radius: 4px; padding: 1px 5px;
+    margin-left: 5px; vertical-align: 2px; font-style: normal;
+  }
+  .soon-tag {
+    display: inline-block; font-size: 9.5px; font-weight: 700; letter-spacing: 1px;
+    color: var(--kf); border: 1px solid var(--kf); border-radius: 4px; padding: 0 5px;
+    margin-left: 5px; vertical-align: 2px;
+  }
+  .cat-pipe .category-header { background: var(--kf); color: #fff; }
+  .cat-xai .category-header  { background: var(--olive); color: #fff; }
+  .cat-sec .category-header  { background: var(--sec); color: #fff; }
+  .cat-pipe .topic-card { border-top: 4px solid var(--kf); }
+  .cat-xai .topic-card  { border-top: 4px solid var(--olive); }
+  .cat-sec .topic-card  { border-top: 4px solid var(--sec); }
+  .cat-pipe .subitem { background: var(--kf-light); }
+  .cat-xai .subitem  { background: var(--olive-light); }
+  .cat-sec .subitem  { background: var(--sec-light); }
+  .cat-pipe .subitem-name { color: var(--kf); }
+  .cat-xai .subitem-name  { color: var(--olive); }
+  .cat-sec .subitem-name  { color: var(--sec); }
+  .whatsnew {
+    max-width: 1100px; margin: 22px auto 0; background: #fff; border: 2px solid var(--flame);
+    border-radius: 12px; padding: 14px 18px; text-align: center;
+  }
+  .whatsnew-title { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--flame); margin: 0 0 10px; }
+  .whatsnew-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .whatsnew a {
+    text-decoration: none; font-size: 12.5px; font-weight: 700; color: #fff;
+    padding: 7px 12px; border-radius: 8px; display: inline-block;
+  }
+  .whatsnew-note { font-size: 11.5px; color: var(--muted); margin: 10px 0 0; }
+  .legend-key { display: inline-flex; gap: 18px; justify-content: center; margin-top: 10px; font-size: 11.5px; }
+  .lifecycle-node.gov  { border-color: var(--plum); color: var(--plum); background: var(--plum-light); }
+  .lifecycle-node.cicd { border-color: var(--graphite); color: var(--graphite); background: var(--graphite-light); }
+  .lifecycle-node.prom { border-color: var(--flame); color: var(--flame); background: var(--flame-light); }
+
+  /* --- lifecycle connector strip between the two halves --- */
+  .lifecycle-wrap { max-width: 1180px; margin: 52px auto 0; text-align: center; }
+  .lifecycle-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 6px;
+  }
+  .lifecycle-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 18px; font-style: italic; }
+  .lifecycle-strip {
+    display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 3px 2px;
+  }
+  .lifecycle-node {
+    background: #fff; border: 1.5px solid var(--line); border-radius: 9px;
+    padding: 8px 11px; font-size: 11px; font-weight: 700; color: var(--ink);
+    white-space: nowrap;
+  }
+  .lifecycle-node.fe   { border-color: var(--teal); color: var(--teal-dark); background: var(--teal-light); }
+  .lifecycle-node.ops  { border-color: var(--rust); color: var(--rust); background: var(--rust-light); }
+  .lifecycle-node.loop {
+    border: 1.5px dashed var(--crimson); color: var(--crimson); background: var(--crimson-light);
+  }
+  .lifecycle-arrow { color: var(--muted); font-size: 14px; padding: 0 1px; }
+  .lifecycle-loop-note {
+    max-width: 640px; margin: 14px auto 0; font-size: 11.5px; color: var(--muted); line-height: 1.5;
+  }
+
+  .legend {
+    max-width: 920px;
+    margin: 40px auto 0;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    line-height: 1.6;
+  }
+  .legend + .legend { margin-top: 20px; border-top: none; padding-top: 0; }
+
+  @media print {
+    body { padding: 12px; }
+    .category-row { flex-wrap: wrap; }
+    .category-col { max-width: 32%; flex: 1 1 32%; margin-bottom: 20px; }
+    .category-header { position: static; }
+  }
+
+  @media (max-width: 1150px) {
+    .category-row { flex-wrap: wrap; }
+    .category-row::before { display: none; }
+    .category-col { max-width: 46%; flex: 1 1 46%; margin-bottom: 24px; }
+    .cat-stem { display: none; }
+    .category-header { position: static; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="page-title">
+    <h1>Feature Engineering &amp; MLOps — Course Mind Map</h1>
+    <p>Two connected halves — 22 Feature Engineering topics + 42 MLOps topics, 18 phases — from raw data to an automated, observed and governed production system</p>
+    <div class="legend-key"><span><span class="new-tag">NEW</span> added or expanded since the last map</span></div>
+  </div>
+
+  <div class="whatsnew">
+    <p class="whatsnew-title">What's new in this version · click to jump</p>
+    <div class="whatsnew-links">
+      <a href="#p13" style="background:var(--graphite)">13 · CI/CD with GitHub Actions</a>
+      <a href="#p14" style="background:var(--flame)">14 · Prometheus &amp; Grafana</a>
+      <a href="#p15" style="background:var(--kf)">15 · Pipelines &amp; Kubeflow</a>
+      <a href="#p16" style="background:var(--plum)">16 · Governance</a>
+      <a href="#p17" style="background:var(--olive)">17 · Explainability (SHAP, LIME)</a>
+      <a href="#p18" style="background:var(--sec)">18 · ML Security (incl. model theft)</a>
+    </div>
+    <p class="whatsnew-note">Also expanded: MLflow tracking &amp; registry (Phase 9) · Docker Hub (Phase 11). The new phases are in the third row at the bottom of the map.</p>
+  </div>
+
+  <div class="dataset-banner">
+    <b>Running example — Feature Engineering half:</b> a coaching-institute "Student Exam Performance" dataset
+    <span class="cols">student_id · city · course · study_hours · attendance_pct · income_bracket · mock_test_1/2/3 · exam_date · final_score</span>
+  </div>
+
+  <div class="root-wrap"><div class="root-node">Feature Engineering</div></div>
+  <div class="trunk"></div>
+
+  <div class="category-row">
+
+    <div class="category-col cat-foundations">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 1</span>Foundations</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Intro to Feature Engineering</p>
+        <p class="topic-analogy">Features are the model's only vocabulary</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">ML lifecycle</p><p class="subitem-example">data → features → model → prediction → feedback</p></div>
+          <div class="subitem"><p class="subitem-name">Bias–variance</p><p class="subitem-example">too few features underfits; too many noisy ones overfits</p></div>
+          <div class="subitem"><p class="subitem-name">Raw vs engineered</p><p class="subitem-example"><b>enrollment_date</b> (raw) → <b>tenure_days</b> (engineered)</p></div>
+          <div class="subitem"><p class="subitem-name">FE vs feature learning</p><p class="subitem-example">you engineer tenure_days; a CNN would learn features from raw pixels</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Data → Feature → Model Pipeline</p>
+        <p class="topic-analogy">One reusable recipe, not loose notebook steps</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Ingestion</p><p class="subitem-example">reading student_performance_raw.csv</p></div>
+          <div class="subitem"><p class="subitem-name">Preprocessing</p><p class="subitem-example">fixing types, trimming stray spaces in city names</p></div>
+          <div class="subitem"><p class="subitem-name">Train/test split</p><p class="subitem-example">80% train / 20% test — split before scaling anything</p></div>
+          <div class="subitem"><p class="subitem-name">Pipeline automation</p><p class="subitem-example">one Pipeline object reused for every new student</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Types</p>
+        <p class="topic-analogy">Sorting the toy box before playing with it</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Numerical</p><p class="subitem-example"><b>attendance_pct</b>, <b>study_hours</b></p></div>
+          <div class="subitem"><p class="subitem-name">Categorical</p><p class="subitem-example"><b>city</b>, <b>course</b>, <b>income_bracket</b></p></div>
+          <div class="subitem"><p class="subitem-name">Binary / text / image</p><p class="subitem-example"><b>passed</b> (0/1), <b>feedback_text</b></p></div>
+          <div class="subitem"><p class="subitem-name">Derived vs raw</p><p class="subitem-example"><b>tenure_days</b> (derived) from <b>enrollment_date</b> (raw)</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-prep">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 2</span>Cleaning &amp; Prep</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Missing Values</p>
+        <p class="topic-analogy">Why matters more than what to fill in</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">MCAR / MAR / MNAR</p><p class="subitem-example">study_hours missing at random vs mock_test_3 missing for low scorers</p></div>
+          <div class="subitem"><p class="subitem-name">Mean / median / mode</p><p class="subitem-example">fill study_hours with its median</p></div>
+          <div class="subitem"><p class="subitem-name">Conditional impute</p><p class="subitem-example">fill prev_score using the median for that attendance bucket</p></div>
+          <div class="subitem"><p class="subitem-name">Missing indicator</p><p class="subitem-example"><b>mock_test_3_was_missing</b> flag column</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Scaling Techniques</p>
+        <p class="topic-analogy">Fair comparison needs the same-size ruler</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">StandardScaler</p><p class="subitem-example">z-score attendance_pct around its mean</p></div>
+          <div class="subitem"><p class="subitem-name">MinMaxScaler</p><p class="subitem-example">squeeze study_hours into a 0–1 range</p></div>
+          <div class="subitem"><p class="subitem-name">RobustScaler</p><p class="subitem-example">scale age using median/IQR despite two typo outliers</p></div>
+          <div class="subitem"><p class="subitem-name">Distance/gradient models</p><p class="subitem-example">KNN needs scaling; a Decision Tree doesn't</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Categorical Encoding</p>
+        <p class="topic-analogy">Turning words into numbers, without lying</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">One-hot</p><p class="subitem-example">city → city_Mumbai, city_Delhi, ...</p></div>
+          <div class="subitem"><p class="subitem-name">Label / ordinal</p><p class="subitem-example">income_bracket → 0,1,2,3 (a real order)</p></div>
+          <div class="subitem"><p class="subitem-name">Target / mean</p><p class="subitem-example">school_name → its average final_score</p></div>
+          <div class="subitem"><p class="subitem-name">Leakage risk</p><p class="subitem-example">compute that average from TRAIN rows only</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Transformations</p>
+        <p class="topic-analogy">Squishing a lopsided spike into a round hill</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Log / sqrt</p><p class="subitem-example">log(study_hours + 1)</p></div>
+          <div class="subitem"><p class="subitem-name">Box-Cox</p><p class="subitem-example">auto-picks the best power transform (needs positive values)</p></div>
+          <div class="subitem"><p class="subitem-name">Yeo-Johnson</p><p class="subitem-example">works even with a column that has negative values</p></div>
+          <div class="subitem"><p class="subitem-name">Skew correction</p><p class="subitem-example">study_hours' long right tail, fixed</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-creation">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 3</span>Feature Creation</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Time-based Features</p>
+        <p class="topic-analogy">A diary: yesterday, this week, and the seasons</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Lag features</p><p class="subitem-example">yesterday's attendance → lag_1</p></div>
+          <div class="subitem"><p class="subitem-name">Rolling mean/std</p><p class="subitem-example">7-day rolling average mock score</p></div>
+          <div class="subitem"><p class="subitem-name">Cyclical sin/cos</p><p class="subitem-example">Monday and Sunday sit next to each other on a circle</p></div>
+          <div class="subitem"><p class="subitem-name">Trend &amp; seasonality</p><p class="subitem-example">scores dip every festival season, rise every year overall</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Creation</p>
+        <p class="topic-analogy">Fruit salad: new flavor from combining ingredients</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Polynomial features</p><p class="subitem-example">study_hours² captures diminishing returns</p></div>
+          <div class="subitem"><p class="subitem-name">Interaction terms</p><p class="subitem-example">study_hours × attendance_pct</p></div>
+          <div class="subitem"><p class="subitem-name">Cross-features</p><p class="subitem-example">income_bracket + course combined into one group</p></div>
+          <div class="subitem"><p class="subitem-name">Curse of dimensionality</p><p class="subitem-example">100 students spread across 50 new features = too sparse</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Text Features</p>
+        <p class="topic-analogy">A checklist of words instead of a sentence a model can't read</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Text normalization</p><p class="subitem-example">"Great!!!" and "great" → the same word</p></div>
+          <div class="subitem"><p class="subitem-name">Bag of Words</p><p class="subitem-example">count every word in each student's <b>feedback_text</b></p></div>
+          <div class="subitem"><p class="subitem-name">TF-IDF</p><p class="subitem-example">"itm" (in 4/5 reviews) scores low; "mba" (in 1/5) scores high</p></div>
+          <div class="subitem"><p class="subitem-name">N-grams</p><p class="subitem-example">"not good" ≠ "good" — bigrams catch the pair</p></div>
+          <div class="subitem"><p class="subitem-name">Sparsity</p><p class="subitem-example">500 students × 300 vocabulary words = mostly zeros</p></div>
+          <div class="subitem"><p class="subitem-name">Vocabulary pruning</p><p class="subitem-example">drop words seen in only 1 review, or in almost all of them</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Image Features</p>
+        <p class="topic-analogy">Teaching a model to see: a photo turned into numbers</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Pixels as features</p><p class="subitem-example">an 8×8 digit photo → 64 plain numbers</p></div>
+          <div class="subitem"><p class="subitem-name">HOG descriptors</p><p class="subitem-example">"which direction do the edges point?" — 98.2% vs 96.2% for raw pixels</p></div>
+          <div class="subitem"><p class="subitem-name">CNN features</p><p class="subitem-example">the network learns its own edges and shapes — no hand-crafting</p></div>
+          <div class="subitem"><p class="subitem-name">Transfer learning</p><p class="subitem-example">reusing conv layers from digits 0-4 to learn digits 5-9 faster</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Business Features</p>
+        <p class="topic-analogy">Good features start with the business, not the code</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">RFM features</p><p class="subitem-example">Recency, Frequency, Monetary — how recent, how often, how much</p></div>
+          <div class="subitem"><p class="subitem-name">Churn indicators</p><p class="subitem-example"><b>days_since_last_login</b> creeping steadily upward</p></div>
+          <div class="subitem"><p class="subitem-name">Fraud signals</p><p class="subitem-example">10 transactions in 2 minutes → transaction_velocity spike</p></div>
+          <div class="subitem"><p class="subitem-name">Behavioral aggregates</p><p class="subitem-example"><b>transaction_count_7d</b>, login_frequency</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-selection">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 4</span>Feature Selection</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Filter Methods</p>
+        <p class="topic-analogy">Sorting the toy box with quick rules, no playing</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Variance threshold</p><p class="subitem-example">drop a column that's 99% the same value</p></div>
+          <div class="subitem"><p class="subitem-name">Correlation filter</p><p class="subitem-example">attendance_pct and its near-duplicate copy — drop one</p></div>
+          <div class="subitem"><p class="subitem-name">Chi-square / ANOVA</p><p class="subitem-example">does course really affect pass/fail?</p></div>
+          <div class="subitem"><p class="subitem-name">Mutual information</p><p class="subitem-example">catches non-linear links the other tests miss</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Wrapper Methods</p>
+        <p class="topic-analogy">Actually testing squads in real practice rounds</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">RFE</p><p class="subitem-example">train, drop the weakest feature, repeat</p></div>
+          <div class="subitem"><p class="subitem-name">Forward / backward</p><p class="subitem-example">start empty, add the single best feature each round</p></div>
+          <div class="subitem"><p class="subitem-name">Computational cost</p><p class="subitem-example">RFE retrains the model 10 times; a filter test runs once</p></div>
+          <div class="subitem"><p class="subitem-name">Model dependency</p><p class="subitem-example">Logistic Regression and Random Forest pick different top features</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Embedded Methods</p>
+        <p class="topic-analogy">A toy box that tidies itself while you play</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Lasso (L1)</p><p class="subitem-example">shrinks a useless column's weight to exactly zero</p></div>
+          <div class="subitem"><p class="subitem-name">ElasticNet</p><p class="subitem-example">keeps two correlated features together, instead of picking one</p></div>
+          <div class="subitem"><p class="subitem-name">Tree importance</p><p class="subitem-example">Random Forest ranks study_hours as most useful</p></div>
+          <div class="subitem"><p class="subitem-name">Stability of selection</p><p class="subitem-example">same top features chosen across 50 resamples of the data</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Evaluation &amp; Interpretability</p>
+        <p class="topic-analogy">Dividing the model's prediction credit among the features</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Built-in importance</p><p class="subitem-example">fast, but biased toward continuous/noisy columns</p></div>
+          <div class="subitem"><p class="subitem-name">Permutation importance</p><p class="subitem-example">shuffle one column, watch accuracy drop</p></div>
+          <div class="subitem"><p class="subitem-name">SHAP values</p><p class="subitem-example">why did THIS applicant get declined?</p></div>
+          <div class="subitem"><p class="subitem-name">Global vs local</p><p class="subitem-example">what matters overall vs. what mattered for one prediction</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-reduction">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 5</span>Dimensionality Reduction</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Dimensionality Reduction</p>
+        <p class="topic-analogy">One "excitement score" instead of six rulers</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Curse of dimensionality</p><p class="subitem-example">in 100 dimensions, every student looks equally "far" from every other</p></div>
+          <div class="subitem"><p class="subitem-name">Projection vs selection</p><p class="subitem-example">blend all 3 mock tests vs just picking mock_test_3</p></div>
+          <div class="subitem"><p class="subitem-name">PCA vs SVD</p><p class="subitem-example">two different routes to the same compressed score</p></div>
+          <div class="subitem"><p class="subitem-name">Linear vs non-linear</p><p class="subitem-example">PCA only finds straight-line patterns</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">PCA Practical</p>
+        <p class="topic-analogy">Naming the new ruler after you've built it</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Eigenvalues/vectors</p><p class="subitem-example">the direction and strength of each new axis</p></div>
+          <div class="subitem"><p class="subitem-name">Explained variance ratio</p><p class="subitem-example">PC1 explains 62% of the spread in scores</p></div>
+          <div class="subitem"><p class="subitem-name">Scree plot</p><p class="subitem-example">the point where the chart's drop-off flattens out</p></div>
+          <div class="subitem"><p class="subitem-name">Choosing components</p><p class="subitem-example">keep 2 components — 90% of variance covered</p></div>
+          <div class="subitem"><p class="subitem-name">Loss of interpretability</p><p class="subitem-example">"PC1 = 1.8" means nothing without checking what it's made of</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-applied">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 6</span>Feature Ops &amp; Governance</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Data Leakage</p>
+        <p class="topic-analogy">Giving a student the answer key before the exam</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Target leakage</p><p class="subitem-example"><b>cancellation_date</b> "predicts" churn perfectly — because it IS churn</p></div>
+          <div class="subitem"><p class="subitem-name">Look-ahead bias</p><p class="subitem-example">using next month's data to predict this month</p></div>
+          <div class="subitem"><p class="subitem-name">Preprocessing leakage</p><p class="subitem-example">scaler fit on train+test combined, instead of train only</p></div>
+          <div class="subitem"><p class="subitem-name">Detection checklist</p><p class="subitem-example">"could this feature have existed at prediction time?"</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Engineering Pipelines</p>
+        <p class="topic-analogy">An assembly line: raw data in, consistent features out</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">sklearn Pipeline</p><p class="subitem-example">chain imputer → scaler → model into one object</p></div>
+          <div class="subitem"><p class="subitem-name">ColumnTransformer</p><p class="subitem-example">numeric and categorical columns, handled differently, together</p></div>
+          <div class="subitem"><p class="subitem-name">Reproducibility</p><p class="subitem-example">training and production run the exact same steps</p></div>
+          <div class="subitem"><p class="subitem-name">Feature consistency</p><p class="subitem-example">no more "we scaled it differently in production"</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Metadata &amp; Cards</p>
+        <p class="topic-analogy">Six months later, nobody remembers how a feature was built</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Feature description</p><p class="subitem-example">what does <b>days_since_last_login</b> actually mean?</p></div>
+          <div class="subitem"><p class="subitem-name">Owner &amp; freshness</p><p class="subitem-example">who owns it, how often is it updated</p></div>
+          <div class="subitem"><p class="subitem-name">Feature card</p><p class="subitem-example">a one-page ID card for <b>transaction_velocity_24h</b></p></div>
+          <div class="subitem"><p class="subitem-name">Governance</p><p class="subitem-example">"am I even allowed to use this feature for training?"</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Stores</p>
+        <p class="topic-analogy">A supermarket for already-prepared ML features</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Offline store</p><p class="subitem-example">the warehouse — used for training</p></div>
+          <div class="subitem"><p class="subitem-name">Online store</p><p class="subitem-example">the fast counter — used for real-time predictions</p></div>
+          <div class="subitem"><p class="subitem-name">Feature reuse</p><p class="subitem-example">3 teams stop calculating avg_spend 3 different ways</p></div>
+          <div class="subitem"><p class="subitem-name">Training-serving skew</p><p class="subitem-example">training used 30 days of data, production used all-time by mistake</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    Each phase flows into the next: clean the data (Phase 2) before creating new signal from it
+    (Phase 3), create before selecting what's worth keeping (Phase 4), and reduce dimensionality
+    (Phase 5) only once you know what survived selection. Phase 3 now covers feature creation
+    across every raw data type — time, text, images, and domain-driven business behavior — and
+    Phase 4 pairs classic selection methods with the importance/interpretability tools that
+    answer the same "what actually matters?" question. Phase 6 is where all of this meets the
+    real world: keeping features honest (no leakage), reproducible (pipelines), documented
+    (metadata), and reliably served (feature stores).
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- CONNECTOR: how the two halves fit together                   -->
+  <!-- ============================================================ -->
+  <div class="lifecycle-wrap">
+    <div class="lifecycle-title">Where Feature Engineering Hands Off to MLOps</div>
+    <div class="lifecycle-sub">The exact same pipeline, followed end to end — dataset in, live URL out</div>
+    <div class="lifecycle-strip">
+      <span class="lifecycle-node fe">Raw dataset (.csv)</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node fe">Feature Engineering (Phases 1–6)</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node fe">sklearn Pipeline trained</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">MLflow tracking</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">model.joblib + Model Registry</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">FastAPI (/predict)</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">Streamlit UI</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">Docker image</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node cicd">GitHub Actions: test → build → push</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">Docker Hub</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">AWS EC2 / Kubernetes (live)</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node prom">Prometheus + Grafana</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node ops">Drift detection</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node" style="border-color:var(--kf);color:var(--kf);background:var(--kf-light)">Kubeflow pipeline: retrain &amp; promote</span>
+      <span class="lifecycle-arrow">→</span>
+      <span class="lifecycle-node loop">↺ Back to Feature Engineering</span>
+    </div>
+    <div class="lifecycle-strip" style="margin-top:10px;">
+      <span class="lifecycle-node gov">Governance · Explainability · ML Security wrap every step: model cards · audit trail · SHAP/LIME · access control</span>
+    </div>
+    <p class="lifecycle-loop-note">
+      This is not a one-way line — it's a loop. Drift detection on live traffic feeds straight
+      back into re-running Phases 1–6 on fresh data, retraining, and re-deploying. Everything to
+      the left of the arrow into "MLflow tracking" is the Feature Engineering half of this course;
+      everything from there onward is the MLOps half, below.
+    </p>
+  </div>
+
+  <div class="root-wrap" style="margin-top:36px;"><div class="root-node ops">MLOps</div></div>
+  <div class="trunk"></div>
+
+  <div class="dataset-banner ops">
+    <b>Running example — MLOps half:</b> the exam-score-project pipeline — the same Linear Regression
+    model above, taken from a notebook to a monitored, cloud-deployed system
+    <span class="cols">features.py · app/main.py (FastAPI) · streamlit_app.py · Dockerfile · MLflow · Docker Hub · AWS EC2</span>
+  </div>
+  <div class="trunk" style="height:20px;"></div>
+
+  <div class="category-row">
+
+    <div class="category-col cat-lifecycle">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 7</span>From Notebook to System</div>
+
+      <div class="topic-card">
+        <p class="topic-title">The Dev → Production Gap</p>
+        <p class="topic-analogy">"I trained a model" vs "I built a system"</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">ML lifecycle</p><p class="subitem-example">data → features → train → track → register → deploy → monitor → retrain</p></div>
+          <div class="subitem"><p class="subitem-name">MLOps vs DevOps</p><p class="subitem-example">same discipline, but data AND the model are moving parts too</p></div>
+          <div class="subitem"><p class="subitem-name">Reproducibility as the goal</p><p class="subitem-example">notebook.ipynb on a laptop → a service anyone can rerun and trust</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Industry Roles</p>
+        <p class="topic-analogy">One pipeline, four different questions being asked of it</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Data Engineer</p><p class="subitem-example">"Can we reliably get the right data?"</p></div>
+          <div class="subitem"><p class="subitem-name">Data Scientist</p><p class="subitem-example">"Can we learn from the data?"</p></div>
+          <div class="subitem"><p class="subitem-name">ML Engineer</p><p class="subitem-example">"Can we run the model reliably?"</p></div>
+          <div class="subitem"><p class="subitem-name">Software Engineer</p><p class="subitem-example">"Can we build reliable software around it?"</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-version">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 8</span>Versioning &amp; Reproducibility</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Git &amp; Code Versioning</p>
+        <p class="topic-analogy">The paper trail for every change to the pipeline</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Repo structure</p><p class="subitem-example">src/, api/, tests/ — one clear home per concern</p></div>
+          <div class="subitem"><p class="subitem-name">.gitignore first</p><p class="subitem-example">write it before the first `git add`, or a .venv/ bloats the whole repo</p></div>
+          <div class="subitem"><p class="subitem-name">CI trigger</p><p class="subitem-example">every push re-runs the test suite automatically</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">DVC — Dataset Versioning</p>
+        <p class="topic-analogy">Git for the data files Git wasn't built for</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">dvc.yaml / dvc.lock</p><p class="subitem-example">a versioned, re-runnable pipeline definition</p></div>
+          <div class="subitem"><p class="subitem-name">Data lineage</p><p class="subitem-example">which exact CSV trained this exact model.joblib?</p></div>
+          <div class="subitem"><p class="subitem-name">No cloud required</p><p class="subitem-example">works fully local for a classroom setup</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Reproducible Environments</p>
+        <p class="topic-analogy">Pinning down every "it depends" in the room</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">requirements.txt</p><p class="subitem-example">pandas, scikit-learn, fastapi — exact, pinned versions</p></div>
+          <div class="subitem"><p class="subitem-name">"Works on my machine"</p><p class="subitem-example">the exact problem Docker (Phase 11) solves for good</p></div>
+          <div class="subitem"><p class="subitem-name">training_reference.csv</p><p class="subitem-example">a saved snapshot of what "normal" data looked like at training time</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-tracking">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 9</span>Tracking &amp; Registry</div>
+
+      <div class="topic-card">
+        <p class="topic-title">MLflow Experiment Tracking <span class="new-tag">NEW</span></p>
+        <p class="topic-analogy">A lab notebook that never forgets a run</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Experiment → run</p><p class="subitem-example">one experiment "exam-score", one run per training attempt</p></div>
+          <div class="subitem"><p class="subitem-name">Params</p><p class="subitem-example">lasso_alpha=0.3, n_pca_components=2</p></div>
+          <div class="subitem"><p class="subitem-name">Metrics</p><p class="subitem-example">MAE, R² logged for every run, automatically compared</p></div>
+          <div class="subitem"><p class="subitem-name">Artifacts</p><p class="subitem-example">mlflow.sklearn.log_model() + plots, stored with the run</p></div>
+          <div class="subitem"><p class="subitem-name">mlflow ui</p><p class="subitem-example">compare runs side by side — sort by MAE, pick the winner</p></div>
+          <div class="subitem"><p class="subitem-name">SQLite tracking URI</p><p class="subitem-example">tracking_uri="sqlite:///mlflow.db" — needed for the Registry below</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Model Registry <span class="new-tag">NEW</span></p>
+        <p class="topic-analogy">One shelf, clearly labeled: what's serving, what isn't</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Registered model + versions</p><p class="subitem-example">exam-score-model v1, v2, v3 — each linked to the run that made it</p></div>
+          <div class="subitem"><p class="subitem-name">Load by alias</p><p class="subitem-example">models:/exam-score-model@champion — the API never hard-codes a version</p></div>
+          <div class="subitem"><p class="subitem-name">Aliases</p><p class="subitem-example">"champion" (currently serving) vs "rejected_candidate"</p></div>
+          <div class="subitem"><p class="subitem-name">Promotion gate</p><p class="subitem-example">promote only if MAE improves past a threshold AND a quality floor</p></div>
+          <div class="subitem"><p class="subitem-name">Feeds Phase 12</p><p class="subitem-example">the retrain-and-promote loop reads and writes this registry</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Packaging — model.joblib</p>
+        <p class="topic-analogy">Freezing a trained pipeline into one portable file</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">joblib.dump()</p><p class="subitem-example">the entire fitted sklearn Pipeline, saved as one artifact</p></div>
+          <div class="subitem"><p class="subitem-name">A real bug, caught</p><p class="subitem-example">"Can't get attribute 'FeatureCreator'" — custom classes need their own importable file</p></div>
+          <div class="subitem"><p class="subitem-name">Trusted artifacts only</p><p class="subitem-example">serialization_format="pickle", never load an artifact from an unknown source</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-serving">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 10</span>Serving: API &amp; UI</div>
+
+      <div class="topic-card">
+        <p class="topic-title">FastAPI — the Prediction Service</p>
+        <p class="topic-analogy">The one door every prediction must walk through</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Pydantic validation</p><p class="subitem-example">a bad request never reaches the pipeline — a 422, not a crash</p></div>
+          <div class="subitem"><p class="subitem-name">Lifespan model loading</p><p class="subitem-example">model.joblib loaded once at startup, not on every request</p></div>
+          <div class="subitem"><p class="subitem-name">One source of truth</p><p class="subitem-example">/health, /predict, /metrics — the ONLY process that touches model.joblib</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Streamlit — the UI</p>
+        <p class="topic-analogy">A form-filler, not a second brain</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">A client, not a copy</p><p class="subitem-example">collects raw input → POST /predict → shows the JSON response</p></div>
+          <div class="subitem"><p class="subitem-name">Avoid this shortcut</p><p class="subitem-example">loading model.joblib inside Streamlit too — now two programs can disagree</p></div>
+          <div class="subitem"><p class="subitem-name">Same door as any client</p><p class="subitem-example">a mobile app or another team's backend would call the same API</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Batch vs Real-time Inference</p>
+        <p class="topic-analogy">Scoring a class roster vs scoring one student who just walked in</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Batch</p><p class="subitem-example">batch_predict.py scores a whole CSV of students offline</p></div>
+          <div class="subitem"><p class="subitem-name">Real-time</p><p class="subitem-example">FastAPI /predict answers one student, low latency</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-deploy">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 11</span>Containers &amp; Cloud</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Docker Fundamentals</p>
+        <p class="topic-analogy">A sealed shipping container for the whole environment, not just the code</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Image / container / registry</p><p class="subitem-example">Dockerfile → build → image; run → container</p></div>
+          <div class="subitem"><p class="subitem-name">Layer caching</p><p class="subitem-example">COPY requirements.txt before app code — rebuilds stay fast</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Bundling API + UI</p>
+        <p class="topic-analogy">Two long-lived processes, one small supervisor</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">entrypoint.sh</p><p class="subitem-example">starts uvicorn :8000, health-polls it, then starts streamlit :8501</p></div>
+          <div class="subitem"><p class="subitem-name">Shared shutdown</p><p class="subitem-example">SIGTERM stops both together — never half a running container</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Docker Hub <span class="new-tag">NEW</span></p>
+        <p class="topic-analogy">The hand-off from "my laptop" to "any machine"</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">build → tag → push → pull</p><p class="subitem-example">docker push &lt;user&gt;/exam-score-app:1.0</p></div>
+          <div class="subitem"><p class="subitem-name">Tags = versions</p><p class="subitem-example">:1.0, :1.1, :&lt;git-sha&gt; — never rely on :latest alone</p></div>
+          <div class="subitem"><p class="subitem-name">Access tokens</p><p class="subitem-example">docker login with a token, not your password — revocable</p></div>
+          <div class="subitem"><p class="subitem-name">Public vs private repo</p><p class="subitem-example">who may pull your image (and the model inside it)</p></div>
+          <div class="subitem"><p class="subitem-name">One image, everywhere</p><p class="subitem-example">the SAME tag is pulled by CI (Phase 13) and AWS EC2</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">AWS EC2 Deployment</p>
+        <p class="topic-analogy">A real, always-on machine — reachable from any browser</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Security group</p><p class="subitem-example">a firewall — ports 22/8000/8501 opened explicitly, separate from Docker</p></div>
+          <div class="subitem"><p class="subitem-name">--restart unless-stopped</p><p class="subitem-example">the container survives an instance reboot on its own</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="category-col cat-monitor">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 12</span>Monitoring, Drift &amp; Retraining</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Observability</p>
+        <p class="topic-analogy">Knowing the service is healthy without guessing</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Structured logs</p><p class="subitem-example">request IDs, latency, logged on every prediction</p></div>
+          <div class="subitem"><p class="subitem-name">/metrics endpoint</p><p class="subitem-example">"is the service healthy right now?" — answerable in one call</p></div>
+          <div class="subitem"><p class="subitem-name">Scaled up in Phase 14</p><p class="subitem-example">Prometheus scrapes /metrics on a schedule; Grafana charts it</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Data Drift Detection</p>
+        <p class="topic-analogy">Has the world the model sees today stopped matching training day?</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">KS-test</p><p class="subitem-example">scipy's ks_2samp compares live traffic to training_reference.csv</p></div>
+          <div class="subitem"><p class="subitem-name">Data vs model vs concept drift</p><p class="subitem-example">the inputs changed vs the model degraded vs the relationship itself changed</p></div>
+          <div class="subitem"><p class="subitem-name">Statistical ≠ business significance</p><p class="subitem-example">a drifted feature isn't automatically a problem worth acting on</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Retrain &amp; Promote</p>
+        <p class="topic-analogy">Closing the loop back to Feature Engineering</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">evaluate_champion()</p><p class="subitem-example">score the current production model on fresh data first</p></div>
+          <div class="subitem"><p class="subitem-name">retrain()</p><p class="subitem-example">re-run Phases 1–6 on new data, then re-fit the pipeline</p></div>
+          <div class="subitem"><p class="subitem-name">Promote only if better</p><p class="subitem-example">the same MAE-improvement gate as Phase 9's registry</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    The MLOps half picks up exactly where Feature Engineering leaves off: a trained
+    <code>sklearn.Pipeline</code> is tracked (Phase 9) before it's ever trusted, packaged as
+    <b>model.joblib</b> and served by exactly one process — FastAPI (Phase 10) — so a Streamlit UI,
+    a Docker container, and an AWS server can all reach the same predictions through the same
+    door. Docker (Phase 11) freezes that whole environment so it behaves identically on a laptop,
+    in CI, and on AWS EC2. None of this is separate from Feature Engineering — Phase 12's drift
+    detection exists specifically to notice when the world has drifted away from the features
+    Phase 1–6 were built on, which is exactly when the retrain loop sends you back to the start.
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- THIRD ROW: automate, observe, orchestrate, govern, explain, secure -->
+  <!-- ============================================================ -->
+  <div class="root-wrap" id="ops2" style="margin-top:44px;"><div class="root-node ops">Automate · Observe · Orchestrate · Govern · Explain · Secure</div></div>
+  <div class="trunk"></div>
+
+  <div class="dataset-banner ops2">
+    <b>Running example — production half:</b> the same exam-score-app, now shipped by CI/CD, watched by
+    Prometheus &amp; Grafana, retrained by a Kubeflow pipeline, and kept explainable, accountable and secure
+    <span class="cols">ci.yml · Docker Hub · minikube · Helm · Prometheus · Grafana · Kubeflow Pipelines · SHAP · LIME · model card · audit log</span>
+  </div>
+  <div class="trunk" style="height:20px;"></div>
+
+  <div class="category-row row-ops2">
+
+    <!-- PHASE 13 -->
+    <div class="category-col cat-cicd" id="p13">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 13 · NEW</span>CI/CD with GitHub Actions</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Workflow Anatomy</p>
+        <p class="topic-analogy">A recipe card the repo follows on its own</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Workflow file</p><p class="subitem-example">.github/workflows/ci.yml, versioned with the code</p></div>
+          <div class="subitem"><p class="subitem-name">Triggers</p><p class="subitem-example">on: push, pull_request, workflow_dispatch</p></div>
+          <div class="subitem"><p class="subitem-name">Jobs → steps</p><p class="subitem-example">a step either `uses:` an action or `run:` a command</p></div>
+          <div class="subitem"><p class="subitem-name">Runners</p><p class="subitem-example">runs-on: ubuntu-latest, a fresh machine every time</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Continuous Integration</p>
+        <p class="topic-analogy">No change gets in without passing the exam</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Test on every push</p><p class="subitem-example">checkout → setup-python → pip install → pytest</p></div>
+          <div class="subitem"><p class="subitem-name">Fail fast</p><p class="subitem-example">a red ✗ on the pull request blocks the merge</p></div>
+          <div class="subitem"><p class="subitem-name">ML checks too</p><p class="subitem-example">model loads, /predict answers, MAE under a floor</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Build &amp; Push to Docker Hub</p>
+        <p class="topic-analogy">Tests pass → the image ships itself</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">needs: test</p><p class="subitem-example">build starts only after tests go green</p></div>
+          <div class="subitem"><p class="subitem-name">Login action</p><p class="subitem-example">docker/login-action + DOCKERHUB_TOKEN</p></div>
+          <div class="subitem"><p class="subitem-name">Tag with git sha</p><p class="subitem-example">every image traces back to one commit</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Secrets &amp; Deployment</p>
+        <p class="topic-analogy">Keys stay in the safe, never on the recipe card</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">GitHub Secrets</p><p class="subitem-example">${{ secrets.DOCKERHUB_TOKEN }}, masked in logs</p></div>
+          <div class="subitem"><p class="subitem-name">Continuous delivery</p><p class="subitem-example">server pulls the new tag, restarts the container</p></div>
+          <div class="subitem"><p class="subitem-name">Approval gate</p><p class="subitem-example">"production" environment needs a human click</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 14 -->
+    <div class="category-col cat-prom" id="p14">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 14 · NEW</span>Prometheus &amp; Grafana</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Prometheus Architecture</p>
+        <p class="topic-analogy">A meter-reader who visits every house on schedule</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Metric vs monitoring</p><p class="subitem-example">step count vs checking it daily against a goal</p></div>
+          <div class="subitem"><p class="subitem-name">Pull model</p><p class="subitem-example">GET /metrics every 1 m; up = 1 if scrape worked</p></div>
+          <div class="subitem"><p class="subitem-name">Exporters</p><p class="subitem-example">node-exporter, kube-state-metrics</p></div>
+          <div class="subitem"><p class="subitem-name">Pushgateway</p><p class="subitem-example">short batch jobs push before they exit</p></div>
+          <div class="subitem"><p class="subitem-name">TSDB &amp; retention</p><p class="subitem-example">2-hour blocks on disk, 15 days by default</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Data Model &amp; PromQL</p>
+        <p class="topic-analogy">Name + labels = one line on the graph</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">4 metric types</p><p class="subitem-example">counter · gauge · histogram · summary</p></div>
+          <div class="subitem"><p class="subitem-name">Labels &amp; cardinality</p><p class="subitem-example">label by pod or status, never by student_id</p></div>
+          <div class="subitem"><p class="subitem-name">Select → rate → aggregate → shape</p><p class="subitem-example">100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])))</p></div>
+          <div class="subitem"><p class="subitem-name">Pod queries</p><p class="subitem-example">count(kube_pod_status_phase{phase="Running"} == 1)</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Alerting</p>
+        <p class="topic-analogy">The smoke alarm, plus someone who decides whom to call</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Rule + for: window</p><p class="subitem-example">CPU &gt; 80 for 10m → pending → firing</p></div>
+          <div class="subitem"><p class="subitem-name">Alertmanager</p><p class="subitem-example">group, de-duplicate, silence, route to email / Slack</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Grafana &amp; the Lab</p>
+        <p class="topic-analogy">Numbers turned into a dashboard people read</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Data source → dashboard → panel</p><p class="subitem-example">http://prometheus-server.default.svc.cluster.local</p></div>
+          <div class="subitem"><p class="subitem-name">Import by ID</p><p class="subitem-example">1860 Node Exporter Full · 15757 Kubernetes</p></div>
+          <div class="subitem"><p class="subitem-name">USE &amp; RED signals</p><p class="subitem-example">utilisation, saturation, errors · rate, errors, duration</p></div>
+          <div class="subitem"><p class="subitem-name">minikube + Helm lab</p><p class="subitem-example">helm install · NodePort · port-forward</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 15 -->
+    <div class="category-col cat-pipe" id="p15">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 15 · NEW</span>Pipelines (End-to-End ML) &amp; Kubeflow</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Automated ML Pipelines</p>
+        <p class="topic-analogy">From "run cells 1 to 40 in order" to one button</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Pipeline as a DAG</p><p class="subitem-example">ingest → validate → features → train → evaluate → register</p></div>
+          <div class="subitem"><p class="subitem-name">Orchestration</p><p class="subitem-example">dependencies, retries, schedules, logs per step</p></div>
+          <div class="subitem"><p class="subitem-name">Tool landscape</p><p class="subitem-example">DVC (Phase 8) · Airflow · Prefect · Kubeflow Pipelines</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Kubeflow Pipelines</p>
+        <p class="topic-analogy">Each step in its own container, wired together</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Components</p><p class="subitem-example">@dsl.component — one container per step</p></div>
+          <div class="subitem"><p class="subitem-name">Pipeline</p><p class="subitem-example">@dsl.pipeline wires outputs to inputs</p></div>
+          <div class="subitem"><p class="subitem-name">Compile &amp; run</p><p class="subitem-example">kfp compiles to YAML; runs tracked in the KFP UI</p></div>
+          <div class="subitem"><p class="subitem-name">Artifacts</p><p class="subitem-example">datasets and models passed between steps</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Kubeflow Platform</p>
+        <p class="topic-analogy">The whole ML lifecycle as Kubernetes workloads</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Notebooks</p><p class="subitem-example">Jupyter servers inside the cluster</p></div>
+          <div class="subitem"><p class="subitem-name">Katib</p><p class="subitem-example">hyperparameter tuning at scale</p></div>
+          <div class="subitem"><p class="subitem-name">KServe</p><p class="subitem-example">model serving with autoscaling and canary</p></div>
+          <div class="subitem"><p class="subitem-name">Builds on Phase 14</p><p class="subitem-example">same Kubernetes + Helm skills; Prometheus watches it</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Retraining Loops &amp; Production Workflows</p>
+        <p class="topic-analogy">The pipeline reruns itself when the world changes</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Retrain triggers</p><p class="subitem-example">schedule · new data · drift alert (Phases 12, 14)</p></div>
+          <div class="subitem"><p class="subitem-name">Promote only if better</p><p class="subitem-example">champion vs challenger in the registry (Phase 9)</p></div>
+          <div class="subitem"><p class="subitem-name">Dev → staging → prod</p><p class="subitem-example">the same pipeline promoted across environments</p></div>
+          <div class="subitem"><p class="subitem-name">Safe rollout</p><p class="subitem-example">shadow · canary · A/B test · one-click rollback</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 16 -->
+    <div class="category-col cat-gov" id="p16">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 16 · NEW</span>Governance</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Model Governance</p>
+        <p class="topic-analogy">Every model has an owner, a file, and a sign-off</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Model inventory</p><p class="subitem-example">which models exist, who owns them, what they decide</p></div>
+          <div class="subitem"><p class="subitem-name">Model card</p><p class="subitem-example">purpose, data, metrics, limits — the model's ID card</p></div>
+          <div class="subitem"><p class="subitem-name">Risk tiering &amp; approval</p><p class="subitem-example">high-impact models reviewed before "champion"</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Compliance</p>
+        <p class="topic-analogy">The rules the model must follow, written down</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">EU AI Act</p><p class="subitem-example">risk tiers: unacceptable · high · limited · minimal</p></div>
+          <div class="subitem"><p class="subitem-name">Data protection</p><p class="subitem-example">India's DPDP Act, GDPR: consent, purpose limits</p></div>
+          <div class="subitem"><p class="subitem-name">Sector rules</p><p class="subitem-example">banking, health and education add their own checks</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Audit Trails</p>
+        <p class="topic-analogy">Being able to answer "why?" a year later</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Full lineage</p><p class="subitem-example">git sha + DVC hash + MLflow run id + image tag</p></div>
+          <div class="subitem"><p class="subitem-name">Prediction logs</p><p class="subitem-example">who asked, which model version answered, when</p></div>
+          <div class="subitem"><p class="subitem-name">Change history</p><p class="subitem-example">who promoted v3 to champion, and on what evidence</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Ethical AI Considerations</p>
+        <p class="topic-analogy">Accurate on average isn't the same as fair to everyone</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Fairness checks</p><p class="subitem-example">compare MAE across city and income_bracket</p></div>
+          <div class="subitem"><p class="subitem-name">Transparency</p><p class="subitem-example">tell users a model is involved and what it uses</p></div>
+          <div class="subitem"><p class="subitem-name">Human oversight</p><p class="subitem-example">the model advises; a counsellor decides</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 17 -->
+    <div class="category-col cat-xai" id="p17">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 17 · NEW</span>Explainability</div>
+
+      <div class="topic-card">
+        <p class="topic-title">SHAP</p>
+        <p class="topic-analogy">Splitting the prediction's credit fairly among features</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Shapley values</p><p class="subitem-example">base value + feature contributions = prediction</p></div>
+          <div class="subitem"><p class="subitem-name">Waterfall plot</p><p class="subitem-example">why THIS student was predicted 62</p></div>
+          <div class="subitem"><p class="subitem-name">Beeswarm / summary</p><p class="subitem-example">study_hours matters most across all students</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">LIME</p>
+        <p class="topic-analogy">Zoom in on one point and fit a simple model there</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Perturb the input</p><p class="subitem-example">nudge one student's values many times</p></div>
+          <div class="subitem"><p class="subitem-name">Local surrogate</p><p class="subitem-example">a small linear model explains that neighbourhood</p></div>
+          <div class="subitem"><p class="subitem-name">SHAP vs LIME</p><p class="subitem-example">SHAP: consistent, slower · LIME: fast, less stable</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Global vs Local Explanations</p>
+        <p class="topic-analogy">How the model thinks overall vs about one person</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Global</p><p class="subitem-example">permutation importance, SHAP summary (Phase 4)</p></div>
+          <div class="subitem"><p class="subitem-name">Local</p><p class="subitem-example">SHAP waterfall, LIME for one prediction</p></div>
+          <div class="subitem"><p class="subitem-name">Use both</p><p class="subitem-example">global for model review, local for each decision</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Stakeholder Trust</p>
+        <p class="topic-analogy">The right explanation for the right audience</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Student / parent</p><p class="subitem-example">"more study hours would raise your score most"</p></div>
+          <div class="subitem"><p class="subitem-name">Counsellor / business</p><p class="subitem-example">top drivers per batch, in plain words</p></div>
+          <div class="subitem"><p class="subitem-name">Regulator / auditor</p><p class="subitem-example">documented method, saved explanation per decision</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE 18 -->
+    <div class="category-col cat-sec" id="p18">
+      <div class="cat-stem"></div>
+      <div class="category-header"><span class="num">PHASE 18 · NEW</span>ML Security</div>
+
+      <div class="topic-card">
+        <p class="topic-title">Data Poisoning</p>
+        <p class="topic-analogy">Slipping wrong answers into the textbook</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Attack</p><p class="subitem-example">fake rows or flipped labels in training data</p></div>
+          <div class="subitem"><p class="subitem-name">Defence</p><p class="subitem-example">validate, version (DVC) and review every dataset</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Model Theft</p>
+        <p class="topic-analogy">Copying the answers by asking thousands of questions</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Model extraction</p><p class="subitem-example">thousands of /predict calls train a clone</p></div>
+          <div class="subitem"><p class="subitem-name">Artifact theft</p><p class="subitem-example">model.joblib leaked from a public image or bucket</p></div>
+          <div class="subitem"><p class="subitem-name">Defence</p><p class="subitem-example">API auth, rate limits, private Docker Hub repo</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Adversarial Attacks</p>
+        <p class="topic-analogy">A sticker that makes a stop sign read "speed limit"</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Attack</p><p class="subitem-example">tiny crafted input changes flip the output</p></div>
+          <div class="subitem"><p class="subitem-name">Defence</p><p class="subitem-example">input range checks (Pydantic), adversarial testing</p></div>
+        </div>
+      </div>
+
+      <div class="topic-card">
+        <p class="topic-title">Feature Leakage</p>
+        <p class="topic-analogy">The answer key, or private data, hiding in a feature</p>
+        <div class="subitem-list">
+          <div class="subitem"><p class="subitem-name">Risk</p><p class="subitem-example">future or sensitive data inside features</p></div>
+          <div class="subitem"><p class="subitem-name">Defence</p><p class="subitem-example">Phase 6 checklist, feature cards, access control</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="legend">
+    The third row turns a deployed model into an operated one. GitHub Actions (Phase 13) tests every
+    change and ships the exact Docker image that runs in production. Prometheus and Grafana (Phase 14)
+    watch the running system. Kubeflow Pipelines (Phase 15) turn the whole lifecycle into an automated,
+    retrainable workflow. Governance (Phase 16), Explainability (Phase 17) and ML Security (Phase 18) are
+    not final steps: they apply across the whole map, from the Phase 6 leakage checklist and Phase 9
+    registry approvals to audit trails linking every prediction to its commit, data and model version.
+  </div>
+
+</body>
+</html>

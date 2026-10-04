@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Box-Cox &amp; Yeo-Johnson — Interactive Lambda Simulator</title>
+<style>
+  :root {
+    --teal-dark: #0B3D3F;
+    --teal: #028090;
+    --teal-light: #E8F4F3;
+    --coral: #B5451B;
+    --coral-light: #FBEDE7;
+    --ink: #24312F;
+    --muted: #5B6B69;
+    --paper: #FAF9F6;
+    --line: #D8DEDC;
+    --before-bar: #9BB6B8;
+    --after-bar: #028090;
+    --curve: #B5451B;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 28px 32px 48px;
+    background: var(--paper);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+  }
+  .page-title { text-align: center; margin-bottom: 4px; }
+  .page-title h1 { font-size: 25px; font-weight: 700; color: var(--teal-dark); margin: 0; }
+  .page-title p { color: var(--muted); font-size: 13.5px; margin: 6px 0 0; font-style: italic; }
+
+  .tabs {
+    display: flex; justify-content: center; gap: 10px;
+    margin: 20px 0 22px;
+  }
+  .tab-btn {
+    padding: 10px 26px; border-radius: 8px; border: 2px solid var(--teal);
+    background: #fff; color: var(--teal-dark); font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .tab-btn.active { background: var(--teal-dark); color: #fff; border-color: var(--teal-dark); }
+  .tab-btn:hover { opacity: 0.9; }
+
+  .panel { display: none; max-width: 1180px; margin: 0 auto; }
+  .panel.active { display: block; }
+
+  .intro-box {
+    background: #fff; border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 14px 20px; margin-bottom: 20px; font-size: 13.5px; line-height: 1.5;
+  }
+  .intro-box b { color: var(--teal-dark); }
+
+  .control-row {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: #fff; border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 18px;
+  }
+  .control-row label { font-weight: 700; font-size: 14px; color: var(--teal-dark); white-space: nowrap; }
+  .control-row input[type="range"] { flex: 1; min-width: 220px; accent-color: var(--teal); height: 4px; }
+  .lambda-readout {
+    font-family: "Consolas", "Courier New", monospace; font-size: 18px; font-weight: 700;
+    color: var(--coral); min-width: 70px; text-align: center;
+    background: var(--coral-light); border-radius: 6px; padding: 4px 10px;
+  }
+  .named-case {
+    font-size: 12px; color: var(--muted); font-style: italic; min-width: 160px;
+  }
+  .btn {
+    padding: 8px 16px; border-radius: 7px; border: none; background: var(--teal);
+    color: #fff; font-weight: 700; font-size: 12.5px; cursor: pointer;
+  }
+  .btn:hover { background: var(--teal-dark); }
+  .btn.secondary { background: #fff; color: var(--teal-dark); border: 1.5px solid var(--teal); }
+
+  .charts-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px;
+  }
+  .chart-card {
+    background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 14px 16px;
+  }
+  .chart-card h3 { margin: 0 0 4px; font-size: 14px; color: var(--teal-dark); }
+  .chart-card .skew-line { font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  .chart-card .skew-line b { color: var(--ink); font-family: "Consolas", monospace; }
+
+  .data-table-wrap { display: flex; gap: 28px; flex-wrap: wrap; }
+  table.sample-data {
+    border-collapse: collapse; font-family: "Consolas", "Courier New", monospace; font-size: 12.5px;
+    flex: 1; min-width: 220px;
+  }
+  table.sample-data th {
+    background: var(--teal); color: #fff; padding: 5px 12px; text-align: right; font-weight: 700;
+  }
+  table.sample-data th:first-child, table.sample-data td:first-child { text-align: left; padding-left: 10px; }
+  table.sample-data td { padding: 4px 12px; text-align: right; border-bottom: 1px solid var(--line); }
+  table.sample-data tr:nth-child(even) td { background: var(--teal-light); }
+  table.sample-data .row-num { color: var(--muted); }
+
+  .formula-box {
+    background: var(--teal-dark); color: #E7FBF8; border-radius: 10px; padding: 14px 20px;
+    font-family: "Consolas", "Courier New", monospace; font-size: 13.5px; line-height: 1.6;
+    margin-bottom: 6px;
+  }
+  .formula-box .label { color: #7FD6C9; font-weight: 700; font-family: inherit; }
+
+  svg { display: block; width: 100%; height: auto; }
+  .axis-label { font-size: 10px; fill: var(--muted); font-family: inherit; }
+  .bar-before { fill: var(--before-bar); }
+  .bar-after { fill: var(--after-bar); }
+  .curve-line { fill: none; stroke: var(--curve); stroke-width: 2.5; }
+  .zero-line { stroke: #ccc; stroke-width: 1; stroke-dasharray: 3,3; }
+
+  .legend-row { display: flex; gap: 16px; font-size: 11.5px; color: var(--muted); margin-top: 6px; }
+  .legend-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+  <div class="page-title">
+    <h1>Box-Cox &amp; Yeo-Johnson — Interactive Lambda (λ) Simulator</h1>
+    <p>Drag the slider. Watch the shape change. See the skew number move toward zero.</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('boxcox')">Box-Cox</button>
+    <button class="tab-btn" onclick="switchTab('yeojohnson')">Yeo-Johnson</button>
+  </div>
+
+  <!-- ============================= BOX-COX PANEL ============================= -->
+  <div class="panel active" id="panel-boxcox">
+    <div class="intro-box">
+      <b>Box-Cox</b> only works on <b>strictly positive</b> data (every value must be &gt; 0).
+      It finds one power, λ, that reshapes a skewed distribution into something closer to
+      symmetric. This dataset: 400 simulated "batch fee revenue" values — realistically
+      right-skewed, always positive.
+    </div>
+
+    <div class="control-row">
+      <label for="bc-slider">λ =</label>
+      <input type="range" id="bc-slider" min="-2" max="2" step="0.02" value="1">
+      <span class="lambda-readout" id="bc-lambda-val">1.00</span>
+      <span class="named-case" id="bc-named-case">no transform (identity)</span>
+      <button class="btn" onclick="jumpToBest('boxcox')">Jump to best λ</button>
+      <button class="btn secondary" onclick="resetLambda('boxcox')">Reset to λ=1</button>
+    </div>
+
+    <div class="formula-box">
+      <span class="label">Box-Cox(x, λ)</span> &nbsp;=&nbsp;
+      <span id="bc-formula-text">(x^λ − 1) / λ</span>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Before (raw data)</h3>
+        <div class="skew-line">Skewness: <b id="bc-skew-before">—</b></div>
+        <svg id="bc-hist-before" viewBox="0 0 400 220"></svg>
+      </div>
+      <div class="chart-card">
+        <h3>After (transformed with current λ)</h3>
+        <div class="skew-line">Skewness: <b id="bc-skew-after">—</b> &nbsp; (0 = perfectly symmetric)</div>
+        <svg id="bc-hist-after" viewBox="0 0 400 220"></svg>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>The transformation curve itself: input value → output value</h3>
+      <div class="skew-line">This is the actual bending/squishing function currently being applied to every point</div>
+      <svg id="bc-curve" viewBox="0 0 820 200"></svg>
+    </div>
+
+    <div class="chart-card">
+      <h3>See it with real numbers: 12 representative rows, sorted smallest → largest</h3>
+      <div class="skew-line">Watch the "Transformed" column change as you move the slider — the ORDER of rows never changes (transformation is monotonic), only the spacing between numbers does</div>
+      <div class="data-table-wrap" id="bc-table-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ============================= YEO-JOHNSON PANEL ============================= -->
+  <div class="panel" id="panel-yeojohnson">
+    <div class="intro-box">
+      <b>Yeo-Johnson</b> works on <b>any</b> real values — positive, negative, or zero. Same
+      idea as Box-Cox, but defined piecewise so negative numbers don't break it. This dataset:
+      400 simulated "monthly profit margin" values — some batches genuinely lose money.
+    </div>
+
+    <div class="control-row">
+      <label for="yj-slider">λ =</label>
+      <input type="range" id="yj-slider" min="-2" max="2" step="0.02" value="1">
+      <span class="lambda-readout" id="yj-lambda-val">1.00</span>
+      <span class="named-case" id="yj-named-case">no transform (identity)</span>
+      <button class="btn" onclick="jumpToBest('yeojohnson')">Jump to best λ</button>
+      <button class="btn secondary" onclick="resetLambda('yeojohnson')">Reset to λ=1</button>
+    </div>
+
+    <div class="formula-box">
+      <span class="label">Yeo-Johnson(x, λ)</span> &nbsp;=&nbsp;
+      <span id="yj-formula-text">for x≥0: ((x+1)^λ − 1)/λ &nbsp;|&nbsp; for x&lt;0: −((−x+1)^(2−λ) − 1)/(2−λ)</span>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Before (raw data, includes negative values)</h3>
+        <div class="skew-line">Skewness: <b id="yj-skew-before">—</b></div>
+        <svg id="yj-hist-before" viewBox="0 0 400 220"></svg>
+      </div>
+      <div class="chart-card">
+        <h3>After (transformed with current λ)</h3>
+        <div class="skew-line">Skewness: <b id="yj-skew-after">—</b> &nbsp; (0 = perfectly symmetric)</div>
+        <svg id="yj-hist-after" viewBox="0 0 400 220"></svg>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h3>The transformation curve itself: input value → output value</h3>
+      <div class="skew-line">Notice it stays smooth and defined even as x crosses zero — this is exactly what Box-Cox cannot do</div>
+      <svg id="yj-curve" viewBox="0 0 820 200"></svg>
+    </div>
+
+    <div class="chart-card">
+      <h3>See it with real numbers: 12 representative rows, sorted smallest → largest</h3>
+      <div class="skew-line">Includes negative "profit margin" values — watch how each one still transforms smoothly</div>
+      <div class="data-table-wrap" id="yj-table-wrap"></div>
+    </div>
+  </div>
+
+<script>
+// =====================================================================
+// Seeded random number generator (so the "before" data is identical
+// every time the page loads -- reproducible for a classroom demo)
+// =====================================================================
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// =====================================================================
+// Transformation math (verified against known identities separately)
+// =====================================================================
+function boxCox(x, lambda) {
+  if (x <= 0) return NaN;
+  if (Math.abs(lambda) < 1e-6) return Math.log(x);
+  return (Math.pow(x, lambda) - 1) / lambda;
+}
+
+function yeoJohnson(x, lambda) {
+  if (x >= 0) {
+    if (Math.abs(lambda) < 1e-6) return Math.log(x + 1);
+    return (Math.pow(x + 1, lambda) - 1) / lambda;
+  } else {
+    if (Math.abs(lambda - 2) < 1e-6) return -Math.log(-x + 1);
+    return -(Math.pow(-x + 1, 2 - lambda) - 1) / (2 - lambda);
+  }
+}
+
+function skewness(arr) {
+  const n = arr.length;
+  const mean = arr.reduce((a, b) => a + b, 0) / n;
+  const variance = arr.reduce((a, b) => a + (b - mean) ** 2, 0) / n;
+  const std = Math.sqrt(variance);
+  if (std === 0) return 0;
+  const m3 = arr.reduce((a, b) => a + (b - mean) ** 3, 0) / n;
+  return m3 / Math.pow(std, 3);
+}
+
+function findBestLambda(data, transformFn) {
+  let best = { lambda: 1, absSkew: Infinity };
+  for (let l = -2; l <= 2.0001; l += 0.02) {
+    const transformed = data.map((x) => transformFn(x, l));
+    const s = Math.abs(skewness(transformed));
+    if (!isNaN(s) && s < best.absSkew) best = { lambda: Math.round(l * 100) / 100, absSkew: s };
+  }
+  return best;
+}
+
+// =====================================================================
+// Generate the two fixed demo datasets (reproducible: same seed every load)
+// =====================================================================
+const N = 400;
+
+const rngBC = mulberry32(42);
+const boxCoxData = [];
+for (let i = 0; i < N; i++) {
+  const u = rngBC();
+  boxCoxData.push(-Math.log(1 - u) * 20 + 2); // right-skewed, always positive
+}
+
+const rngYJ = mulberry32(77);
+const yeoJohnsonData = [];
+for (let i = 0; i < N; i++) {
+  const u = rngYJ();
+  yeoJohnsonData.push(-Math.log(1 - u) * 18 - 14); // same right-skew shape, shifted so ~1/3 go negative
+}
+
+// Pick 12 representative values evenly spaced across the SORTED data (min to max),
+// so the sample table shows the full range rather than 12 randomly-clustered points
+function pickRepresentativeValues(data, count = 12) {
+  const sorted = [...data].sort((a, b) => a - b);
+  const picked = [];
+  for (let i = 0; i < count; i++) {
+    const idx = Math.round((i / (count - 1)) * (sorted.length - 1));
+    picked.push(sorted[idx]);
+  }
+  return picked;
+}
+const boxCoxSample = pickRepresentativeValues(boxCoxData);
+const yeoJohnsonSample = pickRepresentativeValues(yeoJohnsonData);
+
+// =====================================================================
+// SVG rendering helpers (no external chart library -- fully self-contained)
+// =====================================================================
+function renderHistogram(svgEl, data, barClass, nBins = 20) {
+  const w = 400, h = 220, padL = 34, padR = 10, padT = 10, padB = 26;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+
+  const validData = data.filter((v) => !isNaN(v) && isFinite(v));
+  const min = Math.min(...validData), max = Math.max(...validData);
+  const range = max - min || 1;
+  const binWidth = range / nBins;
+  const bins = new Array(nBins).fill(0);
+  validData.forEach((v) => {
+    let idx = Math.floor((v - min) / binWidth);
+    if (idx >= nBins) idx = nBins - 1;
+    if (idx < 0) idx = 0;
+    bins[idx]++;
+  });
+  const maxCount = Math.max(...bins, 1);
+
+  let svg = "";
+  const barGap = 1;
+  const barW = plotW / nBins - barGap;
+  bins.forEach((count, i) => {
+    const barH = (count / maxCount) * plotH;
+    const x = padL + i * (plotW / nBins);
+    const y = padT + plotH - barH;
+    svg += `<rect class="${barClass}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}"></rect>`;
+  });
+
+  // x-axis labels (min / mid / max)
+  svg += `<text class="axis-label" x="${padL}" y="${h - 8}">${min.toFixed(1)}</text>`;
+  svg += `<text class="axis-label" x="${(padL + plotW / 2 - 10).toFixed(1)}" y="${h - 8}">${(min + range / 2).toFixed(1)}</text>`;
+  svg += `<text class="axis-label" x="${(padL + plotW - 24).toFixed(1)}" y="${h - 8}">${max.toFixed(1)}</text>`;
+  svg += `<line class="zero-line" x1="${padL}" y1="${padT + plotH}" x2="${padL + plotW}" y2="${padT + plotH}"></line>`;
+
+  svgEl.innerHTML = svg;
+}
+
+function renderCurve(svgEl, transformFn, lambda, xMin, xMax) {
+  const w = 820, h = 200, padL = 50, padR = 20, padT = 15, padB = 30;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+
+  const nPoints = 150;
+  const points = [];
+  for (let i = 0; i <= nPoints; i++) {
+    const x = xMin + (xMax - xMin) * (i / nPoints);
+    const y = transformFn(x, lambda);
+    if (!isNaN(y) && isFinite(y)) points.push([x, y]);
+  }
+  if (points.length === 0) { svgEl.innerHTML = ""; return; }
+
+  const yVals = points.map((p) => p[1]);
+  const yMin = Math.min(...yVals), yMax = Math.max(...yVals);
+  const yRange = (yMax - yMin) || 1;
+
+  const toX = (x) => padL + ((x - xMin) / (xMax - xMin)) * plotW;
+  const toY = (y) => padT + plotH - ((y - yMin) / yRange) * plotH;
+
+  let path = "M " + points.map((p) => `${toX(p[0]).toFixed(1)},${toY(p[1]).toFixed(1)}`).join(" L ");
+
+  let svg = `<path class="curve-line" d="${path}"></path>`;
+
+  // zero-crossing reference lines if 0 is within range
+  if (xMin < 0 && xMax > 0) {
+    svg += `<line class="zero-line" x1="${toX(0).toFixed(1)}" y1="${padT}" x2="${toX(0).toFixed(1)}" y2="${padT + plotH}"></line>`;
+  }
+  svg += `<text class="axis-label" x="${padL}" y="${h - 8}">x = ${xMin.toFixed(1)}</text>`;
+  svg += `<text class="axis-label" x="${(padL + plotW - 50).toFixed(1)}" y="${h - 8}">x = ${xMax.toFixed(1)}</text>`;
+  svg += `<text class="axis-label" x="6" y="${padT + 10}">T(x)</text>`;
+
+  svgEl.innerHTML = svg;
+}
+
+function namedCase(lambda) {
+  if (Math.abs(lambda - 1) < 0.03) return "no transform (identity)";
+  if (Math.abs(lambda - 0.5) < 0.03) return "≈ square root";
+  if (Math.abs(lambda) < 0.03) return "= log transform";
+  if (Math.abs(lambda + 1) < 0.03) return "≈ reciprocal (1/x)";
+  if (lambda > 1) return "stretches large values further";
+  if (lambda < 0) return "compresses large values strongly";
+  return "between identity and log";
+}
+
+// =====================================================================
+// Update functions -- called whenever a slider moves
+// =====================================================================
+function renderDataTable(containerEl, sampleValues, transformFn, lambda) {
+  const half = Math.ceil(sampleValues.length / 2);
+  const columns = [sampleValues.slice(0, half), sampleValues.slice(half)];
+
+  let html = "";
+  columns.forEach((col) => {
+    let rows = "";
+    col.forEach((x) => {
+      const t = transformFn(x, lambda);
+      const tDisplay = isNaN(t) ? "undefined" : t.toFixed(2);
+      rows += `<tr><td class="row-num">x</td><td>${x.toFixed(2)}</td><td class="row-num">→</td><td>${tDisplay}</td></tr>`;
+    });
+    html += `<table class="sample-data"><tr><th>&nbsp;</th><th>Raw</th><th>&nbsp;</th><th>Transformed</th></tr>${rows}</table>`;
+  });
+  containerEl.innerHTML = html;
+}
+
+function updateBoxCox() {
+  const lambda = parseFloat(document.getElementById("bc-slider").value);
+  document.getElementById("bc-lambda-val").textContent = lambda.toFixed(2);
+  document.getElementById("bc-named-case").textContent = namedCase(lambda);
+  document.getElementById("bc-formula-text").textContent =
+    Math.abs(lambda) < 0.03 ? "ln(x)  [special case when λ=0]" : `(x^${lambda.toFixed(2)} − 1) / ${lambda.toFixed(2)}`;
+
+  const transformed = boxCoxData.map((x) => boxCox(x, lambda));
+  document.getElementById("bc-skew-before").textContent = skewness(boxCoxData).toFixed(3);
+  document.getElementById("bc-skew-after").textContent = skewness(transformed).toFixed(3);
+
+  renderHistogram(document.getElementById("bc-hist-before"), boxCoxData, "bar-before");
+  renderHistogram(document.getElementById("bc-hist-after"), transformed, "bar-after");
+  renderCurve(document.getElementById("bc-curve"), boxCox, lambda, 0.5, Math.max(...boxCoxData));
+  renderDataTable(document.getElementById("bc-table-wrap"), boxCoxSample, boxCox, lambda);
+}
+
+function updateYeoJohnson() {
+  const lambda = parseFloat(document.getElementById("yj-slider").value);
+  document.getElementById("yj-lambda-val").textContent = lambda.toFixed(2);
+  document.getElementById("yj-named-case").textContent = namedCase(lambda);
+  document.getElementById("yj-formula-text").textContent =
+    `for x≥0: ((x+1)^${lambda.toFixed(2)} − 1)/${lambda.toFixed(2)}  |  for x<0: −((−x+1)^${(2 - lambda).toFixed(2)} − 1)/${(2 - lambda).toFixed(2)}`;
+
+  const transformed = yeoJohnsonData.map((x) => yeoJohnson(x, lambda));
+  document.getElementById("yj-skew-before").textContent = skewness(yeoJohnsonData).toFixed(3);
+  document.getElementById("yj-skew-after").textContent = skewness(transformed).toFixed(3);
+
+  renderHistogram(document.getElementById("yj-hist-before"), yeoJohnsonData, "bar-before");
+  renderHistogram(document.getElementById("yj-hist-after"), transformed, "bar-after");
+  renderCurve(document.getElementById("yj-curve"), yeoJohnson, lambda, Math.min(...yeoJohnsonData), Math.max(...yeoJohnsonData));
+  renderDataTable(document.getElementById("yj-table-wrap"), yeoJohnsonSample, yeoJohnson, lambda);
+}
+
+function jumpToBest(which) {
+  if (which === "boxcox") {
+    const best = findBestLambda(boxCoxData, boxCox);
+    document.getElementById("bc-slider").value = best.lambda;
+    updateBoxCox();
+  } else {
+    const best = findBestLambda(yeoJohnsonData, yeoJohnson);
+    document.getElementById("yj-slider").value = best.lambda;
+    updateYeoJohnson();
+  }
+}
+
+function resetLambda(which) {
+  if (which === "boxcox") {
+    document.getElementById("bc-slider").value = 1;
+    updateBoxCox();
+  } else {
+    document.getElementById("yj-slider").value = 1;
+    updateYeoJohnson();
+  }
+}
+
+function switchTab(which) {
+  document.getElementById("panel-boxcox").classList.toggle("active", which === "boxcox");
+  document.getElementById("panel-yeojohnson").classList.toggle("active", which === "yeojohnson");
+  document.querySelectorAll(".tab-btn").forEach((btn, i) => {
+    btn.classList.toggle("active", (which === "boxcox" && i === 0) || (which === "yeojohnson" && i === 1));
+  });
+}
+
+document.getElementById("bc-slider").addEventListener("input", updateBoxCox);
+document.getElementById("yj-slider").addEventListener("input", updateYeoJohnson);
+
+// Optional: allow ?lambda=0.5&tab=yeojohnson in the URL for quick testing/demo states
+(function initFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get("tab");
+  const lambdaParam = params.get("lambda");
+  if (tab === "yeojohnson") switchTab("yeojohnson");
+  if (lambdaParam !== null) {
+    document.getElementById("bc-slider").value = lambdaParam;
+    document.getElementById("yj-slider").value = lambdaParam;
+  }
+})();
+
+updateBoxCox();
+updateYeoJohnson();
+</script>
+
+</body>
+</html>

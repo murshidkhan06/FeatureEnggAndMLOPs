@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ridge vs Lasso — Interactive Regularization Simulator</title>
+<style>
+  :root {
+    --teal-dark: #0B3D3F;
+    --teal: #028090;
+    --teal-light: #E8F4F3;
+    --coral: #B5451B;
+    --coral-light: #FBEDE7;
+    --purple: #5A3E9B;
+    --purple-light: #F1EDFB;
+    --ink: #24312F;
+    --muted: #5B6B69;
+    --paper: #FAF9F6;
+    --line: #D8DEDC;
+    --genuine: #028090;
+    --noise: #ABB8B7;
+    --zeroed: #E4E9E8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 32px 48px; background: var(--paper);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    color: var(--ink);
+  }
+  .page-title { text-align: center; margin-bottom: 4px; }
+  .page-title h1 { font-size: 24px; font-weight: 700; color: var(--teal-dark); margin: 0; }
+  .page-title p { color: var(--muted); font-size: 13.5px; margin: 6px 0 0; font-style: italic; }
+
+  .max-wrap { max-width: 1180px; margin: 0 auto; }
+
+  .intro-box, .truth-box {
+    background: #fff; border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 14px 20px; margin-bottom: 18px; font-size: 13.5px; line-height: 1.55;
+  }
+  .intro-box b { color: var(--teal-dark); }
+  .truth-box { font-family: "Consolas", "Courier New", monospace; font-size: 12.5px; }
+  .truth-box .title { font-family: "Segoe UI", sans-serif; font-weight: 700; color: var(--teal-dark); font-size: 13.5px; margin-bottom: 6px; }
+
+  .control-row {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: #fff; border: 1.5px solid var(--line); border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 20px;
+  }
+  .control-row label { font-weight: 700; font-size: 14px; color: var(--teal-dark); white-space: nowrap; }
+  .control-row input[type="range"] { flex: 1; min-width: 260px; accent-color: var(--teal); height: 4px; }
+  .alpha-readout {
+    font-family: "Consolas", monospace; font-size: 18px; font-weight: 700; color: var(--coral);
+    min-width: 80px; text-align: center; background: var(--coral-light); border-radius: 6px; padding: 4px 10px;
+  }
+  .btn { padding: 8px 16px; border-radius: 7px; border: none; background: var(--teal); color: #fff; font-weight: 700; font-size: 12.5px; cursor: pointer; }
+  .btn:hover { background: var(--teal-dark); }
+  .btn.secondary { background: #fff; color: var(--teal-dark); border: 1.5px solid var(--teal); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+  .card { background: #fff; border: 1.5px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .card h3 { margin: 0 0 4px; font-size: 14.5px; }
+  .card.ridge-card h3 { color: var(--purple); }
+  .card.lasso-card h3 { color: var(--coral); }
+  .card .sub { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+
+  .summary-line {
+    font-size: 13.5px; padding: 10px 14px; border-radius: 8px; margin-top: 8px;
+  }
+  .summary-ridge { background: var(--purple-light); color: var(--purple); }
+  .summary-lasso { background: var(--coral-light); color: var(--coral); }
+  .summary-line b { font-family: "Consolas", monospace; }
+
+  svg { display: block; width: 100%; height: auto; }
+  .axis-label { font-size: 10px; fill: var(--muted); font-family: inherit; }
+  .feature-label { font-size: 10.5px; fill: var(--ink); font-family: inherit; }
+  .bar-genuine { fill: var(--genuine); }
+  .bar-noise { fill: var(--noise); }
+  .bar-zeroed { fill: var(--zeroed); stroke: #bbb; stroke-width: 1; stroke-dasharray: 2,2; }
+  .zero-baseline { stroke: #999; stroke-width: 1; }
+  .path-line { fill: none; stroke-width: 2; }
+  .current-alpha-marker { stroke: #E4572E; stroke-width: 1.5; stroke-dasharray: 4,3; }
+
+  .legend-row { display: flex; gap: 16px; font-size: 11px; color: var(--muted); margin-top: 8px; flex-wrap: wrap; }
+  .legend-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+</style>
+</head>
+<body>
+
+  <div class="page-title">
+    <h1>Ridge vs Lasso — Interactive Regularization Simulator</h1>
+    <p>Same penalty strength, two very different outcomes. Drag the slider and watch Lasso zero features out.</p>
+  </div>
+
+  <div class="max-wrap">
+
+    <div class="intro-box">
+      <b>The dataset:</b> 150 students, 6 candidate features predicting <b>final_score</b>. Three
+      features genuinely matter (with different strengths); three are pure random noise with no
+      real relationship to the score at all. Every feature is standardized (mean 0, std 1) so
+      coefficients are directly comparable. <b>Ridge</b> penalizes the SUM OF SQUARES of the
+      coefficients; <b>Lasso</b> penalizes the SUM OF ABSOLUTE VALUES — that one difference in the
+      formula is the entire reason their behavior diverges so much.
+    </div>
+
+    <div class="truth-box">
+      <div class="title">Ground truth (what we used to generate the data — hidden from both models)</div>
+      final_score&nbsp; = &nbsp;<b>3.0</b> × study_hours &nbsp;+&nbsp; <b>1.5</b> × attendance &nbsp;+&nbsp; <b>0.6</b> × sleep_hours &nbsp;+&nbsp; <b>0</b> × random_noise_1 &nbsp;+&nbsp; <b>0</b> × random_noise_2 &nbsp;+&nbsp; <b>0</b> × random_noise_3 &nbsp;+&nbsp; noise
+    </div>
+
+    <div class="control-row">
+      <label for="alpha-slider">Regularization strength (α) =</label>
+      <input type="range" id="alpha-slider" min="0" max="100" step="0.5" value="0">
+      <span class="alpha-readout" id="alpha-val">0.0</span>
+      <button class="btn" onclick="setAlpha(0)">α = 0 (plain regression)</button>
+      <button class="btn secondary" onclick="setAlpha(15)">α = 15</button>
+      <button class="btn secondary" onclick="setAlpha(70)">α = 70</button>
+    </div>
+
+    <div class="two-col">
+      <div class="card ridge-card">
+        <h3>Ridge coefficients (L2 penalty)</h3>
+        <div class="sub">Shrinks every coefficient smoothly — watch closely: none ever become EXACTLY zero</div>
+        <svg id="ridge-bars" viewBox="0 0 480 240"></svg>
+        <div class="summary-line summary-ridge" id="ridge-summary"></div>
+      </div>
+      <div class="card lasso-card">
+        <h3>Lasso coefficients (L1 penalty)</h3>
+        <div class="sub">Shrinks AND selects — weak/noise coefficients get pushed all the way to zero</div>
+        <svg id="lasso-bars" viewBox="0 0 480 240"></svg>
+        <div class="summary-line summary-lasso" id="lasso-summary"></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card ridge-card">
+        <h3>Ridge regularization path</h3>
+        <div class="sub">Every coefficient's value as α grows from 0 to 100 — all curves bend toward zero, none touch it</div>
+        <svg id="ridge-path" viewBox="0 0 480 220"></svg>
+      </div>
+      <div class="card lasso-card">
+        <h3>Lasso regularization path</h3>
+        <div class="sub">Same view for Lasso — notice each line hits exactly zero and FLATTENS there, one by one</div>
+        <svg id="lasso-path" viewBox="0 0 480 220"></svg>
+      </div>
+    </div>
+
+    <div class="legend-row">
+      <span><span class="legend-swatch" style="background:var(--genuine)"></span>Genuine signal (study_hours, attendance, sleep_hours)</span>
+      <span><span class="legend-swatch" style="background:var(--noise)"></span>Pure noise (random_noise_1/2/3)</span>
+      <span><span class="legend-swatch" style="background:var(--zeroed)"></span>Zeroed out by Lasso</span>
+    </div>
+
+  </div>
+
+<script>
+// =====================================================================
+// Seeded RNG + Gaussian sampler (reproducible dataset every page load)
+// =====================================================================
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function makeGaussian(rng) {
+  return function () {
+    let u1 = rng(), u2 = rng();
+    if (u1 < 1e-12) u1 = 1e-12;
+    return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  };
+}
+function standardize(arr) {
+  const n = arr.length;
+  const mean = arr.reduce((a, b) => a + b, 0) / n;
+  const std = Math.sqrt(arr.reduce((a, b) => a + (b - mean) ** 2, 0) / n);
+  return arr.map((v) => (v - mean) / std);
+}
+
+// =====================================================================
+// Generate the dataset (fixed seed -- identical every time the page loads)
+// =====================================================================
+const rng = mulberry32(42);
+const gauss = makeGaussian(rng);
+const N = 150;
+const featureNames = ["study_hours", "attendance", "sleep_hours", "random_noise_1", "random_noise_2", "random_noise_3"];
+const isGenuine = [true, true, true, false, false, false];
+
+const raw = { study_hours: [], attendance: [], sleep_hours: [], random_noise_1: [], random_noise_2: [], random_noise_3: [] };
+for (let i = 0; i < N; i++) {
+  raw.study_hours.push(gauss());
+  raw.attendance.push(gauss());
+  raw.sleep_hours.push(gauss());
+  raw.random_noise_1.push(gauss());
+  raw.random_noise_2.push(gauss());
+  raw.random_noise_3.push(gauss());
+}
+const Xcols = featureNames.map((name) => standardize(raw[name]));
+const yRaw = [];
+for (let i = 0; i < N; i++) {
+  yRaw.push(3.0 * Xcols[0][i] + 1.5 * Xcols[1][i] + 0.6 * Xcols[2][i] + gauss() * 1.0);
+}
+const y = standardize(yRaw);
+
+const P = Xcols.length;
+const X = [];
+for (let i = 0; i < N; i++) X.push(Xcols.map((col) => col[i]));
+
+// =====================================================================
+// Ridge (closed-form) and Lasso (coordinate descent) regression
+// =====================================================================
+function matMulTransposeA(X) {
+  const p = X[0].length, n = X.length;
+  const result = Array.from({ length: p }, () => new Array(p).fill(0));
+  for (let a = 0; a < p; a++)
+    for (let b = 0; b < p; b++) {
+      let s = 0;
+      for (let i = 0; i < n; i++) s += X[i][a] * X[i][b];
+      result[a][b] = s;
+    }
+  return result;
+}
+function matVecTranspose(X, y) {
+  const p = X[0].length, n = X.length;
+  const result = new Array(p).fill(0);
+  for (let a = 0; a < p; a++) {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += X[i][a] * y[i];
+    result[a] = s;
+  }
+  return result;
+}
+function solveLinearSystem(A, b) {
+  const n = A.length;
+  const M = A.map((row, i) => [...row, b[i]]);
+  for (let col = 0; col < n; col++) {
+    let maxRow = col;
+    for (let r = col + 1; r < n; r++) if (Math.abs(M[r][col]) > Math.abs(M[maxRow][col])) maxRow = r;
+    [M[col], M[maxRow]] = [M[maxRow], M[col]];
+    const pivot = M[col][col];
+    for (let c = col; c <= n; c++) M[col][c] /= pivot;
+    for (let r = 0; r < n; r++) {
+      if (r === col) continue;
+      const factor = M[r][col];
+      for (let c = col; c <= n; c++) M[r][c] -= factor * M[col][c];
+    }
+  }
+  return M.map((row) => row[n]);
+}
+function ridgeRegression(X, y, alpha) {
+  const p = X[0].length;
+  const XtX = matMulTransposeA(X);
+  const Xty = matVecTranspose(X, y);
+  for (let i = 0; i < p; i++) XtX[i][i] += Math.max(alpha, 1e-6);
+  return solveLinearSystem(XtX, Xty);
+}
+function softThreshold(x, lambda) {
+  if (x > lambda) return x - lambda;
+  if (x < -lambda) return x + lambda;
+  return 0;
+}
+function lassoCoordinateDescent(X, y, alpha, nIter = 80) {
+  const p = X[0].length, n = X.length;
+  let w = new Array(p).fill(0);
+  const colNormSq = new Array(p).fill(0);
+  for (let j = 0; j < p; j++) {
+    let s = 0;
+    for (let i = 0; i < n; i++) s += X[i][j] ** 2;
+    colNormSq[j] = s;
+  }
+  for (let iter = 0; iter < nIter; iter++) {
+    for (let j = 0; j < p; j++) {
+      let rho = 0;
+      for (let i = 0; i < n; i++) {
+        let pred = 0;
+        for (let k = 0; k < p; k++) if (k !== j) pred += X[i][k] * w[k];
+        rho += X[i][j] * (y[i] - pred);
+      }
+      w[j] = softThreshold(rho, Math.max(alpha, 0)) / colNormSq[j];
+    }
+  }
+  return w;
+}
+
+// =====================================================================
+// Precompute full regularization paths ONCE (fast lookup on slider move)
+// =====================================================================
+const ALPHA_MAX = 100;
+const N_STEPS = 201; // alpha = 0, 0.5, 1, ..., 100
+const alphaGrid = [];
+const ridgePath = []; // ridgePath[step] = [coef_0, ..., coef_5]
+const lassoPath = [];
+for (let s = 0; s < N_STEPS; s++) {
+  const alpha = (s / (N_STEPS - 1)) * ALPHA_MAX;
+  alphaGrid.push(alpha);
+  ridgePath.push(ridgeRegression(X, y, alpha));
+  lassoPath.push(lassoCoordinateDescent(X, y, alpha));
+}
+
+function nearestStep(alpha) {
+  return Math.round((alpha / ALPHA_MAX) * (N_STEPS - 1));
+}
+
+// =====================================================================
+// Rendering: bar charts
+// =====================================================================
+function renderBars(svgEl, coefs, method) {
+  const w = 480, h = 240, padL = 10, padR = 10, padT = 10, padB = 70;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+  const maxAbs = Math.max(0.9, ...coefs.map((c) => Math.abs(c))) * 1.15;
+  const zeroY = padT + plotH / 2;
+  const barSlot = plotW / coefs.length;
+  const barW = barSlot * 0.55;
+
+  let svg = `<line class="zero-baseline" x1="${padL}" y1="${zeroY}" x2="${padL + plotW}" y2="${zeroY}"></line>`;
+
+  coefs.forEach((c, i) => {
+    const isZero = Math.abs(c) < 1e-4;
+    const barH = (Math.abs(c) / maxAbs) * (plotH / 2);
+    const x = padL + i * barSlot + (barSlot - barW) / 2;
+    const y1 = c >= 0 ? zeroY - barH : zeroY;
+    let cls = isGenuine[i] ? "bar-genuine" : "bar-noise";
+    if (method === "lasso" && isZero) cls = "bar-zeroed";
+    svg += `<rect class="${cls}" x="${x.toFixed(1)}" y="${y1.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(barH, isZero ? 3 : barH).toFixed(1)}"></rect>`;
+    // value label
+    const labelY = c >= 0 ? y1 - 4 : y1 + barH + 12;
+    svg += `<text class="axis-label" x="${(x + barW / 2).toFixed(1)}" y="${labelY.toFixed(1)}" text-anchor="middle">${c.toFixed(2)}</text>`;
+    // feature name label (rotated)
+    const labelX = x + barW / 2;
+    svg += `<text class="feature-label" x="${labelX.toFixed(1)}" y="${(h - padB + 14).toFixed(1)}" text-anchor="end" transform="rotate(-35 ${labelX.toFixed(1)} ${(h - padB + 14).toFixed(1)})">${featureNames[i]}</text>`;
+  });
+
+  svgEl.innerHTML = svg;
+}
+
+// =====================================================================
+// Rendering: regularization path plots
+// =====================================================================
+const pathColors = ["#028090", "#00A896", "#7FB3B0", "#B5451B", "#D98455", "#EBAE8C"];
+
+function renderPath(svgEl, path, currentAlpha) {
+  const w = 480, h = 220, padL = 34, padR = 10, padT = 10, padB = 26;
+  const plotW = w - padL - padR, plotH = h - padT - padB;
+
+  let maxAbs = 0.1;
+  path.forEach((row) => row.forEach((v) => { if (Math.abs(v) > maxAbs) maxAbs = Math.abs(v); }));
+  maxAbs *= 1.1;
+
+  const toX = (alpha) => padL + (alpha / ALPHA_MAX) * plotW;
+  const toY = (v) => padT + plotH / 2 - (v / maxAbs) * (plotH / 2);
+
+  let svg = `<line class="zero-baseline" x1="${padL}" y1="${toY(0).toFixed(1)}" x2="${padL + plotW}" y2="${toY(0).toFixed(1)}"></line>`;
+
+  for (let j = 0; j < P; j++) {
+    let d = "M " + alphaGrid.map((a, s) => `${toX(a).toFixed(1)},${toY(path[s][j]).toFixed(1)}`).join(" L ");
+    svg += `<path class="path-line" d="${d}" style="stroke:${pathColors[j]}"></path>`;
+  }
+
+  const markerX = toX(currentAlpha);
+  svg += `<line class="current-alpha-marker" x1="${markerX.toFixed(1)}" y1="${padT}" x2="${markerX.toFixed(1)}" y2="${padT + plotH}"></line>`;
+
+  svg += `<text class="axis-label" x="${padL}" y="${h - 8}">0</text>`;
+  svg += `<text class="axis-label" x="${(padL + plotW - 20).toFixed(1)}" y="${h - 8}">α=${ALPHA_MAX}</text>`;
+
+  svgEl.innerHTML = svg;
+}
+
+// =====================================================================
+// Main update function
+// =====================================================================
+function updateAll() {
+  const alpha = parseFloat(document.getElementById("alpha-slider").value);
+  document.getElementById("alpha-val").textContent = alpha.toFixed(1);
+
+  const step = nearestStep(alpha);
+  const ridgeCoefs = ridgePath[step];
+  const lassoCoefs = lassoPath[step];
+
+  renderBars(document.getElementById("ridge-bars"), ridgeCoefs, "ridge");
+  renderBars(document.getElementById("lasso-bars"), lassoCoefs, "lasso");
+  renderPath(document.getElementById("ridge-path"), ridgePath, alpha);
+  renderPath(document.getElementById("lasso-path"), lassoPath, alpha);
+
+  const ridgeMinAbs = Math.min(...ridgeCoefs.map((c) => Math.abs(c)));
+  document.getElementById("ridge-summary").innerHTML =
+    `Ridge is using <b>all 6</b> of 6 features. Even the smallest coefficient (${ridgeMinAbs.toFixed(4)}) is not exactly zero.`;
+
+  const zeroedFeatures = featureNames.filter((_, i) => Math.abs(lassoCoefs[i]) < 1e-4);
+  const keptFeatures = featureNames.filter((_, i) => Math.abs(lassoCoefs[i]) >= 1e-4);
+  document.getElementById("lasso-summary").innerHTML =
+    `Lasso is using <b>${keptFeatures.length} of 6</b> features. ` +
+    (zeroedFeatures.length > 0
+      ? `Zeroed out: <b>${zeroedFeatures.join(", ")}</b>`
+      : `Nothing zeroed out yet at this α.`);
+}
+
+function setAlpha(value) {
+  document.getElementById("alpha-slider").value = value;
+  updateAll();
+}
+
+document.getElementById("alpha-slider").addEventListener("input", updateAll);
+
+// Optional: ?alpha=15 in the URL for quick testing/demo states
+(function initFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const alphaParam = params.get("alpha");
+  if (alphaParam !== null) document.getElementById("alpha-slider").value = alphaParam;
+})();
+
+updateAll();
+</script>
+
+</body>
+</html>
