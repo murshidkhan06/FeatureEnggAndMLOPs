@@ -1,0 +1,35 @@
+$ python -m src.models.evaluate
+CHAMPION v1 (hgb), trained through 2024-09-30, features: 14
+TEST period 2024-10-01 .. 2024-12-31: 2,208 rows, 268,393 units sold
+
+1) ACCURACY AND BUSINESS COST ON THE TEST PERIOD (lower is better except roc_auc)
+                      mae     rmse    wape    bias  bias_pct  roc_auc  over_forecast_units  under_forecast_units  weighted_cost
+naive             23.6363  37.0274  0.1944 -0.0557   -0.0005   0.7097              26033.0               26156.0       104501.0
+seasonal_naive    25.2505  43.3726  0.2077 -0.6463   -0.0053   0.6656              27163.0               28590.0       112933.0
+moving_average_7  22.6634  33.8505  0.1864  0.0074    0.0001   0.5896              25029.0               25012.0       100065.0
+champion          15.6152  25.2737  0.1285 -2.7860   -0.0229   0.8637              14163.0               20315.0        75108.0
+
+   Champion vs seasonal naive: WAPE 0.208 -> 0.129  (38% fewer errors); weighted stock cost 112,933 -> 75,108
+   Meaning: of 268,393 units sold, the forecast over-stated 14,163 unit-days and missed 20,315 unit-days of demand;
+   bias -2.3% means the forecast was slightly LOW (risk of stock-outs) overall.
+   roc_auc = 0.864: how well the forecast RANKS 'spike' days (sales > 1.15 x recent level) above normal days (0.5 = coin flip).
+
+2) WHERE ARE THE ERRORS?  (champion WAPE by segment)
+                 rows   wape  bias_pct
+promotion day   201.0  0.124    -0.015
+no promotion   2007.0  0.129    -0.024
+holiday          72.0  0.151    -0.101
+weekend         624.0  0.129    -0.009
+weekday        1584.0  0.128    -0.030
+
+   by product:
+product_id    P01    P02    P03    P04    P05    P06    P07    P08
+wape        0.130  0.188  0.119  0.111  0.113  0.147  0.145  0.139
+bias_pct    0.019  0.032 -0.046 -0.054 -0.036  0.019 -0.015 -0.031
+
+3) PREDICTION INTERVAL (OPTIONAL): calibrated on validation residuals, checked on test
+   [-0.19, +0.22] x forecast  -> nominal 80% coverage; observed on test = 78.7%
+
+4) WHY NOT MAPE?  Zero-sales (stock-out) days  (all 2 years of rows, seasonal-naive forecast)
+   40 zero-sales rows -> MAPE = inf (division by zero: one stock-out ruins the average);
+   WAPE = 0.1992 is always defined because it divides by TOTAL units, not by each day.

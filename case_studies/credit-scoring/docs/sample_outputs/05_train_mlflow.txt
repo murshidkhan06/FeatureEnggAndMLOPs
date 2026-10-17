@@ -1,0 +1,13 @@
+$ python -m src.models.train --bootstrap-champion
+train=8171 valid=1667 test=1800   selected features (9): ['employment_years', 'loan_amount', 'credit_history_years', 'bureau_score', 'existing_loans', 'debt_to_income_ratio', 'employment_type', 'log_income', 'loan_to_income']
+
+                    model  n_features  valid_roc_auc  valid_ks_stat  test_roc_auc  test_gini  test_ks_stat  test_pr_auc  test_recall_at_80_approval
+      baseline_logreg_raw          12         0.7934         0.4754        0.7534     0.5068        0.4050       0.2941                       0.475
+candidate_logreg_selected           9         0.7920         0.4544        0.7683     0.5365        0.4394       0.3305                       0.515
+   benchmark_hgb_selected           9         0.7780         0.4387        0.7596     0.5192        0.4263       0.3097                       0.480
+
+feature engineering gain (candidate - baseline) AUC     : valid -0.0014 | test +0.0149   (~200 defaulters per split: differences of +-0.02 are within noise)
+boosting gain over the scorecard (valid AUC, hgb - logreg)  : -0.0140   (needed: >= 0.02)
+-> boosting does NOT win by a meaningful margin: keep the interpretable logistic-regression scorecard.
+
+installed v1 as champion  (test metrics: {'roc_auc': 0.7683, 'gini': 0.5365, 'ks_stat': 0.4394, 'pr_auc': 0.3305, 'recall_at_80_approval': 0.515, 'brier': 0.0869}) and recorded it in models/registry.json

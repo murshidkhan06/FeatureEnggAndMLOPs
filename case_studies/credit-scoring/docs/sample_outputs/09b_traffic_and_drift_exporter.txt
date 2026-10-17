@@ -1,0 +1,33 @@
+$ python scripts/smoke_test.py --url http://127.0.0.1:34809
+health: {'status': 'ok', 'model_loaded': True, 'model_version': 'v1'}
+predict: 200 {'probability_of_default': 0.1526, 'risk_band': 'MEDIUM', 'decision_hint': 'REFER_TO_UNDERWRITER', 'reason_codes': [{'feature': 'log_income', 'reason': 'Declared annual income is low compared with typical applicants', 'contribution': 0.426}, {'feature': 'credit_history_years', 'reason': 'Credit history is short (3.0 years)', 'contribution': 0.256}, {'feature': 'existing_loans', 'reason': 'Number of existing loans is high (2)', 'contribution': 0.168}], 'model_version': 'v1'}
+invalid request -> 422
+SMOKE TEST PASSED
+
+$ python scripts/send_traffic.py --csv data/production/batch_normal.csv --n 300 --url http://127.0.0.1:34809
+sent=300 ok=300 errors=0 in 19.0s
+
+$ python -m src.monitoring.drift_exporter --once --window 300
+drift exporter: last 300 logged predictions vs reference
+             feature  n_ref  n_prod  ks_statistic  p_value  statistically_significant  practically_significant               status
+      monthly_income   3000     300        0.0250 0.994425                      False                    False no_evidence_of_drift
+          log_income   2621     265        0.0611 0.316058                      False                    False no_evidence_of_drift
+      loan_to_income   2621     265        0.0688 0.195229                      False                    False no_evidence_of_drift
+debt_to_income_ratio   3000     300        0.0510 0.464878                      False                    False no_evidence_of_drift
+       emi_to_income   3000     300        0.0377 0.822316                      False                    False no_evidence_of_drift
+credit_history_years   3000     300        0.0680 0.154611                      False                    False no_evidence_of_drift
+        bureau_score   2757     281        0.0801 0.071262                      False                    False no_evidence_of_drift
+
+$ python scripts/send_traffic.py --csv data/production/batch_drifted.csv --n 300 --url http://127.0.0.1:34809
+sent=300 ok=300 errors=0 in 23.2s
+
+$ python -m src.monitoring.drift_exporter --once --window 300
+drift exporter: last 300 logged predictions vs reference
+             feature  n_ref  n_prod  ks_statistic      p_value  statistically_significant  practically_significant                status
+      monthly_income   3000     300        0.1443 2.064640e-05                       True                     True                 drift
+          log_income   2621     256        0.1830 2.619793e-07                       True                     True                 drift
+      loan_to_income   2621     256        0.0458 6.930351e-01                      False                    False  no_evidence_of_drift
+debt_to_income_ratio   3000     300        0.1567 2.660445e-06                       True                     True                 drift
+       emi_to_income   3000     300        0.0577 3.148089e-01                      False                    False  no_evidence_of_drift
+credit_history_years   3000     300        0.0823 4.729593e-02                       True                    False significant_but_small
+        bureau_score   2757     279        0.1355 1.617557e-04                       True                     True                 drift

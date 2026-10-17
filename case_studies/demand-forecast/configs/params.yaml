@@ -1,0 +1,23 @@
+# Hyper-parameters and rules shared by train / evaluate / retrain (DVC tracks this file as `params`).
+split:                       # chronological split of the 2-year training history - NEVER random
+  train_end: "2024-06-30"
+  valid_end: "2024-09-30"
+  test_end: "2024-12-31"
+ridge:
+  alpha: 1.0
+hgb:
+  max_iter: 300
+  learning_rate: 0.05
+  max_leaf_nodes: 31
+  min_samples_leaf: 40
+  l2_regularization: 1.0
+  random_state: 0
+champion_rule:               # how the champion is picked among ML candidates (on the VALIDATION period)
+  metric: wape               # lowest validation WAPE wins ...
+  max_abs_bias_pct: 0.03     # ... but only if |bias| <= 3% of average sales (a biased forecast piles up / starves stock)
+interval:                    # OPTIONAL prediction interval from validation residual quantiles
+  low_quantile: 0.10
+  high_quantile: 0.90
+costs:                       # business meaning of errors (relative cost per unit)
+  over_forecast: 1.0         # a unit forecast but not sold -> waste / holding cost
+  under_forecast: 3.0        # a unit demanded but not stocked -> lost margin + unhappy customer

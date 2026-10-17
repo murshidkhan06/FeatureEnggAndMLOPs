@@ -1,0 +1,14 @@
+$ python -m src.models.weekly_job --new-actuals data/production/batch_drifted.csv --through 2025-01-07
+WEEKLY JOB as of 2025-01-07
+1) FEATURE REFRESH: history ends 2024-12-31, new actuals 2025-01-01..2025-01-07 (168 rows)
+   first run : {'rows_before': 17544, 'new': 168, 'replaced': 0, 'rows_after': 17712}
+   RE-RUN (simulated pipeline retry): {'rows_before': 17712, 'new': 0, 'replaced': 168, 'rows_after': 17712}  -> still 17712 rows, no duplicates (idempotent)
+2) BATCH FORECAST with champion v1: 168 rows (24 series x 7 days) -> reports/forecast_next_7d.csv
+forecast_date  horizon  predicted_units  lower  upper
+   2025-01-08        1            187.4  151.1  229.3
+   2025-01-09        2            178.3  129.5  234.8
+   2025-01-10        3            197.9  131.5  274.6
+   2025-01-11        4            207.2  126.9  299.9
+   2025-01-12        5            207.4  117.6  311.2
+   2025-01-13        6            176.2   92.6  272.8
+   2025-01-14        7            178.8   87.2  284.6

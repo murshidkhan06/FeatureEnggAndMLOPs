@@ -1,0 +1,45 @@
+$ python scripts/api_session.py
+
+$ GET /health
+HTTP 200  {"status": "ok", "model_loaded": true, "model_version": "v1", "history_loaded": true, "history_last_date": "2025-02-28", "history_error": null}
+
+$ POST /predict   (valid)  {"product_id": "P04", "store_id": "S2", "forecast_date": "2025-03-01", "price": 61.0, "discount": 0.0, "promotion": 0, "holiday": 0, "forecast_temp": 28.5}
+HTTP 200  {"predicted_units": 202.5, "lower": 163.3, "upper": 247.8, "demand_band": "NORMAL", "model_version": "v1", "history_last_date": "2025-02-28", "history_stale_days": 0, "warnings": []}
+
+$ POST /predict   (promotion: price cut 61 -> 49)
+HTTP 200  {"predicted_units": 264.6, "lower": 213.4, "upper": 323.8, "demand_band": "NORMAL", "model_version": "v1", "history_last_date": "2025-02-28", "history_stale_days": 0, "warnings": []}
+
+$ POST /predict   (weather forecast missing)
+HTTP 200  {"predicted_units": 200.5, "lower": 161.6, "upper": 245.3, "demand_band": "NORMAL", "model_version": "v1", "history_last_date": "2025-02-28", "history_stale_days": 0, "warnings": ["forecast_temp missing: median temperature used"]}
+
+$ POST /predict   (2 days stale: forecast_date 2025-03-03)
+HTTP 200  {"predicted_units": 173.8, "lower": 140.1, "upper": 212.6, "demand_band": "LOW", "model_version": "v1", "history_last_date": "2025-02-28", "history_stale_days": 2, "warnings": ["history is 2 day(s) stale: lags come from older sales, forecast quality is reduced"]}
+
+$ POST /predict   (INVALID: price 61000 = unit error, > 5000)
+HTTP 422  {"detail": [{"type": "less_than_equal", "loc": ["body", "price"], "msg": "Input should be less than or equal to 5000", "input": 61000, "ctx": {"le": 5000.0}}]}
+
+$ POST /predict   (INVALID: missing fields)
+HTTP 422  {"detail": [{"type": "missing", "loc": ["body", "product_id"], "msg": "Field required", "input": {"nonsense": 1}}, {"type": "missing", "loc": ["body", "store_id"], "msg": "Field required", "input": {"nonsense": 1}}, {"type": "missing", "loc": ["body", "forecast_date"], "msg": "Field required", "input": {"nonsense": 1}}, {"type": "missing", "loc": ["body", "price"], "msg": "Field required", "input": {"nonsense": 1}}]}
+
+$ POST /predict   (unknown product P99)
+HTTP 422  {"detail": "unknown series product_id='P99', store_id='S2'; known products ['P01', 'P02', 'P03', 'P04', 'P05', 'P06', 'P07', 'P08'], stores ['S1', 'S2', 'S3']"}
+
+$ POST /predict   (history too stale: 2025-04-01)
+HTTP 422  {"detail": "history store is 31 days behind forecast_date 2025-04-01 (last history day 2025-02-28, limit 3); refresh the history before forecasting"}
+
+$ GET /model-info
+HTTP 200  {"model_version": "v1", "trained_at": "2026-10-07T05:36:59+00:00", "metrics": {"mae": 15.6152, "rmse": 25.2737, "wape": 0.1285, "bias": -2.786, "bias_pct": -0.0229, "roc_auc": 0.8637, "coverage": 0.7867, "val_wape": 0.13, "val_bias_pct": -0.0153, "skill_vs_seasonal_naive": 0.3813}, "threshold": 0.0, "input_columns": ["product_id", "store_id", "day_of_week", "is_holiday", "month_sin", "month_cos", "lag_1", "lag_7", "l
+
+LATENCY /predict over 200 sequential requests (client side, includes HTTP): p50 = 53.3 ms, p95 = 66.1 ms, max = 161.3 ms
+
+$ GET /metrics   (excerpt)
+  api_requests_total{endpoint="/health",method="GET",status="200"} 2.0
+  api_requests_total{endpoint="/predict",method="POST",status="200"} 204.0
+  api_requests_total{endpoint="/predict",method="POST",status="422"} 4.0
+  api_requests_total{endpoint="/model-info",method="GET",status="200"} 1.0
+  model_predictions_total{risk_level="NORMAL"} 82.0
+  model_predictions_total{risk_level="LOW"} 35.0
+  model_predictions_total{risk_level="HIGH"} 87.0
+  model_score_count 204.0
+  model_info{version="v1"} 1.0
+  api_prediction_errors_total 0.0

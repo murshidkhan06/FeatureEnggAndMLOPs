@@ -1,0 +1,403 @@
+registry_version: 1.0.0
+description: Feature metadata for the demand-forecast project. Training refuses any feature whose status is not
+  Approved.
+features:
+- name: sales
+  role: target
+  definition: Units sold of one product in one store on one day (the TARGET).
+  source: POS system -> data/raw/sales_daily.csv
+  data_type: int (count)
+  owner: Data Engineering (sales-data team)
+  calculation_logic: COUNT of units on the receipt lines per (date, product_id, store_id)
+  prediction_time_availability: NOT available for the day being forecast (that is what we predict). Only past days
+    are available.
+  status: Approved
+  status_reason: Target variable. Never an input feature for its own day.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: product_id
+  role: feature
+  definition: Product identifier P01..P08 (series identity).
+  source: Product master
+  data_type: category
+  owner: Supply Chain Analytics
+  calculation_logic: as stored in the product master
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Known, stable, non-sensitive identifier. One-hot encoded inside the pipeline.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: store_id
+  role: feature
+  definition: Store identifier S1..S3 (series identity).
+  source: Store master
+  data_type: category
+  owner: Supply Chain Analytics
+  calculation_logic: as stored in the store master
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Known, stable, non-sensitive identifier. One-hot encoded inside the pipeline.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: day_of_week
+  role: feature
+  definition: Weekday number, Monday=0 ... Sunday=6.
+  source: date
+  data_type: int 0-6
+  owner: Demand Planning Data Science
+  calculation_logic: date.dayofweek
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Calendar fact; strong weekly seasonality.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: week_of_year
+  role: feature
+  definition: ISO week number 1-53.
+  source: date
+  data_type: int 1-53
+  owner: Demand Planning Data Science
+  calculation_logic: date.isocalendar().week
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Calendar fact; annual seasonality.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: month
+  role: feature
+  definition: Calendar month 1-12.
+  source: date
+  data_type: int 1-12
+  owner: Demand Planning Data Science
+  calculation_logic: date.month
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Calendar fact.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: is_weekend
+  role: feature
+  definition: 1 if Saturday or Sunday.
+  source: date
+  data_type: binary
+  owner: Demand Planning Data Science
+  calculation_logic: 1 if day_of_week >= 5 else 0
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Calendar fact.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: is_holiday
+  role: feature
+  definition: 1 if the date is in the retail holiday calendar (Diwali, Holi, Christmas ...).
+  source: holiday calendar (src/features/calendar.py)
+  data_type: binary
+  owner: Supply Chain Analytics
+  calculation_logic: holiday column of the request / calendar lookup
+  prediction_time_availability: 'Known in advance: the holiday calendar is published a year ahead.'
+  status: Approved
+  status_reason: Holiday demand spikes are the biggest single calendar effect.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: trend_index
+  role: feature
+  definition: Days since 2023-01-01. Lets a linear model learn a slope.
+  source: date
+  data_type: int (days)
+  owner: Demand Planning Data Science
+  calculation_logic: (date - 2023-01-01).days
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: 'Calendar fact. CAVEAT: a tree model cannot extrapolate this beyond the training range.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: dow_sin
+  role: feature
+  definition: Cyclical encoding of weekday (sine part).
+  source: date
+  data_type: float -1..1
+  owner: Demand Planning Data Science
+  calculation_logic: sin(2*pi*day_of_week/7)
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: 'Optional cyclical encoding: Sunday sits next to Monday.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: dow_cos
+  role: feature
+  definition: Cyclical encoding of weekday (cosine part).
+  source: date
+  data_type: float -1..1
+  owner: Demand Planning Data Science
+  calculation_logic: cos(2*pi*day_of_week/7)
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Optional cyclical encoding.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: month_sin
+  role: feature
+  definition: Cyclical encoding of month (sine part).
+  source: date
+  data_type: float -1..1
+  owner: Demand Planning Data Science
+  calculation_logic: sin(2*pi*(month-1)/12)
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: 'Optional cyclical encoding: December sits next to January.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: month_cos
+  role: feature
+  definition: Cyclical encoding of month (cosine part).
+  source: date
+  data_type: float -1..1
+  owner: Demand Planning Data Science
+  calculation_logic: cos(2*pi*(month-1)/12)
+  prediction_time_availability: 'Known in advance: available at end of day D for day D+1 (published plan / calendar).'
+  status: Approved
+  status_reason: Optional cyclical encoding.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: lag_1
+  role: feature
+  definition: Units sold yesterday (same product, same store).
+  source: feature store (history) <- POS
+  data_type: float (units)
+  owner: Demand Planning Data Science
+  calculation_logic: sales.shift(1) per (product_id, store_id) on a complete daily calendar; NaN -> rolling_mean_7
+  prediction_time_availability: 'Available at end of day D: uses sales of days <= D only (shift(1) is applied relative
+    to the forecast day).'
+  status: Approved
+  status_reason: Yesterday is the best single predictor of tomorrow.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: lag_7
+  role: feature
+  definition: Units sold 7 days earlier (same weekday last week).
+  source: feature store (history) <- POS
+  data_type: float (units)
+  owner: Demand Planning Data Science
+  calculation_logic: sales.shift(7) per series; NaN -> rolling_mean_7
+  prediction_time_availability: 'Available at end of day D: uses sales of days <= D only (shift(1) is applied relative
+    to the forecast day).'
+  status: Approved
+  status_reason: Captures the weekly cycle.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: lag_14
+  role: feature
+  definition: Units sold 14 days earlier.
+  source: feature store (history) <- POS
+  data_type: float (units)
+  owner: Demand Planning Data Science
+  calculation_logic: sales.shift(14) per series; NaN -> rolling_mean_7
+  prediction_time_availability: 'Available at end of day D: uses sales of days <= D only (shift(1) is applied relative
+    to the forecast day).'
+  status: Approved
+  status_reason: Second weekly reference point; smooths one-off events.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: rolling_mean_7
+  role: feature
+  definition: Average daily units over the previous 7 days (t-7 .. t-1).
+  source: feature store (history) <- POS
+  data_type: float (units)
+  owner: Demand Planning Data Science
+  calculation_logic: sales.shift(1).rolling(7, min_periods=4).mean() per series
+  prediction_time_availability: 'Available at end of day D: uses sales of days <= D only (shift(1) is applied relative
+    to the forecast day).'
+  status: Approved
+  status_reason: Current sales level; shift(1) BEFORE rolling keeps today out.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: rolling_mean_30
+  role: feature
+  definition: Average daily units over the previous 30 days (t-30 .. t-1).
+  source: feature store (history) <- POS
+  data_type: float (units)
+  owner: Demand Planning Data Science
+  calculation_logic: sales.shift(1).rolling(30, min_periods=15).mean() per series
+  prediction_time_availability: 'Available at end of day D: uses sales of days <= D only (shift(1) is applied relative
+    to the forecast day).'
+  status: Approved
+  status_reason: Slow-moving level / trend.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: price
+  role: feature
+  definition: Shelf price (INR per unit) planned for the forecast day, after any discount.
+  source: pricing system (planned prices)
+  data_type: float (INR)
+  owner: Supply Chain Analytics
+  calculation_logic: list_price - discount
+  prediction_time_availability: 'Known in advance: prices are loaded into the POS the evening before.'
+  status: Approved
+  status_reason: 'Price is set by the retailer, so it is known. UNIT RISK: must stay in INR (see failure scenario
+    d).'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: discount_pct
+  role: feature
+  definition: 'Share of the list price given away: discount / (price + discount).'
+  source: pricing system
+  data_type: float 0..1
+  owner: Supply Chain Analytics
+  calculation_logic: discount / (price + discount)
+  prediction_time_availability: Known in advance (planned promotion).
+  status: Approved
+  status_reason: Promotion depth drives uplift.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: price_change
+  role: feature
+  definition: 'Relative price change versus yesterday: price / price_yesterday - 1.'
+  source: pricing system
+  data_type: float
+  owner: Supply Chain Analytics
+  calculation_logic: price / price.shift(1) - 1 per series; NaN -> 0
+  prediction_time_availability: Known in advance (both prices are planned prices).
+  status: Approved
+  status_reason: Signals the start/end of a promotion or a price rise.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: promotion_flag
+  role: feature
+  definition: 1 if a promotion campaign runs on the forecast day.
+  source: promotion calendar
+  data_type: binary
+  owner: Supply Chain Analytics
+  calculation_logic: promotion column
+  prediction_time_availability: Known in advance (campaigns are planned weeks ahead).
+  status: Approved
+  status_reason: Promotions lift demand.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: forecast_temp
+  role: feature
+  definition: Weather FORECAST of the daily temperature (deg C) issued the evening before.
+  source: weather API (forecast endpoint)
+  data_type: float (deg C)
+  owner: Data Engineering (sales-data team)
+  calculation_logic: forecast temperature for the store city; missing (API outage) -> median + missing indicator
+    inside the pipeline
+  prediction_time_availability: 'Available at forecast time: it is a FORECAST. May be missing when the API is down.'
+  status: Approved
+  status_reason: Hot days sell more cold drinks / ice cream. Use the forecast, not the actual.
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: discount
+  role: raw_input
+  definition: Discount in INR per unit already deducted from the shelf price (raw input).
+  source: pricing system
+  data_type: float (INR)
+  owner: Supply Chain Analytics
+  calculation_logic: list_price * discount_fraction
+  prediction_time_availability: Known in advance (planned promotion).
+  status: Approved
+  status_reason: 'Raw input: converted into discount_pct before modelling.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: promotion
+  role: raw_input
+  definition: 1 if a promotion campaign runs that day (raw input).
+  source: promotion calendar
+  data_type: binary
+  owner: Supply Chain Analytics
+  calculation_logic: campaign calendar
+  prediction_time_availability: Known in advance.
+  status: Approved
+  status_reason: 'Raw input: becomes promotion_flag.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: holiday
+  role: raw_input
+  definition: 1 if the date is a retail holiday (raw input from the request).
+  source: holiday calendar
+  data_type: binary
+  owner: Supply Chain Analytics
+  calculation_logic: calendar lookup
+  prediction_time_availability: Known in advance.
+  status: Approved
+  status_reason: 'Raw input: becomes is_holiday.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: temperature
+  role: feature
+  definition: ACTUAL measured daily temperature (deg C).
+  source: weather API (observations)
+  data_type: float (deg C)
+  owner: Data Engineering (sales-data team)
+  calculation_logic: observed mean temperature of the day
+  prediction_time_availability: 'NOT available at prediction time: the day has not happened yet.'
+  status: Rejected
+  status_reason: 'LEAKAGE: the observed temperature of the forecast day is only known after the day. In production
+    we only have the forecast.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: rolling_mean_7_centered
+  role: feature
+  definition: 7-day rolling mean with center=True (window t-3 .. t+3).
+  source: derived from sales
+  data_type: float (units)
+  owner: Demand Planning Data Science
+  calculation_logic: sales.rolling(7, center=True).mean()
+  prediction_time_availability: 'NOT available: the window contains today and 3 FUTURE days.'
+  status: Rejected
+  status_reason: 'LEAKAGE (look-ahead): includes sales of the day being predicted and of later days.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: rolling_mean_7_noshift
+  role: feature
+  definition: 7-day rolling mean WITHOUT shift(1) (window t-6 .. t).
+  source: derived from sales
+  data_type: float (units)
+  owner: Demand Planning Data Science
+  calculation_logic: sales.rolling(7).mean()
+  prediction_time_availability: 'NOT available: the window contains today''s sales (the target).'
+  status: Rejected
+  status_reason: 'LEAKAGE (target leakage): the target is inside the feature.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none
+- name: sales_today
+  role: feature
+  definition: Sales of the day being predicted, used as an input.
+  source: POS
+  data_type: float (units)
+  owner: Data Engineering (sales-data team)
+  calculation_logic: sales
+  prediction_time_availability: 'NOT available: it is the target itself.'
+  status: Rejected
+  status_reason: 'LEAKAGE: the answer is given as an input.'
+  version: 1.0.0
+  sensitivity: none
+  governance_flag: none

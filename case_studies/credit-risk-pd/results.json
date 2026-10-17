@@ -1,0 +1,2444 @@
+{
+ "project": "credit-risk-pd",
+ "business": "Monthly early-warning model for EXISTING retail customers: P(90+ days past due within the next 6 months) on each month-end (as_of_date); collections contacts the riskiest 10 %.",
+ "dataset": {
+  "snapshot_shape": [
+   49764,
+   16
+  ],
+  "raw_tables": {
+   "customers": {
+    "rows": 1500,
+    "cols": 6,
+    "first": "1998-01-03",
+    "last": "2023-12-25"
+   },
+   "transactions": {
+    "rows": 324370,
+    "cols": 5,
+    "first": "2021-01-01",
+    "last": "2025-06-28"
+   },
+   "loan_status": {
+    "rows": 75228,
+    "cols": 7,
+    "first": "2021-01-31",
+    "last": "2025-06-30"
+   },
+   "defaults": {
+    "rows": 1500,
+    "cols": 2,
+    "first": "2021-04-30",
+    "last": "2025-06-30"
+   }
+  },
+  "target": "default_next_6m",
+  "target_rate_train": 0.0382,
+  "split_table": {
+   "train": {
+    "rows": 11807,
+    "customers": 1255,
+    "positives": 451,
+    "rate": 0.0382,
+    "first": "2021-06-30",
+    "last": "2022-03-31"
+   },
+   "purge": {
+    "rows": 5899,
+    "customers": 1215,
+    "positives": 232,
+    "rate": 0.0393,
+    "first": "2022-04-30",
+    "last": "2022-08-31"
+   },
+   "val": {
+    "rows": 3545,
+    "customers": 1196,
+    "positives": 141,
+    "rate": 0.0398,
+    "first": "2022-09-30",
+    "last": "2022-11-30"
+   },
+   "test": {
+    "rows": 3554,
+    "customers": 1200,
+    "positives": 147,
+    "rate": 0.0414,
+    "first": "2022-12-31",
+    "last": "2023-02-28"
+   },
+   "production": {
+    "rows": 24959,
+    "customers": 1302,
+    "positives": 1598,
+    "rate": 0.064,
+    "first": "2023-03-31",
+    "last": "2024-12-31"
+   }
+  },
+  "missing_rates_pct": {
+   "average_balance": 0.0,
+   "balance_trend": 0.0,
+   "salary_credit_frequency": 0.0,
+   "loan_payment_ratio": 0.0,
+   "missed_payment_count": 0.0,
+   "credit_utilization": 16.37,
+   "recent_transaction_count": 0.0,
+   "income_stability": 0.03,
+   "account_age": 0.0,
+   "util_x_missed": 16.37,
+   "balance_trend_norm": 0.0,
+   "log_average_balance": 0.0
+  },
+  "income_stability_missing_rows_train": 3,
+  "top_correlations_with_target": {
+   "loan_payment_ratio": -0.332,
+   "credit_utilization": 0.31,
+   "salary_credit_frequency": -0.305,
+   "util_x_missed": 0.27,
+   "balance_trend": -0.262,
+   "balance_trend_norm": -0.242,
+   "income_stability": 0.228,
+   "log_average_balance": -0.197
+  },
+  "top_feature_pairs": [
+   {
+    "a": "loan_payment_ratio",
+    "b": "missed_payment_count",
+    "abs_r": 0.84
+   },
+   {
+    "a": "balance_trend",
+    "b": "salary_credit_frequency",
+    "abs_r": 0.565
+   },
+   {
+    "a": "credit_utilization",
+    "b": "income_stability",
+    "abs_r": 0.315
+   },
+   {
+    "a": "loan_payment_ratio",
+    "b": "credit_utilization",
+    "abs_r": 0.239
+   },
+   {
+    "a": "average_balance",
+    "b": "income_stability",
+    "abs_r": 0.228
+   }
+  ],
+  "outlier_credits": {
+   "count": 18,
+   "customers": 12,
+   "max": 2607871.15
+  },
+  "segment_table": [
+   {
+    "segment": "affluent",
+    "rows": 3169,
+    "default_rate": 0.0486,
+    "income_stability": 0.0387,
+    "missing_income_stability": 0.0
+   },
+   {
+    "segment": "mass",
+    "rows": 6744,
+    "default_rate": 0.0323,
+    "income_stability": 0.0388,
+    "missing_income_stability": 0.0004
+   },
+   {
+    "segment": "small_business",
+    "rows": 1894,
+    "default_rate": 0.0417,
+    "income_stability": 0.1006,
+    "missing_income_stability": 0.0
+   }
+  ],
+  "defaults_per_year": {
+   "2021": 72,
+   "2022": 97,
+   "2023": 126,
+   "2024": 151,
+   "2025": 68
+  },
+  "customers_ever_defaulting": 514
+ },
+ "feature_table": [
+  {
+   "name": "average_balance",
+   "formula": "mean(balance_after) over transactions in (as_of - 90d, as_of]",
+   "example_input": "10 transactions since 2023-01-01 with balances 80,80,180,160,75,75,175,155,70,70 (thousand)",
+   "by_hand": 112000.0,
+   "code_output": 112000.0,
+   "match": true
+  },
+  {
+   "name": "balance_trend",
+   "formula": "OLS slope of the 6 month-end balances (INR/month)",
+   "example_input": "month-end balances 95,90,85,80,75,70 (thousand); also [100, 80, 60] -> -20",
+   "by_hand": -5000.0,
+   "code_output": -5000.0,
+   "match": true
+  },
+  {
+   "name": "salary_credit_frequency",
+   "formula": "salary credits in the 6-month window / 6",
+   "example_input": "5 salary credits in 6 months",
+   "by_hand": 0.83333,
+   "code_output": 0.8333,
+   "match": true
+  },
+  {
+   "name": "loan_payment_ratio",
+   "formula": "loan payments made / loan payments due (6 months)",
+   "example_input": "5 paid, 6 due",
+   "by_hand": 0.83333,
+   "code_output": 0.8333,
+   "match": true
+  },
+  {
+   "name": "missed_payment_count",
+   "formula": "sum of missed_payment over the last 6 PUBLISHED loan_status months",
+   "example_input": "Jan missed; the March row is published 2023-04-05 and must be ignored on 2023-03-31",
+   "by_hand": 1.0,
+   "code_output": 1.0,
+   "match": true
+  },
+  {
+   "name": "credit_utilization",
+   "formula": "mean monthly card spend / credit_limit",
+   "example_input": "6,000 per month, limit 30,000",
+   "by_hand": 0.2,
+   "code_output": 0.2,
+   "match": true
+  },
+  {
+   "name": "recent_transaction_count",
+   "formula": "transactions in the last 30 days",
+   "example_input": "4 transactions after 2023-03-01",
+   "by_hand": 4.0,
+   "code_output": 4.0,
+   "match": true
+  },
+  {
+   "name": "income_stability",
+   "formula": "std / mean of salary amounts (sample std, n-1); NaN if fewer than 2 credits",
+   "example_input": "salaries 100,110,90,100,100 (thousand): std 7.07 / mean 100",
+   "by_hand": 0.07071,
+   "code_output": 0.0707,
+   "match": true
+  },
+  {
+   "name": "account_age",
+   "formula": "whole months from signup_date to as_of",
+   "example_input": "signup 2020-03-15, as_of 2023-03-31",
+   "by_hand": 36.0,
+   "code_output": 36.0,
+   "match": true
+  },
+  {
+   "name": "util_x_missed",
+   "formula": "credit_utilization * missed_payment_count",
+   "example_input": "0.2 * 1",
+   "by_hand": 0.2,
+   "code_output": 0.2,
+   "match": true
+  },
+  {
+   "name": "balance_trend_norm",
+   "formula": "clip(balance_trend / (|average_balance| + 1), -1, 1)",
+   "example_input": "-5000 / 112001",
+   "by_hand": -0.04464,
+   "code_output": -0.04464,
+   "match": true
+  },
+  {
+   "name": "log_average_balance",
+   "formula": "log1p(max(average_balance, 0))",
+   "example_input": "log1p(112000)",
+   "by_hand": 11.62626,
+   "code_output": 11.62626,
+   "match": true
+  }
+ ],
+ "hand_calculation_all_match": true,
+ "feature_registry": [
+  {
+   "name": "average_balance",
+   "version": 2,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "90 days",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - every transaction is posted the day it happens; we only use rows dated on or before as_of_date.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-10-24 A. Rao",
+    "Validation 2022-11-07 S. Iyer",
+    "Approval 2022-11-14 Model Risk Committee",
+    "Production 2022-11-21 MLOps team"
+   ]
+  },
+  {
+   "name": "balance_trend",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "6 months",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - uses only month-end balances up to as_of_date.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-12 A. Rao",
+    "Validation 2022-09-26 S. Iyer",
+    "Approval 2022-10-03 Model Risk Committee",
+    "Production 2022-10-10 MLOps team"
+   ]
+  },
+  {
+   "name": "salary_credit_frequency",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "6 months",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - credits are posted the day they arrive.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-12 A. Rao",
+    "Validation 2022-09-26 S. Iyer",
+    "Approval 2022-10-03 Model Risk Committee",
+    "Production 2022-10-10 MLOps team"
+   ]
+  },
+  {
+   "name": "loan_payment_ratio",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "6 months",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - a payment is visible in the account the day it is made (earlier than loan_status, which is published 5 days later).",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-12 A. Rao",
+    "Validation 2022-09-26 S. Iyer",
+    "Approval 2022-10-03 Model Risk Committee",
+    "Production 2022-10-10 MLOps team"
+   ]
+  },
+  {
+   "name": "missed_payment_count",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "6 published months",
+   "availability_lag_days": 5,
+   "prediction_time_availability": "PARTLY - loan_status for month M is published on day 5 of month M+1, so at the month-end of M only months up to M-1 exist. The latest month is NOT used.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-12 A. Rao",
+    "Validation 2022-09-26 S. Iyer",
+    "Approval 2022-10-03 Model Risk Committee",
+    "Production 2022-10-10 MLOps team"
+   ]
+  },
+  {
+   "name": "credit_utilization",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "6 months",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - card purchases are posted the day they happen; credit_limit is a static attribute known at signup.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-19 A. Rao",
+    "Validation 2022-10-03 S. Iyer",
+    "Approval 2022-10-10 Model Risk Committee",
+    "Production 2022-10-17 MLOps team"
+   ]
+  },
+  {
+   "name": "recent_transaction_count",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "30 days",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - same-day availability.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-19 A. Rao",
+    "Validation 2022-10-03 S. Iyer",
+    "Approval 2022-10-10 Model Risk Committee",
+    "Production 2022-10-17 MLOps team"
+   ]
+  },
+  {
+   "name": "income_stability",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "6 months",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - same-day availability.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-19 A. Rao",
+    "Validation 2022-10-03 S. Iyer",
+    "Approval 2022-10-10 Model Risk Committee",
+    "Production 2022-10-17 MLOps team"
+   ]
+  },
+  {
+   "name": "account_age",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "n/a (static)",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - signup_date is known at account opening.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-09-19 A. Rao",
+    "Validation 2022-10-03 S. Iyer",
+    "Approval 2022-10-10 Model Risk Committee",
+    "Production 2022-10-17 MLOps team"
+   ]
+  },
+  {
+   "name": "util_x_missed",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "same as parents",
+   "availability_lag_days": 5,
+   "prediction_time_availability": "YES - computed by add_derived_features() from credit_utilization, missed_payment_count; inherits the availability of its parents.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-10-31 A. Rao",
+    "Validation 2022-11-14 S. Iyer",
+    "Approval 2022-11-21 Model Risk Committee",
+    "Production 2022-11-28 MLOps team"
+   ]
+  },
+  {
+   "name": "balance_trend_norm",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "same as parents",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - computed by add_derived_features() from balance_trend, average_balance; inherits the availability of its parents.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-10-31 A. Rao",
+    "Validation 2022-11-14 S. Iyer",
+    "Approval 2022-11-21 Model Risk Committee",
+    "Production 2022-11-28 MLOps team"
+   ]
+  },
+  {
+   "name": "log_average_balance",
+   "version": 1,
+   "status": "Approved",
+   "stage": "Production",
+   "owner": "retail-risk-analytics",
+   "window": "same as parents",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - computed by add_derived_features() from average_balance; inherits the availability of its parents.",
+   "rejection_reason": null,
+   "lifecycle": [
+    "Development 2022-10-31 A. Rao",
+    "Validation 2022-11-14 S. Iyer",
+    "Approval 2022-11-21 Model Risk Committee",
+    "Production 2022-11-28 MLOps team"
+   ]
+  },
+  {
+   "name": "average_balance_leaky",
+   "version": 1,
+   "status": "Rejected",
+   "stage": "Rejected",
+   "owner": "retail-risk-analytics",
+   "window": "extends beyond as_of_date",
+   "availability_lag_days": null,
+   "prediction_time_availability": "NO - at scoring time the next 6 months have not happened yet.",
+   "rejection_reason": "Leakage: includes the post-default balance collapse. Fails the future-perturbation test. Replaced by average_balance v2.",
+   "lifecycle": [
+    "Development 2022-09-26 A. Rao",
+    "Validation 2022-10-10 S. Iyer",
+    "Rejected 2022-10-11 Model Risk Committee"
+   ]
+  },
+  {
+   "name": "dpd_target_period",
+   "version": 1,
+   "status": "Rejected",
+   "stage": "Rejected",
+   "owner": "retail-risk-analytics",
+   "window": "extends beyond as_of_date",
+   "availability_lag_days": null,
+   "prediction_time_availability": "NO - future loan_status.",
+   "rejection_reason": "Target leakage: default IS 90+ days past due, so this column is the label in disguise.",
+   "lifecycle": [
+    "Development 2022-09-26 A. Rao",
+    "Validation 2022-10-10 S. Iyer",
+    "Rejected 2022-10-11 Model Risk Committee"
+   ]
+  },
+  {
+   "name": "recoveries_target_period",
+   "version": 1,
+   "status": "Rejected",
+   "stage": "Rejected",
+   "owner": "retail-risk-analytics",
+   "window": "extends beyond as_of_date",
+   "availability_lag_days": null,
+   "prediction_time_availability": "NO - future loan_status.",
+   "rejection_reason": "Target leakage: recoveries exist only AFTER a default has happened.",
+   "lifecycle": [
+    "Development 2022-09-26 A. Rao",
+    "Validation 2022-10-10 S. Iyer",
+    "Rejected 2022-10-11 Model Risk Committee"
+   ]
+  },
+  {
+   "name": "collections_status_latest",
+   "version": 1,
+   "status": "Rejected",
+   "stage": "Rejected",
+   "owner": "retail-risk-analytics",
+   "window": "extends beyond as_of_date",
+   "availability_lag_days": null,
+   "prediction_time_availability": "NO - known only after the outcome.",
+   "rejection_reason": "Target leakage: 'in_collections' is set after the default.",
+   "lifecycle": [
+    "Development 2022-09-26 A. Rao",
+    "Validation 2022-10-10 S. Iyer",
+    "Rejected 2022-10-11 Model Risk Committee"
+   ]
+  },
+  {
+   "name": "segment",
+   "version": 1,
+   "status": "Rejected",
+   "stage": "Rejected",
+   "owner": "retail-risk-analytics",
+   "window": "n/a (static)",
+   "availability_lag_days": 0,
+   "prediction_time_availability": "YES - static attribute.",
+   "rejection_reason": "Not needed for v1 (behaviour already explains risk) and a possible proxy for occupation/income: requires a fairness review before use.",
+   "lifecycle": [
+    "Development 2022-09-12 A. Rao",
+    "Rejected 2022-10-10 Model Risk Committee"
+   ]
+  }
+ ],
+ "feature_selection": {
+  "selected": [
+   "balance_trend",
+   "salary_credit_frequency",
+   "loan_payment_ratio",
+   "missed_payment_count",
+   "credit_utilization",
+   "recent_transaction_count",
+   "income_stability",
+   "util_x_missed",
+   "balance_trend_norm",
+   "log_average_balance"
+  ],
+  "not_selected": [
+   "average_balance",
+   "account_age"
+  ],
+  "oot_vetoed": [
+   "account_age"
+  ],
+  "corr_dropped": {
+   "missed_payment_count": "|r|=0.84 with loan_payment_ratio"
+  },
+  "table": [
+   {
+    "feature": "average_balance",
+    "missing_%": 0.0,
+    "anova_F": 85.1,
+    "mutual_info": 0.0155,
+    "FILTER_keep": true,
+    "rfe_rank": 3,
+    "WRAPPER_keep": false,
+    "l1_coef": 0.0,
+    "EMBEDDED_keep": false,
+    "votes": 1,
+    "oot_perm_imp_val": NaN,
+    "OOT_VETO": false,
+    "SELECTED": false
+   },
+   {
+    "feature": "balance_trend",
+    "missing_%": 0.0,
+    "anova_F": 866.7,
+    "mutual_info": 0.022,
+    "FILTER_keep": true,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": -0.382,
+    "EMBEDDED_keep": true,
+    "votes": 3,
+    "oot_perm_imp_val": 0.0136,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "salary_credit_frequency",
+    "missing_%": 0.0,
+    "anova_F": 1209.1,
+    "mutual_info": 0.0279,
+    "FILTER_keep": true,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": -0.145,
+    "EMBEDDED_keep": true,
+    "votes": 3,
+    "oot_perm_imp_val": 0.0043,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "loan_payment_ratio",
+    "missing_%": 0.0,
+    "anova_F": 1467.3,
+    "mutual_info": 0.0333,
+    "FILTER_keep": true,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": -0.759,
+    "EMBEDDED_keep": true,
+    "votes": 3,
+    "oot_perm_imp_val": 0.0893,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "missed_payment_count",
+    "missing_%": 0.0,
+    "anova_F": 405.7,
+    "mutual_info": 0.009,
+    "FILTER_keep": false,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": -0.251,
+    "EMBEDDED_keep": true,
+    "votes": 2,
+    "oot_perm_imp_val": 0.0089,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "credit_utilization",
+    "missing_%": 16.4,
+    "anova_F": 1091.9,
+    "mutual_info": 0.0387,
+    "FILTER_keep": true,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": 0.852,
+    "EMBEDDED_keep": true,
+    "votes": 3,
+    "oot_perm_imp_val": 0.1293,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "recent_transaction_count",
+    "missing_%": 0.0,
+    "anova_F": 141.5,
+    "mutual_info": 0.0109,
+    "FILTER_keep": true,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": -0.146,
+    "EMBEDDED_keep": true,
+    "votes": 3,
+    "oot_perm_imp_val": 0.0016,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "income_stability",
+    "missing_%": 0.0,
+    "anova_F": 639.7,
+    "mutual_info": 0.0185,
+    "FILTER_keep": true,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": 0.323,
+    "EMBEDDED_keep": true,
+    "votes": 3,
+    "oot_perm_imp_val": 0.0188,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "account_age",
+    "missing_%": 0.0,
+    "anova_F": 32.4,
+    "mutual_info": 0.0012,
+    "FILTER_keep": true,
+    "rfe_rank": 1,
+    "WRAPPER_keep": true,
+    "l1_coef": 0.314,
+    "EMBEDDED_keep": true,
+    "votes": 3,
+    "oot_perm_imp_val": -0.0106,
+    "OOT_VETO": true,
+    "SELECTED": false
+   },
+   {
+    "feature": "util_x_missed",
+    "missing_%": 16.4,
+    "anova_F": 817.4,
+    "mutual_info": 0.0158,
+    "FILTER_keep": true,
+    "rfe_rank": 4,
+    "WRAPPER_keep": false,
+    "l1_coef": -0.077,
+    "EMBEDDED_keep": true,
+    "votes": 2,
+    "oot_perm_imp_val": 0.0004,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "balance_trend_norm",
+    "missing_%": 0.0,
+    "anova_F": 733.7,
+    "mutual_info": 0.0291,
+    "FILTER_keep": true,
+    "rfe_rank": 5,
+    "WRAPPER_keep": false,
+    "l1_coef": -0.051,
+    "EMBEDDED_keep": true,
+    "votes": 2,
+    "oot_perm_imp_val": 0.001,
+    "OOT_VETO": false,
+    "SELECTED": true
+   },
+   {
+    "feature": "log_average_balance",
+    "missing_%": 0.0,
+    "anova_F": 474.6,
+    "mutual_info": 0.0136,
+    "FILTER_keep": true,
+    "rfe_rank": 2,
+    "WRAPPER_keep": false,
+    "l1_coef": -0.091,
+    "EMBEDDED_keep": true,
+    "votes": 2,
+    "oot_perm_imp_val": 0.0015,
+    "OOT_VETO": false,
+    "SELECTED": true
+   }
+  ]
+ },
+ "leakage_demo": {
+  "single_feature_auc_test": {
+   "average_balance": 0.6445,
+   "average_balance_leaky": 0.913
+  },
+  "right_model": {
+   "train": 0.9370428635360035,
+   "val": 0.8855122467518397,
+   "test": 0.8853470945172903,
+   "live": 0.8340726379895933
+  },
+  "wrong_model": {
+   "train": 0.9802928055458147,
+   "val": 0.9417810502454351,
+   "test": 0.9561377236541813,
+   "live": 0.775023597795959
+  },
+  "act2": {
+   "dpd_target_period": {
+    "single": 1.0,
+    "model": 1.0
+   },
+   "recoveries_target_period": {
+    "single": 0.8265306122448979,
+    "model": 0.9402161216702707
+   },
+   "collections_status_latest": {
+    "single": 0.8868506017023774,
+    "model": 0.9632080011341196
+   }
+  },
+  "future_perturbation": {
+   "build_snapshot_features": true,
+   "average_balance_leaky": false,
+   "dpd_target_period": false,
+   "recoveries_target_period": false,
+   "collections_status_latest": false
+  },
+  "random_split_auc": 0.9107552785014087,
+  "time_split_auc": 0.8853470945172903
+ },
+ "models": {
+  "rule": "logistic regression is kept unless HistGradientBoosting beats it on VALIDATION by >= 0.005 ROC-AUC",
+  "chosen": "hgb",
+  "val_gain": 0.0072,
+  "features": [
+   "balance_trend",
+   "salary_credit_frequency",
+   "loan_payment_ratio",
+   "missed_payment_count",
+   "credit_utilization",
+   "recent_transaction_count",
+   "income_stability",
+   "util_x_missed",
+   "balance_trend_norm",
+   "log_average_balance"
+  ],
+  "rows": {
+   "train": 11807,
+   "val": 3545,
+   "test": 3554
+  },
+  "by_model": {
+   "logistic": {
+    "train": {
+     "roc_auc": 0.8844,
+     "pr_auc": 0.6012,
+     "recall_at_10pct": 0.7073,
+     "lift_at_10pct": 7.071,
+     "ks": 0.638,
+     "base_rate": 0.0382,
+     "n": 11807,
+     "mean_score": 0.0382
+    },
+    "val": {
+     "roc_auc": 0.8899,
+     "pr_auc": 0.5441,
+     "recall_at_10pct": 0.6596,
+     "lift_at_10pct": 6.586,
+     "ks": 0.647,
+     "base_rate": 0.0398,
+     "n": 3545,
+     "mean_score": 0.0355
+    },
+    "test": {
+     "roc_auc": 0.8822,
+     "pr_auc": 0.6009,
+     "recall_at_10pct": 0.6735,
+     "lift_at_10pct": 6.723,
+     "ks": 0.636,
+     "base_rate": 0.0414,
+     "n": 3554,
+     "mean_score": 0.0396
+    }
+   },
+   "hgb": {
+    "train": {
+     "roc_auc": 0.9261,
+     "pr_auc": 0.6404,
+     "recall_at_10pct": 0.7472,
+     "lift_at_10pct": 7.47,
+     "ks": 0.6895,
+     "base_rate": 0.0382,
+     "n": 11807,
+     "mean_score": 0.0377
+    },
+    "val": {
+     "roc_auc": 0.8971,
+     "pr_auc": 0.529,
+     "recall_at_10pct": 0.6312,
+     "lift_at_10pct": 6.303,
+     "ks": 0.6791,
+     "base_rate": 0.0398,
+     "n": 3545,
+     "mean_score": 0.0362
+    },
+    "test": {
+     "roc_auc": 0.9046,
+     "pr_auc": 0.6183,
+     "recall_at_10pct": 0.6939,
+     "lift_at_10pct": 6.927,
+     "ks": 0.6577,
+     "base_rate": 0.0414,
+     "n": 3554,
+     "mean_score": 0.0389
+    }
+   }
+  },
+  "final_test_metrics": {
+   "roc_auc": 0.9046,
+   "pr_auc": 0.6183,
+   "recall_at_10pct": 0.6939,
+   "lift_at_10pct": 6.927,
+   "ks": 0.6577
+  },
+  "contact_threshold": 0.0542
+ },
+ "evaluation": {
+  "model_version": "v1",
+  "model_kind": "hgb",
+  "periods": {
+   "train": {
+    "roc_auc": 0.9261,
+    "pr_auc": 0.6404,
+    "recall_at_10pct": 0.7472,
+    "lift_at_10pct": 7.47,
+    "ks": 0.6895,
+    "base_rate": 0.0382,
+    "n": 11807,
+    "mean_score": 0.0377
+   },
+   "val": {
+    "roc_auc": 0.8971,
+    "pr_auc": 0.529,
+    "recall_at_10pct": 0.6312,
+    "lift_at_10pct": 6.303,
+    "ks": 0.6791,
+    "base_rate": 0.0398,
+    "n": 3545,
+    "mean_score": 0.0362
+   },
+   "test": {
+    "roc_auc": 0.9046,
+    "pr_auc": 0.6183,
+    "recall_at_10pct": 0.6939,
+    "lift_at_10pct": 6.927,
+    "ks": 0.6577,
+    "base_rate": 0.0414,
+    "n": 3554,
+    "mean_score": 0.0389
+   }
+  },
+  "business_test": {
+   "customers_scored": 3554,
+   "customers_contacted": 356,
+   "true_defaulters": 147,
+   "defaulters_reached": 102,
+   "defaulters_missed": 45,
+   "share_of_defaulters_reached": 0.694,
+   "calls_per_defaulter_reached": 3.5,
+   "calls_per_defaulter_if_random": 24.2
+  },
+  "decile_test": [
+   {
+    "decile": 1,
+    "customers": 356,
+    "defaulters": 102,
+    "bad_rate": 0.2865,
+    "avg_score": 0.2739,
+    "cum_capture": 0.6939
+   },
+   {
+    "decile": 2,
+    "customers": 355,
+    "defaulters": 18,
+    "bad_rate": 0.0507,
+    "avg_score": 0.0356,
+    "cum_capture": 0.8163
+   },
+   {
+    "decile": 3,
+    "customers": 356,
+    "defaulters": 8,
+    "bad_rate": 0.0225,
+    "avg_score": 0.0218,
+    "cum_capture": 0.8707
+   },
+   {
+    "decile": 4,
+    "customers": 355,
+    "defaulters": 7,
+    "bad_rate": 0.0197,
+    "avg_score": 0.0157,
+    "cum_capture": 0.9184
+   },
+   {
+    "decile": 5,
+    "customers": 355,
+    "defaulters": 3,
+    "bad_rate": 0.0085,
+    "avg_score": 0.0115,
+    "cum_capture": 0.9388
+   },
+   {
+    "decile": 6,
+    "customers": 356,
+    "defaulters": 4,
+    "bad_rate": 0.0112,
+    "avg_score": 0.0091,
+    "cum_capture": 0.966
+   },
+   {
+    "decile": 7,
+    "customers": 355,
+    "defaulters": 3,
+    "bad_rate": 0.0085,
+    "avg_score": 0.0074,
+    "cum_capture": 0.9864
+   },
+   {
+    "decile": 8,
+    "customers": 356,
+    "defaulters": 1,
+    "bad_rate": 0.0028,
+    "avg_score": 0.0056,
+    "cum_capture": 0.9932
+   },
+   {
+    "decile": 9,
+    "customers": 355,
+    "defaulters": 1,
+    "bad_rate": 0.0028,
+    "avg_score": 0.0043,
+    "cum_capture": 1.0
+   },
+   {
+    "decile": 10,
+    "customers": 355,
+    "defaulters": 0,
+    "bad_rate": 0.0,
+    "avg_score": 0.0034,
+    "cum_capture": 1.0
+   }
+  ],
+  "contact_rate_test_at_val_threshold": 0.0965
+ },
+ "explainability": {
+  "model": "hgb",
+  "features": [
+   "balance_trend",
+   "salary_credit_frequency",
+   "loan_payment_ratio",
+   "missed_payment_count",
+   "credit_utilization",
+   "recent_transaction_count",
+   "income_stability",
+   "util_x_missed",
+   "balance_trend_norm",
+   "log_average_balance"
+  ],
+  "logistic_coefficients": {
+   "credit_utilization": 0.9778,
+   "loan_payment_ratio": -0.9214,
+   "balance_trend": -0.4245,
+   "income_stability": 0.364,
+   "missed_payment_count": -0.3639,
+   "recent_transaction_count": -0.1915,
+   "util_x_missed": -0.1428,
+   "salary_credit_frequency": -0.1353,
+   "log_average_balance": -0.0957,
+   "balance_trend_norm": -0.0541
+  },
+  "permutation_importance": [
+   {
+    "feature": "credit_utilization",
+    "auc_drop_mean": 0.0496,
+    "auc_drop_std": 0.0056,
+    "share_of_total_%": 36.5
+   },
+   {
+    "feature": "loan_payment_ratio",
+    "auc_drop_mean": 0.034,
+    "auc_drop_std": 0.004,
+    "share_of_total_%": 25.0
+   },
+   {
+    "feature": "income_stability",
+    "auc_drop_mean": 0.025,
+    "auc_drop_std": 0.0115,
+    "share_of_total_%": 18.4
+   },
+   {
+    "feature": "balance_trend_norm",
+    "auc_drop_mean": 0.0112,
+    "auc_drop_std": 0.0039,
+    "share_of_total_%": 8.2
+   },
+   {
+    "feature": "missed_payment_count",
+    "auc_drop_mean": 0.0061,
+    "auc_drop_std": 0.0007,
+    "share_of_total_%": 4.5
+   },
+   {
+    "feature": "log_average_balance",
+    "auc_drop_mean": 0.0057,
+    "auc_drop_std": 0.0016,
+    "share_of_total_%": 4.2
+   },
+   {
+    "feature": "recent_transaction_count",
+    "auc_drop_mean": 0.0034,
+    "auc_drop_std": 0.0009,
+    "share_of_total_%": 2.5
+   },
+   {
+    "feature": "balance_trend",
+    "auc_drop_mean": 0.001,
+    "auc_drop_std": 0.003,
+    "share_of_total_%": 0.7
+   },
+   {
+    "feature": "salary_credit_frequency",
+    "auc_drop_mean": -0.0001,
+    "auc_drop_std": 0.0011,
+    "share_of_total_%": 0.0
+   },
+   {
+    "feature": "util_x_missed",
+    "auc_drop_mean": -0.0001,
+    "auc_drop_std": 0.0002,
+    "share_of_total_%": 0.0
+   }
+  ],
+  "shap_mean_abs": {
+   "income_stability": 0.4315,
+   "credit_utilization": 0.3778,
+   "balance_trend_norm": 0.2595,
+   "loan_payment_ratio": 0.2502,
+   "log_average_balance": 0.101,
+   "balance_trend": 0.0984,
+   "salary_credit_frequency": 0.0392,
+   "missed_payment_count": 0.0392,
+   "recent_transaction_count": 0.0383,
+   "util_x_missed": 0.0079
+  }
+ },
+ "label_lag": {
+  "label_lag_2024-02-29": {
+   "today": "2024-02-29",
+   "timeline": [
+    {
+     "as_of": "2023-03-31",
+     "customers": 1182,
+     "mean_pd": 0.0355,
+     "contact_rate": 0.094,
+     "labels_known_on": "2023-09-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0415,
+     "roc_auc": 0.8736,
+     "recall_at_10pct": 0.6531
+    },
+    {
+     "as_of": "2023-04-30",
+     "customers": 1186,
+     "mean_pd": 0.036,
+     "contact_rate": 0.101,
+     "labels_known_on": "2023-10-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0556,
+     "roc_auc": 0.8666,
+     "recall_at_10pct": 0.6364
+    },
+    {
+     "as_of": "2023-05-31",
+     "customers": 1176,
+     "mean_pd": 0.0332,
+     "contact_rate": 0.094,
+     "labels_known_on": "2023-11-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0527,
+     "roc_auc": 0.8351,
+     "recall_at_10pct": 0.5484
+    },
+    {
+     "as_of": "2023-06-30",
+     "customers": 1177,
+     "mean_pd": 0.0359,
+     "contact_rate": 0.089,
+     "labels_known_on": "2023-12-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0629,
+     "roc_auc": 0.8536,
+     "recall_at_10pct": 0.5676
+    },
+    {
+     "as_of": "2023-07-31",
+     "customers": 1178,
+     "mean_pd": 0.0371,
+     "contact_rate": 0.099,
+     "labels_known_on": "2024-01-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0739,
+     "roc_auc": 0.8213,
+     "recall_at_10pct": 0.5747
+    },
+    {
+     "as_of": "2023-08-31",
+     "customers": 1174,
+     "mean_pd": 0.0388,
+     "contact_rate": 0.097,
+     "labels_known_on": "2024-02-29",
+     "labelled": "YES",
+     "observed_default_rate": 0.0801,
+     "roc_auc": 0.8348,
+     "recall_at_10pct": 0.5638
+    },
+    {
+     "as_of": "2023-09-30",
+     "customers": 1172,
+     "mean_pd": 0.0447,
+     "contact_rate": 0.108,
+     "labels_known_on": "2024-03-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2023-10-31",
+     "customers": 1162,
+     "mean_pd": 0.0446,
+     "contact_rate": 0.122,
+     "labels_known_on": "2024-04-30",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2023-11-30",
+     "customers": 1165,
+     "mean_pd": 0.0569,
+     "contact_rate": 0.166,
+     "labels_known_on": "2024-05-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2023-12-31",
+     "customers": 1156,
+     "mean_pd": 0.0684,
+     "contact_rate": 0.235,
+     "labels_known_on": "2024-06-30",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-01-31",
+     "customers": 1140,
+     "mean_pd": 0.0799,
+     "contact_rate": 0.276,
+     "labels_known_on": "2024-07-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-02-29",
+     "customers": 1133,
+     "mean_pd": 0.0931,
+     "contact_rate": 0.334,
+     "labels_known_on": "2024-08-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-03-31",
+     "customers": 1136,
+     "mean_pd": 0.1086,
+     "contact_rate": 0.36,
+     "labels_known_on": "2024-09-30",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-04-30",
+     "customers": 1125,
+     "mean_pd": 0.1063,
+     "contact_rate": 0.37,
+     "labels_known_on": "2024-10-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-05-31",
+     "customers": 1120,
+     "mean_pd": 0.1022,
+     "contact_rate": 0.336,
+     "labels_known_on": "2024-11-30",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-06-30",
+     "customers": 1120,
+     "mean_pd": 0.1015,
+     "contact_rate": 0.347,
+     "labels_known_on": "2024-12-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-07-31",
+     "customers": 1101,
+     "mean_pd": 0.0932,
+     "contact_rate": 0.336,
+     "labels_known_on": "2025-01-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-08-31",
+     "customers": 1092,
+     "mean_pd": 0.0923,
+     "contact_rate": 0.336,
+     "labels_known_on": "2025-02-28",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-09-30",
+     "customers": 1078,
+     "mean_pd": 0.0841,
+     "contact_rate": 0.311,
+     "labels_known_on": "2025-03-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-10-31",
+     "customers": 1069,
+     "mean_pd": 0.0869,
+     "contact_rate": 0.325,
+     "labels_known_on": "2025-04-30",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-11-30",
+     "customers": 1063,
+     "mean_pd": 0.0857,
+     "contact_rate": 0.322,
+     "labels_known_on": "2025-05-31",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    },
+    {
+     "as_of": "2024-12-31",
+     "customers": 1054,
+     "mean_pd": 0.0892,
+     "contact_rate": 0.317,
+     "labels_known_on": "2025-06-30",
+     "labelled": "not yet",
+     "observed_default_rate": NaN,
+     "roc_auc": NaN,
+     "recall_at_10pct": NaN
+    }
+   ]
+  },
+  "label_lag_2025-06-30": {
+   "today": "2025-06-30",
+   "timeline": [
+    {
+     "as_of": "2023-03-31",
+     "customers": 1182,
+     "mean_pd": 0.0355,
+     "contact_rate": 0.094,
+     "labels_known_on": "2023-09-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0415,
+     "roc_auc": 0.8736,
+     "recall_at_10pct": 0.6531
+    },
+    {
+     "as_of": "2023-04-30",
+     "customers": 1186,
+     "mean_pd": 0.036,
+     "contact_rate": 0.101,
+     "labels_known_on": "2023-10-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0556,
+     "roc_auc": 0.8666,
+     "recall_at_10pct": 0.6364
+    },
+    {
+     "as_of": "2023-05-31",
+     "customers": 1176,
+     "mean_pd": 0.0332,
+     "contact_rate": 0.094,
+     "labels_known_on": "2023-11-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0527,
+     "roc_auc": 0.8351,
+     "recall_at_10pct": 0.5484
+    },
+    {
+     "as_of": "2023-06-30",
+     "customers": 1177,
+     "mean_pd": 0.0359,
+     "contact_rate": 0.089,
+     "labels_known_on": "2023-12-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0629,
+     "roc_auc": 0.8536,
+     "recall_at_10pct": 0.5676
+    },
+    {
+     "as_of": "2023-07-31",
+     "customers": 1178,
+     "mean_pd": 0.0371,
+     "contact_rate": 0.099,
+     "labels_known_on": "2024-01-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0739,
+     "roc_auc": 0.8213,
+     "recall_at_10pct": 0.5747
+    },
+    {
+     "as_of": "2023-08-31",
+     "customers": 1174,
+     "mean_pd": 0.0388,
+     "contact_rate": 0.097,
+     "labels_known_on": "2024-02-29",
+     "labelled": "YES",
+     "observed_default_rate": 0.0801,
+     "roc_auc": 0.8348,
+     "recall_at_10pct": 0.5638
+    },
+    {
+     "as_of": "2023-09-30",
+     "customers": 1172,
+     "mean_pd": 0.0447,
+     "contact_rate": 0.108,
+     "labels_known_on": "2024-03-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0768,
+     "roc_auc": 0.8636,
+     "recall_at_10pct": 0.6111
+    },
+    {
+     "as_of": "2023-10-31",
+     "customers": 1162,
+     "mean_pd": 0.0446,
+     "contact_rate": 0.122,
+     "labels_known_on": "2024-04-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0731,
+     "roc_auc": 0.8441,
+     "recall_at_10pct": 0.5176
+    },
+    {
+     "as_of": "2023-11-30",
+     "customers": 1165,
+     "mean_pd": 0.0569,
+     "contact_rate": 0.166,
+     "labels_known_on": "2024-05-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0781,
+     "roc_auc": 0.8719,
+     "recall_at_10pct": 0.5934
+    },
+    {
+     "as_of": "2023-12-31",
+     "customers": 1156,
+     "mean_pd": 0.0684,
+     "contact_rate": 0.235,
+     "labels_known_on": "2024-06-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0709,
+     "roc_auc": 0.8538,
+     "recall_at_10pct": 0.622
+    },
+    {
+     "as_of": "2024-01-31",
+     "customers": 1140,
+     "mean_pd": 0.0799,
+     "contact_rate": 0.276,
+     "labels_known_on": "2024-07-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0702,
+     "roc_auc": 0.8245,
+     "recall_at_10pct": 0.5125
+    },
+    {
+     "as_of": "2024-02-29",
+     "customers": 1133,
+     "mean_pd": 0.0931,
+     "contact_rate": 0.334,
+     "labels_known_on": "2024-08-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0653,
+     "roc_auc": 0.8139,
+     "recall_at_10pct": 0.527
+    },
+    {
+     "as_of": "2024-03-31",
+     "customers": 1136,
+     "mean_pd": 0.1086,
+     "contact_rate": 0.36,
+     "labels_known_on": "2024-09-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0722,
+     "roc_auc": 0.7761,
+     "recall_at_10pct": 0.5244
+    },
+    {
+     "as_of": "2024-04-30",
+     "customers": 1125,
+     "mean_pd": 0.1063,
+     "contact_rate": 0.37,
+     "labels_known_on": "2024-10-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0649,
+     "roc_auc": 0.7512,
+     "recall_at_10pct": 0.4658
+    },
+    {
+     "as_of": "2024-05-31",
+     "customers": 1120,
+     "mean_pd": 0.1022,
+     "contact_rate": 0.336,
+     "labels_known_on": "2024-11-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.058,
+     "roc_auc": 0.7875,
+     "recall_at_10pct": 0.5077
+    },
+    {
+     "as_of": "2024-06-30",
+     "customers": 1120,
+     "mean_pd": 0.1015,
+     "contact_rate": 0.347,
+     "labels_known_on": "2024-12-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0589,
+     "roc_auc": 0.82,
+     "recall_at_10pct": 0.5152
+    },
+    {
+     "as_of": "2024-07-31",
+     "customers": 1101,
+     "mean_pd": 0.0932,
+     "contact_rate": 0.336,
+     "labels_known_on": "2025-01-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0527,
+     "roc_auc": 0.8048,
+     "recall_at_10pct": 0.5
+    },
+    {
+     "as_of": "2024-08-31",
+     "customers": 1092,
+     "mean_pd": 0.0923,
+     "contact_rate": 0.336,
+     "labels_known_on": "2025-02-28",
+     "labelled": "YES",
+     "observed_default_rate": 0.0577,
+     "roc_auc": 0.782,
+     "recall_at_10pct": 0.4603
+    },
+    {
+     "as_of": "2024-09-30",
+     "customers": 1078,
+     "mean_pd": 0.0841,
+     "contact_rate": 0.311,
+     "labels_known_on": "2025-03-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.0547,
+     "roc_auc": 0.7964,
+     "recall_at_10pct": 0.4576
+    },
+    {
+     "as_of": "2024-10-31",
+     "customers": 1069,
+     "mean_pd": 0.0869,
+     "contact_rate": 0.325,
+     "labels_known_on": "2025-04-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.058,
+     "roc_auc": 0.7708,
+     "recall_at_10pct": 0.4839
+    },
+    {
+     "as_of": "2024-11-30",
+     "customers": 1063,
+     "mean_pd": 0.0857,
+     "contact_rate": 0.322,
+     "labels_known_on": "2025-05-31",
+     "labelled": "YES",
+     "observed_default_rate": 0.064,
+     "roc_auc": 0.8007,
+     "recall_at_10pct": 0.4706
+    },
+    {
+     "as_of": "2024-12-31",
+     "customers": 1054,
+     "mean_pd": 0.0892,
+     "contact_rate": 0.317,
+     "labels_known_on": "2025-06-30",
+     "labelled": "YES",
+     "observed_default_rate": 0.0645,
+     "roc_auc": 0.827,
+     "recall_at_10pct": 0.5882
+    }
+   ]
+  }
+ },
+ "drift": {
+  "drift_batch_dq_issue_2025-06-30": {
+   "batch": "data/production/batch_dq_issue.csv",
+   "as_of": "2023-03-31",
+   "today": "2025-06-30",
+   "data_quality": {
+    "ok": false,
+    "problems": [
+     "salary_credit_frequency: null rate 40% vs 0% in the reference (+40 pp)"
+    ]
+   },
+   "ks_table": [
+    {
+     "feature": "average_balance",
+     "D": 0.0434,
+     "p_value": 0.11664301176235012,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "balance_trend",
+     "D": 0.0287,
+     "p_value": 0.5625033539282978,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "salary_credit_frequency",
+     "D": 0.0026,
+     "p_value": 1.0,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "loan_payment_ratio",
+     "D": 0.0015,
+     "p_value": 1.0,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "missed_payment_count",
+     "D": 0.0009,
+     "p_value": 1.0,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "credit_utilization",
+     "D": 0.0452,
+     "p_value": 0.15356465785556994,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "recent_transaction_count",
+     "D": 0.0258,
+     "p_value": 0.6916595939777476,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "income_stability",
+     "D": 0.0343,
+     "p_value": 0.3358268343114377,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "account_age",
+     "D": 0.0559,
+     "p_value": 0.018209669243779904,
+     "status": "significant_but_small"
+    }
+   ],
+   "score_shift": {
+    "mean_pd": 0.0344,
+    "ref_mean_pd": 0.0389,
+    "mean_pd_ratio": 0.89,
+    "contact_rate": 0.0931,
+    "planned_contact_rate": 0.1,
+    "contact_rate_ratio": 0.93
+   },
+   "pseudo_label": {
+    "rate": 0.0838,
+    "normal_rate": 0.0807,
+    "rate_ratio": 1.04
+   },
+   "labelled": {
+    "auc_drop": 0.0307,
+    "recall_drop": 0.0408,
+    "calibration_ratio": 1.204,
+    "mean_pd": 0.0344,
+    "observed_rate": 0.0415,
+    "contact_rate_ratio": 0.931,
+    "metrics": {
+     "roc_auc": 0.8739,
+     "pr_auc": 0.5265,
+     "recall_at_10pct": 0.6531,
+     "lift_at_10pct": 6.487,
+     "ks": 0.6155,
+     "base_rate": 0.0415,
+     "n": 1182,
+     "mean_score": 0.0344
+    }
+   },
+   "decision": "FIX_DATA_PIPELINE",
+   "reasons": [
+    "Data quality checks failed: fix the source/pipeline first. Retraining on broken data would make things worse.",
+    "Problems: ['salary_credit_frequency: null rate 40% vs 0% in the reference (+40 pp)']"
+   ],
+   "H0": "reference and production values come from the same distribution",
+   "alpha": 0.05
+  },
+  "drift_batch_drifted_2024-02-29": {
+   "batch": "data/production/batch_drifted.csv",
+   "as_of": "2024-01-31",
+   "today": "2024-02-29",
+   "data_quality": {
+    "ok": true,
+    "problems": []
+   },
+   "ks_table": [
+    {
+     "feature": "average_balance",
+     "D": 0.0303,
+     "p_value": 0.5058648662946391,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "balance_trend",
+     "D": 0.2954,
+     "p_value": 2.088162752037669e-56,
+     "status": "drift"
+    },
+    {
+     "feature": "salary_credit_frequency",
+     "D": 0.2375,
+     "p_value": 1.9461071090244572e-36,
+     "status": "drift"
+    },
+    {
+     "feature": "loan_payment_ratio",
+     "D": 0.0751,
+     "p_value": 0.0005174416484744691,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "missed_payment_count",
+     "D": 0.0681,
+     "p_value": 0.002252124087113907,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "credit_utilization",
+     "D": 0.152,
+     "p_value": 1.215230854059191e-12,
+     "status": "drift"
+    },
+    {
+     "feature": "recent_transaction_count",
+     "D": 0.0485,
+     "p_value": 0.06289943116199441,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "income_stability",
+     "D": 0.4275,
+     "p_value": 1.7827957761669554e-119,
+     "status": "drift"
+    },
+    {
+     "feature": "account_age",
+     "D": 0.0838,
+     "p_value": 6.944181901678713e-05,
+     "status": "significant_but_small"
+    }
+   ],
+   "score_shift": {
+    "mean_pd": 0.0799,
+    "ref_mean_pd": 0.0389,
+    "mean_pd_ratio": 2.06,
+    "contact_rate": 0.2763,
+    "planned_contact_rate": 0.1,
+    "contact_rate_ratio": 2.76
+   },
+   "pseudo_label": null,
+   "labelled": null,
+   "decision": "INVESTIGATE",
+   "reasons": [
+    "Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].",
+    "Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.",
+    "Labelled evidence: NOT AVAILABLE yet (labels arrive 6 months after as_of).",
+    "Pseudo-label (early delinquency): NOT READY yet (needs 3 published months).",
+    "Broad drift but no outcome evidence yet: find the cause (macro shock? upstream change?), estimate the business impact, watch the proxy metrics and wait for labels. Do NOT retrain on drift alone."
+   ],
+   "H0": "reference and production values come from the same distribution",
+   "alpha": 0.05
+  },
+  "drift_batch_drifted_2024-05-15": {
+   "batch": "data/production/batch_drifted.csv",
+   "as_of": "2024-01-31",
+   "today": "2024-05-15",
+   "data_quality": {
+    "ok": true,
+    "problems": []
+   },
+   "ks_table": [
+    {
+     "feature": "average_balance",
+     "D": 0.0303,
+     "p_value": 0.5058648662946391,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "balance_trend",
+     "D": 0.2954,
+     "p_value": 2.088162752037669e-56,
+     "status": "drift"
+    },
+    {
+     "feature": "salary_credit_frequency",
+     "D": 0.2375,
+     "p_value": 1.9461071090244572e-36,
+     "status": "drift"
+    },
+    {
+     "feature": "loan_payment_ratio",
+     "D": 0.0751,
+     "p_value": 0.0005174416484744691,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "missed_payment_count",
+     "D": 0.0681,
+     "p_value": 0.002252124087113907,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "credit_utilization",
+     "D": 0.152,
+     "p_value": 1.215230854059191e-12,
+     "status": "drift"
+    },
+    {
+     "feature": "recent_transaction_count",
+     "D": 0.0485,
+     "p_value": 0.06289943116199441,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "income_stability",
+     "D": 0.4275,
+     "p_value": 1.7827957761669554e-119,
+     "status": "drift"
+    },
+    {
+     "feature": "account_age",
+     "D": 0.0838,
+     "p_value": 6.944181901678713e-05,
+     "status": "significant_but_small"
+    }
+   ],
+   "score_shift": {
+    "mean_pd": 0.0799,
+    "ref_mean_pd": 0.0389,
+    "mean_pd_ratio": 2.06,
+    "contact_rate": 0.2763,
+    "planned_contact_rate": 0.1,
+    "contact_rate_ratio": 2.76
+   },
+   "pseudo_label": {
+    "rate": 0.1675,
+    "normal_rate": 0.0807,
+    "rate_ratio": 2.08
+   },
+   "labelled": null,
+   "decision": "RETRAIN_CANDIDATE",
+   "reasons": [
+    "Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].",
+    "Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.",
+    "Labelled evidence: NOT AVAILABLE yet (labels arrive 6 months after as_of).",
+    "Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.",
+    "Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves."
+   ],
+   "H0": "reference and production values come from the same distribution",
+   "alpha": 0.05
+  },
+  "drift_batch_drifted_2025-06-30": {
+   "batch": "data/production/batch_drifted.csv",
+   "as_of": "2024-01-31",
+   "today": "2025-06-30",
+   "data_quality": {
+    "ok": true,
+    "problems": []
+   },
+   "ks_table": [
+    {
+     "feature": "average_balance",
+     "D": 0.0303,
+     "p_value": 0.5058648662946391,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "balance_trend",
+     "D": 0.2954,
+     "p_value": 2.088162752037669e-56,
+     "status": "drift"
+    },
+    {
+     "feature": "salary_credit_frequency",
+     "D": 0.2375,
+     "p_value": 1.9461071090244572e-36,
+     "status": "drift"
+    },
+    {
+     "feature": "loan_payment_ratio",
+     "D": 0.0751,
+     "p_value": 0.0005174416484744691,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "missed_payment_count",
+     "D": 0.0681,
+     "p_value": 0.002252124087113907,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "credit_utilization",
+     "D": 0.152,
+     "p_value": 1.215230854059191e-12,
+     "status": "drift"
+    },
+    {
+     "feature": "recent_transaction_count",
+     "D": 0.0485,
+     "p_value": 0.06289943116199441,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "income_stability",
+     "D": 0.4275,
+     "p_value": 1.7827957761669554e-119,
+     "status": "drift"
+    },
+    {
+     "feature": "account_age",
+     "D": 0.0838,
+     "p_value": 6.944181901678713e-05,
+     "status": "significant_but_small"
+    }
+   ],
+   "score_shift": {
+    "mean_pd": 0.0799,
+    "ref_mean_pd": 0.0389,
+    "mean_pd_ratio": 2.06,
+    "contact_rate": 0.2763,
+    "planned_contact_rate": 0.1,
+    "contact_rate_ratio": 2.76
+   },
+   "pseudo_label": {
+    "rate": 0.1675,
+    "normal_rate": 0.0807,
+    "rate_ratio": 2.08
+   },
+   "labelled": {
+    "auc_drop": 0.0801,
+    "recall_drop": 0.1814,
+    "calibration_ratio": 1.139,
+    "mean_pd": 0.0799,
+    "observed_rate": 0.0702,
+    "contact_rate_ratio": 2.763,
+    "metrics": {
+     "roc_auc": 0.8245,
+     "pr_auc": 0.4424,
+     "recall_at_10pct": 0.5125,
+     "lift_at_10pct": 5.125,
+     "ks": 0.545,
+     "base_rate": 0.0702,
+     "n": 1140,
+     "mean_score": 0.0799
+    }
+   },
+   "decision": "RETRAIN_CANDIDATE",
+   "reasons": [
+    "Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].",
+    "Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.",
+    "Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.",
+    "Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.",
+    "Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves."
+   ],
+   "H0": "reference and production values come from the same distribution",
+   "alpha": 0.05
+  },
+  "drift_batch_normal_2025-06-30": {
+   "batch": "data/production/batch_normal.csv",
+   "as_of": "2023-03-31",
+   "today": "2025-06-30",
+   "data_quality": {
+    "ok": true,
+    "problems": []
+   },
+   "ks_table": [
+    {
+     "feature": "average_balance",
+     "D": 0.0434,
+     "p_value": 0.11664301176235012,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "balance_trend",
+     "D": 0.0287,
+     "p_value": 0.5625033539282978,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "salary_credit_frequency",
+     "D": 0.0058,
+     "p_value": 1.0,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "loan_payment_ratio",
+     "D": 0.0015,
+     "p_value": 1.0,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "missed_payment_count",
+     "D": 0.0009,
+     "p_value": 1.0,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "credit_utilization",
+     "D": 0.0452,
+     "p_value": 0.15356465785556994,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "recent_transaction_count",
+     "D": 0.0258,
+     "p_value": 0.6916595939777476,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "income_stability",
+     "D": 0.0343,
+     "p_value": 0.3358268343114377,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "account_age",
+     "D": 0.0559,
+     "p_value": 0.018209669243779904,
+     "status": "significant_but_small"
+    }
+   ],
+   "score_shift": {
+    "mean_pd": 0.0355,
+    "ref_mean_pd": 0.0389,
+    "mean_pd_ratio": 0.91,
+    "contact_rate": 0.0939,
+    "planned_contact_rate": 0.1,
+    "contact_rate_ratio": 0.94
+   },
+   "pseudo_label": {
+    "rate": 0.0838,
+    "normal_rate": 0.0807,
+    "rate_ratio": 1.04
+   },
+   "labelled": {
+    "auc_drop": 0.031,
+    "recall_drop": 0.0408,
+    "calibration_ratio": 1.167,
+    "mean_pd": 0.0355,
+    "observed_rate": 0.0415,
+    "contact_rate_ratio": 0.939,
+    "metrics": {
+     "roc_auc": 0.8736,
+     "pr_auc": 0.5341,
+     "recall_at_10pct": 0.6531,
+     "lift_at_10pct": 6.487,
+     "ks": 0.6139,
+     "base_rate": 0.0415,
+     "n": 1182,
+     "mean_score": 0.0355
+    }
+   },
+   "decision": "MONITOR",
+   "reasons": [
+    "Statistically significant but small shift in: ['account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 0 ([]); rule needs >= 2.",
+    "Labelled evidence: AUC drop +0.031 (threshold 0.05), calibration x1.17, contact rate x0.94 of plan -> no evidence.",
+    "Pseudo-label (early delinquency): x1.04 of the normal rate -> no evidence.",
+    "Some shifts exist (see table) but none justifies action: keep watching."
+   ],
+   "H0": "reference and production values come from the same distribution",
+   "alpha": 0.05
+  }
+ },
+ "retraining": {
+  "retrain_rolling_AWAITING_APPROVAL": {
+   "created": "2026-10-07T13:40:39+00:00",
+   "champion": "v1",
+   "challenger": "v2",
+   "window": "rolling",
+   "today": "2025-06-30",
+   "decision_ladder": "RETRAIN_CANDIDATE",
+   "holdout": "2024-10-31..2024-12-31",
+   "champion_holdout": {
+    "roc_auc": 0.8005,
+    "pr_auc": 0.3989,
+    "recall_at_10pct": 0.5101,
+    "lift_at_10pct": 5.095,
+    "ks": 0.4976,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0873
+   },
+   "challenger_holdout": {
+    "roc_auc": 0.8157,
+    "pr_auc": 0.4838,
+    "recall_at_10pct": 0.5455,
+    "lift_at_10pct": 5.448,
+    "ks": 0.5122,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0918
+   },
+   "checks": {
+    "roc_auc_improvement>=0.005": true,
+    "guardrail_recall_at_10pct_worsening<=0.03": true
+   },
+   "rules_say_promote": true,
+   "approver": null,
+   "outcome": "AWAITING_APPROVAL",
+   "decision_reasons": [
+    "Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].",
+    "Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.",
+    "Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.",
+    "Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.",
+    "Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves."
+   ]
+  },
+  "retrain_rolling_PROMOTED_v2": {
+   "created": "2026-10-07T13:40:54+00:00",
+   "champion": "v1",
+   "challenger": "v2",
+   "window": "rolling",
+   "today": "2025-06-30",
+   "decision_ladder": "RETRAIN_CANDIDATE",
+   "holdout": "2024-10-31..2024-12-31",
+   "champion_holdout": {
+    "roc_auc": 0.8005,
+    "pr_auc": 0.3989,
+    "recall_at_10pct": 0.5101,
+    "lift_at_10pct": 5.095,
+    "ks": 0.4976,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0873
+   },
+   "challenger_holdout": {
+    "roc_auc": 0.8157,
+    "pr_auc": 0.4838,
+    "recall_at_10pct": 0.5455,
+    "lift_at_10pct": 5.448,
+    "ks": 0.5122,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0918
+   },
+   "checks": {
+    "roc_auc_improvement>=0.005": true,
+    "guardrail_recall_at_10pct_worsening<=0.03": true
+   },
+   "rules_say_promote": true,
+   "approver": "Priya Nair (Model Risk)",
+   "outcome": "PROMOTED_v2",
+   "decision_reasons": [
+    "Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].",
+    "Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.",
+    "Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.",
+    "Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.",
+    "Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves."
+   ]
+  },
+  "retrain_rolling_REJECTED_BY_RULES": {
+   "created": "2026-10-07T13:40:20+00:00",
+   "champion": "v1",
+   "challenger": "v2",
+   "window": "rolling",
+   "today": "2025-06-30",
+   "decision_ladder": "RETRAIN_CANDIDATE",
+   "holdout": "2024-10-31..2024-12-31",
+   "champion_holdout": {
+    "roc_auc": 0.8005,
+    "pr_auc": 0.3989,
+    "recall_at_10pct": 0.5101,
+    "lift_at_10pct": 5.095,
+    "ks": 0.4976,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0873
+   },
+   "challenger_holdout": {
+    "roc_auc": 0.8157,
+    "pr_auc": 0.4838,
+    "recall_at_10pct": 0.5455,
+    "lift_at_10pct": 5.448,
+    "ks": 0.5122,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0918
+   },
+   "checks": {
+    "roc_auc_improvement>=0.05": false,
+    "guardrail_recall_at_10pct_worsening<=0.03": true
+   },
+   "rules_say_promote": false,
+   "approver": "Priya Nair (Model Risk)",
+   "outcome": "REJECTED_BY_RULES",
+   "decision_reasons": [
+    "Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].",
+    "Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.",
+    "Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.",
+    "Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.",
+    "Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves."
+   ]
+  },
+  "retrain_stress_only_AWAITING_APPROVAL": {
+   "created": "2026-10-07T13:41:47+00:00",
+   "champion": "v1",
+   "challenger": "v2",
+   "window": "stress_only",
+   "today": "2025-06-30",
+   "decision_ladder": "RETRAIN_CANDIDATE",
+   "holdout": "2024-10-31..2024-12-31",
+   "champion_holdout": {
+    "roc_auc": 0.8005,
+    "pr_auc": 0.3989,
+    "recall_at_10pct": 0.5101,
+    "lift_at_10pct": 5.095,
+    "ks": 0.4976,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0873
+   },
+   "challenger_holdout": {
+    "roc_auc": 0.8127,
+    "pr_auc": 0.4741,
+    "recall_at_10pct": 0.5556,
+    "lift_at_10pct": 5.549,
+    "ks": 0.5297,
+    "base_rate": 0.0621,
+    "n": 3186,
+    "mean_score": 0.0806
+   },
+   "checks": {
+    "roc_auc_improvement>=0.005": true,
+    "guardrail_recall_at_10pct_worsening<=0.03": true
+   },
+   "rules_say_promote": true,
+   "approver": null,
+   "outcome": "AWAITING_APPROVAL",
+   "decision_reasons": [
+    "Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].",
+    "Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).",
+    "Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.",
+    "Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.",
+    "Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.",
+    "Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves."
+   ]
+  }
+ },
+ "batch_score": {
+  "as_of": "2025-06-30",
+  "customers": 986,
+  "mean_pd": 0.0681,
+  "contacts": 99,
+  "bands": {
+   "HIGH": 142,
+   "MEDIUM": 147,
+   "LOW": 697
+  }
+ },
+ "pytest_summary": "108 passed",
+ "api_latency_ms": {
+  "n": 200,
+  "p50_ms": 59.8,
+  "p95_ms": 217.9,
+  "max_ms": 1217.4,
+  "note": "client-side, 200 sequential POST /predict incl. HTTP, on a shared 2-core Linux VM that was busy with other jobs; an earlier run on an idle VM gave p50 ~17 ms / p95 ~27 ms. Treat as order-of-magnitude."
+ },
+ "drift_exporter_traffic_demo": {
+  "NORMAL traffic": {
+   "average_balance": {
+    "ks": 0.0405,
+    "p": 0.6351044852228879,
+    "flag": 0
+   },
+   "balance_trend": {
+    "ks": 0.036,
+    "p": 0.7714648939082379,
+    "flag": 0
+   },
+   "salary_credit_frequency": {
+    "ks": 0.013,
+    "p": 0.9999999916981598,
+    "flag": 0
+   },
+   "loan_payment_ratio": {
+    "ks": 0.012,
+    "p": 0.9999999997439714,
+    "flag": 0
+   },
+   "missed_payment_count": {
+    "ks": 0.0125,
+    "p": 0.9999999983823282,
+    "flag": 0
+   },
+   "credit_utilization": {
+    "ks": 0.0401,
+    "p": 0.7431848550500657,
+    "flag": 0
+   },
+   "recent_transaction_count": {
+    "ks": 0.054,
+    "p": 0.2788002472788288,
+    "flag": 0
+   },
+   "income_stability": {
+    "ks": 0.0518,
+    "p": 0.3198753147537708,
+    "flag": 0
+   },
+   "account_age": {
+    "ks": 0.067,
+    "p": 0.09730855498522749,
+    "flag": 0
+   }
+  },
+  "DRIFTED traffic": {
+   "average_balance": {
+    "ks": 0.0275,
+    "p": 0.958726513103003,
+    "flag": 0
+   },
+   "balance_trend": {
+    "ks": 0.311,
+    "p": 5.179413161893835e-29,
+    "flag": 1
+   },
+   "salary_credit_frequency": {
+    "ks": 0.276,
+    "p": 7.49313120325562e-23,
+    "flag": 1
+   },
+   "loan_payment_ratio": {
+    "ks": 0.083,
+    "p": 0.019462882460655983,
+    "flag": 0
+   },
+   "missed_payment_count": {
+    "ks": 0.0725,
+    "p": 0.058173625198477234,
+    "flag": 0
+   },
+   "credit_utilization": {
+    "ks": 0.1558,
+    "p": 2.5538887086947084e-06,
+    "flag": 1
+   },
+   "recent_transaction_count": {
+    "ks": 0.0415,
+    "p": 0.6044044376594424,
+    "flag": 0
+   },
+   "income_stability": {
+    "ks": 0.4501,
+    "p": 1.3615513596637163e-61,
+    "flag": 1
+   },
+   "account_age": {
+    "ks": 0.098,
+    "p": 0.0031498695107093615,
+    "flag": 0
+   }
+  }
+ },
+ "components": {
+  "CORE": [
+   "prediction timestamp (as_of_date) + availability rule available_at <= as_of_date",
+   "leakage-safe feature pipeline build_snapshot_features()",
+   "assert_no_future_data() guard + future-perturbation test",
+   "feature registry (metadata + lifecycle history) with a Production gate",
+   "training refuses non-Approved/Production features",
+   "time-based split with purge gap (never random)",
+   "logistic regression baseline -> HistGradientBoosting candidate",
+   "ROC-AUC, PR-AUC, recall@top-10%, lift, KS + business meaning",
+   "permutation importance",
+   "FastAPI /predict (feature vector in, PD out) + monthly batch scoring",
+   "KS drift + data-quality gate + decision ladder with label-lag proxies",
+   "champion/challenger retraining with human approval, guardrails and rollback",
+   "MLflow, DVC, Docker, Kubernetes/Minikube, Prometheus/Grafana, GitHub Actions CI"
+  ],
+  "OPTIONAL": [
+   "SHAP (python -m src.models.explain --shap)",
+   "gradient-boosting hyper-parameter search (not implemented; exercise)",
+   "docker compose observability stack",
+   "Minikube deployment"
+  ]
+ },
+ "failure_scenarios_reproduced": [
+  "(a) leaky average_balance_leaky in training: test AUC ~0.96, live AUC far lower (04_leakage_demo, 13_failure_scenarios)",
+  "(a2) post-default columns (days_past_due / recoveries / collections status of the target period) give AUC 0.94-1.0",
+  "(a3) random split vs time split: optimistic AUC",
+  "(b) salary_credit_frequency null rate jumps to ~40 % after a source migration -> FIX_DATA_PIPELINE, not retraining (11b, 13)",
+  "(c) challenger trained on the stress period only: no gain on the stress hold-out and worse on calm data (13_failure_scenarios)",
+  "label lag: labels for the drifted month do not exist for 6 months -> INVESTIGATE, then proxy evidence -> RETRAIN_CANDIDATE (11)",
+  "significant-but-small drift (account_age) triggers nothing (10_drift_normal)",
+  "promotion rules fail (ROC-AUC gain below the required bar) even with a human approver name (12)",
+  "unpublished loan_status row would inflate missed_payment_count (02_feature_manual_examples)"
+ ]
+}

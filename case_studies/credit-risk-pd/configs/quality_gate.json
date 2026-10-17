@@ -1,0 +1,2 @@
+{"min": {"roc_auc": 0.78, "pr_auc": 0.35, "recall_at_10pct": 0.50, "lift_at_10pct": 4.5, "ks": 0.45},
+ "comment": "Minimum bar on the champion's stored metrics (v1: calm test months; a promoted model: its stress hold-out). Lower than the lab numbers on purpose: the gate catches broken models, not small regressions - that is the job of the champion/challenger comparison."}

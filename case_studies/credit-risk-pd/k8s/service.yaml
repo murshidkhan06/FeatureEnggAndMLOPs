@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: credit-risk-pd
+spec:
+  type: NodePort                   # reachable from your laptop via `minikube service credit-risk-pd`
+  selector: {app: credit-risk-pd}    # must match the Deployment's pod labels
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30080

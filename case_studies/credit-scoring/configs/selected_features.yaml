@@ -1,0 +1,36 @@
+# Written by `python -m src.features.select_features` - the features the production model uses.
+selected_features:
+- employment_years
+- loan_amount
+- credit_history_years
+- bureau_score
+- existing_loans
+- debt_to_income_ratio
+- employment_type
+- log_income
+- loan_to_income
+rejected:
+  annual_income: 'REJECTED (correlated: correlated with log_income (|r|=1.00))'
+  monthly_income: 'REJECTED (correlated: correlated with log_income (|r|=0.82))'
+  loan_term_months: 'REJECTED (weak signal: 1/3 votes)'
+  monthly_debt: 'REJECTED (correlated: correlated with debt_to_income_ratio (|r|=0.81))'
+  number_of_dependents: 'REJECTED (weak signal: 1/3 votes)'
+  education: 'REJECTED (weak signal: 0/3 votes)'
+  location: 'REQUIRES GOVERNANCE (default: excluded)'
+  emi_estimate: 'REJECTED (correlated: correlated with loan_amount (|r|=0.83))'
+  emi_to_income: 'REJECTED (counter-intuitive sign (coef -0.17, expected +): multicollinearity)'
+  debt_service_ratio: 'REJECTED (counter-intuitive sign (coef -0.06, expected +): multicollinearity)'
+  income_missing: 'REJECTED (weak signal: 1/3 votes)'
+  bureau_score_missing: 'REJECTED (weak signal: 1/3 votes)'
+  employment_stability: 'REJECTED (correlated: correlated with employment_years (|r|=0.94))'
+  credit_history_bucket: 'REJECTED (correlated: correlated with credit_history_years (|r|=0.93))'
+  city_tier: 'REJECTED (weak signal: 0/3 votes)'
+  age: 'REQUIRES GOVERNANCE (default: excluded)'
+  gender: REJECTED (sensitive, policy)
+  marital_status: REJECTED (sensitive, policy)
+  interest_rate_offered: REJECTED (leakage)
+  loan_approved: REJECTED (leakage)
+  days_past_due_after_disbursal: REJECTED (leakage)
+  collections_status: REJECTED (leakage)
+  post_disbursal_payment_ratio: REJECTED (leakage)
+  credit_officer_override: REJECTED (not available at prediction time)

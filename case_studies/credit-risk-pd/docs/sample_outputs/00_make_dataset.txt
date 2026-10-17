@@ -1,0 +1,18 @@
+$ python -m src.data.make_dataset
+wrote data/raw/customers.csv  rows=1,500  cols=['customer_id', 'signup_date', 'segment', 'loan_amount', 'loan_start_date', 'credit_limit']
+wrote data/raw/transactions.csv  rows=324,370  cols=['customer_id', 'txn_date', 'amount', 'txn_type', 'balance_after']
+wrote data/raw/loan_status.csv  rows=75,228  cols=['customer_id', 'month', 'days_past_due', 'missed_payment', 'available_at', 'collections_status', 'recovery_amount']
+wrote data/raw/defaults.csv  rows=1,500  cols=['customer_id', 'default_date']
+customers that ever default: 514 of 1500 (34.3%)
+
+$ python -m src.features.build_features
+snapshots: 49,764 rows x 13 cols -> data/processed/snapshots.csv
+             rows  positives    rate      first       last
+split                                                     
+production  24959       1598  0.0640 2023-03-31 2024-12-31
+purge        5899        232  0.0393 2022-04-30 2022-08-31
+test         3554        147  0.0414 2022-12-31 2023-02-28
+train       11807        451  0.0382 2021-06-30 2022-03-31
+val          3545        141  0.0398 2022-09-30 2022-11-30
+reference sample: 2000 training rows -> data/processed/reference.csv
+production batches: data/production/batch_normal.csv, batch_drifted.csv, batch_dq_issue.csv

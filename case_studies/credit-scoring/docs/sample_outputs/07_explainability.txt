@@ -1,0 +1,59 @@
+$ python -m src.models.explain
+CHAMPION v1 - logistic regression scorecard on 9 features
+
+1. STANDARDIZED COEFFICIENTS (log-odds of default per +1 std; + = riskier)
+             feature                            encoded   coef
+debt_to_income_ratio          num__debt_to_income_ratio  0.569
+      loan_to_income                num__loan_to_income  0.420
+credit_history_years          num__credit_history_years -0.357
+        bureau_score                  num__bureau_score -0.341
+          log_income                    num__log_income -0.334
+      existing_loans                num__existing_loans  0.193
+         loan_amount                   num__loan_amount  0.168
+    employment_years              num__employment_years -0.150
+     employment_type      nom__employment_type_salaried -0.101
+     employment_type           nom__employment_type_gig  0.090
+     employment_type nom__employment_type_self_employed  0.063
+     employment_type      nom__employment_type_business -0.015
+
+2. PERMUTATION IMPORTANCE on the TEST set (AUC drop when the feature is shuffled, 10 repeats)
+             feature  auc_drop    std
+debt_to_income_ratio    0.1003 0.0076
+      loan_to_income    0.0448 0.0077
+          log_income    0.0285 0.0073
+        bureau_score    0.0245 0.0079
+credit_history_years    0.0191 0.0069
+      existing_loans    0.0083 0.0031
+         loan_amount    0.0053 0.0024
+     employment_type    0.0019 0.0034
+    employment_years    0.0014 0.0020
+   Note: correlated features share importance (e.g. DTI and debt_service_ratio); read groups, not single rows.
+
+3. SHAP on the gradient-boosting benchmark (OPTIONAL)
+             feature  mean_abs_shap
+debt_to_income_ratio         0.4301
+      loan_to_income         0.3207
+credit_history_years         0.2705
+        bureau_score         0.2412
+          log_income         0.1770
+     employment_type         0.1605
+    employment_years         0.1039
+         loan_amount         0.0930
+      existing_loans         0.0834
+
+4. REASON CODES (top-3 adverse factors) for three test applicants
+
+   LOW-ish applicant (PD=0.041, band=LOW, actually defaulted=0)
+     +0.35  Number of existing loans is high (3)
+     +0.24  Large loan amount
+     +0.14  Time in current employment is short (2.0 years)
+
+   MEDIUM-ish applicant (PD=0.152, band=MEDIUM, actually defaulted=0)
+     +0.40  Credit history is short (1.4 years)
+     +0.39  The loan amount is large relative to annual income (0.78x)
+     +0.23  Large loan amount
+
+   HIGH-ish applicant (PD=0.420, band=HIGH, actually defaulted=0)
+     +1.98  Monthly debt payments are high relative to income (DTI 101%)
+     +0.27  The loan amount is large relative to annual income (0.71x)
+     +0.10  Large loan amount

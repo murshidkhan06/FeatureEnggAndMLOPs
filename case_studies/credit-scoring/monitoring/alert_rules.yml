@@ -1,0 +1,28 @@
+# Prometheus alert rules (loaded through prometheus.yml -> rule_files).  An alert is a QUESTION for a human, not an automatic action.
+groups:
+  - name: credit-scoring
+    rules:
+      - alert: PredictRejectionSpike            # failure scenario (c): upstream schema change -> HTTP 422 everywhere
+        expr: sum(rate(api_requests_total{endpoint="/predict",status="422"}[5m])) / sum(rate(api_requests_total{endpoint="/predict"}[5m])) > 0.05
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "More than 5% of /predict calls are rejected (422): the request contract and the caller disagree."
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(api_request_latency_seconds_bucket{endpoint="/predict"}[5m])) by (le)) > 0.5
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "p95 latency of /predict is above 0.5 s (decisions are expected within seconds)."
+      - alert: HighRiskShareJump                # failure scenario (a): approval mix suddenly changes (e.g. unit change upstream)
+        expr: sum(rate(model_predictions_total{risk_level="HIGH"}[15m])) / sum(rate(model_predictions_total[15m])) < 0.05
+        for: 15m
+        labels: {severity: warning}
+        annotations:
+          summary: "HIGH-band share fell below 5% (normally ~13%): approval rate may have jumped - check data quality first (income units!)."
+      - alert: InputDriftDetected
+        expr: max(drift_flag) == 1
+        for: 10m
+        labels: {severity: info}
+        annotations:
+          summary: "A model input is significantly AND practically drifting. Open the drift runbook: INVESTIGATE, do not retrain automatically."

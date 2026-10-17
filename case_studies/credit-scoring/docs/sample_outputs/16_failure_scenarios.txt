@@ -1,0 +1,28 @@
+$ python -m src.monitoring.failure_scenarios
+================================================================================================
+(a) APPROVAL RATE JUMPS - upstream unit change (monthly_income now carries ANNUAL amounts)
+================================================================================================
+  normal batch                   not-declined 87.2% | LOW band 62.2% | HIGH band 12.8% | mean PD 0.114 | data quality OK
+  batch after the unit change    not-declined 98.1% | LOW band 87.4% | HIGH band 1.9% | mean PD 0.055 | data quality FAILED
+  data-quality problems: ['unit sanity: median(monthly_income / (annual_income/12)) = 11.93, expected ~1.0 -> a unit or field mapping changed upstream']
+  KS drift: {'monthly_income': 'D=0.99', 'debt_to_income_ratio': 'D=0.91', 'emi_to_income': 'D=0.96'}
+  LADDER DECISION: FIX_DATA_PIPELINE  -> Data quality checks failed: fix the source/pipeline first. Retraining on broken data would make things worse.
+
+================================================================================================
+(b) AUC FELL AFTER A NEW FEATURE WAS ADDED - the leaky column vanishes in production
+================================================================================================
+  leaky model  : offline test AUC 0.935  ->  production AUC 0.246   (the 'new feature' was a mistake)
+  honest champion on the same production batch: AUC 0.754
+  Prevention: feature registry blocks it at training time (check_features_approved) + leakage tests; detection after the fact needs LABELS (12 months!).
+
+================================================================================================
+(c) API 422 SPIKE AFTER A SCHEMA CHANGE - upstream renames monthly_debt and capitalises employment_type
+================================================================================================
+  before the change : HTTP 200 x 60, HTTP 422 x 0  (0% rejected)
+  after the change  : HTTP 200 x 0, HTTP 422 x 60  (100% rejected)
+  what the caller sees: [{"type": "missing", "loc": ["body", "monthly_debt"], "msg": "Field required", "input": {"annual_income": 795000.0, "monthly_income": 66500.0, "employment_years": 14.8, "loan_amount": 938000.0, "loan_term_months": 36, "credit_history_years": 3.4, "bureau_score": 689.0, "existing_loans": 2, "number_of_dependents": 2, "employment_type": "Salaried", "education": "postgraduate", "location": "Gorakhpur", "monthly_debt_inr": 25600.0}}, {"type": "literal_error", "loc": ["body", "employment_type"], "msg": "Input should be 'salaried', 'self_employed', 'gig' or 'business'", "input": "Salaried", "ctx": {"expected": "'salaried', 'self_employed', 'gig' or 'business'"}}]
+  Prometheus counters:
+     api_requests_total{endpoint="/predict",method="POST",status="200"} 60.0
+     api_requests_total{endpoint="/predict",method="POST",status="422"} 61.0
+  Alert rule (monitoring/alert_rules.yml): sum(rate(api_requests_total{status='422'}[5m])) / sum(rate(api_requests_total[5m])) > 0.05
+  Fix: version the contract (v1/v2 endpoints), contract tests in the upstream CI, and tolerate-or-reject decisions made explicitly.

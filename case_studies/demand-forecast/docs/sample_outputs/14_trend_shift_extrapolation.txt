@@ -1,0 +1,40 @@
+$ python -m src.models.trend_shift
+A. WAPE (bias %) of every model on the production batches - models trained on data up to 2024-09-30
+                         normal         drifted       festival
+naive             0.197 (-0.4%)   0.179 (-1.3%)  0.202 (+0.5%)
+seasonal_naive    0.204 (-0.3%)   0.191 (-4.3%)  0.227 (+1.0%)
+moving_average_7  0.185 (+0.1%)   0.177 (-2.4%)  0.191 (-0.1%)
+ridge_log         0.131 (-2.7%)   0.140 (-9.2%)  0.140 (-1.5%)
+hgb               0.132 (-4.3%)  0.196 (-15.3%)  0.145 (-1.7%)
+hgb+trend_index   0.145 (+5.5%)   0.144 (-5.0%)  0.165 (+7.4%)
+   normal  : business as usual -> models keep their validation accuracy (~0.13).
+   festival: Diwali lead-up -> inputs drift (see drift check) but accuracy holds: the shift is EXPECTED and the lags follow it.
+   drifted : level jumps to 150..210 -> the tree under-forecasts the most; the log-linear model follows better;
+             the naive baselines stay unbiased but noisy (they only copy the recent past).
+
+B. DRIFTED batch by week: bias % (negative = under-forecast = lost sales)
+week                 1     2     3    4     5     6     7     8
+hgb              -13.4 -10.3 -16.2 -9.6 -14.6 -14.9 -20.2 -19.3
+ridge_log         -8.6  -7.2 -10.7 -4.7  -9.2  -9.9 -12.5  -9.9
+seasonal_naive   -11.0  -1.2  -5.9 -3.1  -9.5   0.5  -7.7   2.3
+moving_average_7  -6.7  -0.7  -3.7 -1.7  -4.9   0.6  -5.0   1.6
+
+C. STRESS TEST - what if the business were k times bigger? (sales AND lag features x k, normal batch)
+   k  hgb_bias%  hgb_wape  ridge_log_bias%  ridge_log_wape  hgb_max_forecast
+1.00       -4.3     0.132             -2.7           0.131               362
+1.25      -11.9     0.177             -6.8           0.138               360
+1.50      -18.8     0.231            -10.1           0.151               365
+2.00      -30.9     0.339            -14.9           0.178               370
+3.00      -48.4     0.495            -21.3           0.226               370
+   99% of training sales are below 279 units.  Whatever k is, the largest tree forecast stays near its CEILING
+   (the 'hgb_max_forecast' column barely moves) - that is the leaf-average limit.  The log-linear model keeps rising with
+   the inputs, so its bias grows about half as fast; it still under-forecasts because Ridge shrinks its weights toward
+   the training average.  Neither is perfect: the real cure for a new level is retraining (and scale-free targets).
+
+D. ABLATION - give the tree a `trend_index` clock (days since 2023-01-01)
+   drifted  hgb WAPE 0.196 bias -15.3%   |   hgb+trend_index WAPE 0.143 bias -5.0%
+   normal   hgb WAPE 0.132 bias -4.3%   |   hgb+trend_index WAPE 0.145 bias +5.5%
+   The clock lets the tree say 'late dates = newer, higher level' - but it can only repeat the LAST level it saw.
+   It would fail again after the next jump; the principled fix is retraining (and scale-free targets).
+
+figure saved: reports/trend_shift_extrapolation.png

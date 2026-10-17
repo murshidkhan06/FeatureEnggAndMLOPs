@@ -1,0 +1,3 @@
+$ python scripts/quality_gate.py
+metrics: {'roc_auc': 0.9046, 'pr_auc': 0.6183, 'recall_at_10pct': 0.6939, 'lift_at_10pct': 6.927, 'ks': 0.6577}
+QUALITY GATE PASSED

@@ -1,0 +1,10 @@
+$ python -m src.data.make_dataset
+raw applications : (12000, 26)  default rate = 0.113
+written          : <project root>/data/raw/applications.csv
+production       : batch_normal.csv, batch_drifted.csv (3,000 rows each, with TRUE target for later monitoring)
+
+$ python -m src.features.build_features
+train:   8171 rows  2022-01-01 -> 2023-06-07  default rate 0.114
+valid:   1667 rows  2023-06-07 -> 2023-09-24  default rate 0.113
+test :   1800 rows  2023-09-24 -> 2023-12-31  default rate 0.111
+reference sample (3000 rows of the training feature frame) -> <project root>/data/processed/reference.csv

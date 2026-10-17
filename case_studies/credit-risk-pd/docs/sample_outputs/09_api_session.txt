@@ -1,0 +1,42 @@
+$ python scripts/api_session.py
+
+$ GET /health
+HTTP 200  {"status": "ok", "model_loaded": true, "model_version": "v1"}
+
+$ POST /predict   (valid, typical record: card utilisation 51 %)  {"customer_id": 10, "features_as_of": "2023-03-31", "average_balance": 162563.07, "balance...
+HTTP 200  {"customer_id": 10, "probability_of_default_6m": 0.0853, "risk_band": "MEDIUM", "contact_recommended": true, "model_version": "v1", "features_as_of": "2023-03-31"}
+
+$ POST /predict   (valid, warning signs: 3 missed payments, utilisation 95 %, salary every other month)
+HTTP 200  {"customer_id": 77, "probability_of_default_6m": 0.9636, "risk_band": "HIGH", "contact_recommended": true, "model_version": "v1", "features_as_of": "2024-01-31"}
+
+$ POST /predict   (customer without a credit card: credit_utilization = null -> imputed exactly as in training)
+HTTP 200  {"customer_id": 78, "probability_of_default_6m": 0.006, "risk_band": "LOW", "contact_recommended": false, "model_version": "v1", "features_as_of": "2023-03-31"}
+
+$ POST /predict   (INVALID: credit_utilization 7.5 > 3.0)
+HTTP 422  {"detail": [{"type": "less_than_equal", "loc": ["body", "credit_utilization"], "msg": "Input should be less than or equal to 3", "input": 7.5, "ctx": {"le": 3.0}}]}
+
+$ POST /predict   (INVALID: missed_payment_count 9 > 6 published months)
+HTTP 422  {"detail": [{"type": "less_than_equal", "loc": ["body", "missed_payment_count"], "msg": "Input should be less than or equal to 6", "input": 9, "ctx": {"le": 6}}]}
+
+$ POST /predict   (INVALID: no features_as_of -> the timestamp is part of the data contract)
+HTTP 422  {"detail": [{"type": "missing", "loc": ["body", "features_as_of"], "msg": "Field required", "input": {"customer_id": 10, "average_balance": 162563.07, "balance_trend": -5745.05, "salary_credit_frequency": 1.0, "loan_payment_ratio": 1.0, "missed_payment_count": 0, "credit_utilization": 0.5119, "recent_transaction_count": 6, "income_stability": 0.0267, "account_age": 173}}]}
+
+$ POST /predict   (INVALID: garbage)
+HTTP 422  {"detail": [{"type": "missing", "loc": ["body", "customer_id"], "msg": "Field required", "input": {"nonsense": 1}}, {"type": "missing", "loc": ["body", "features_as_of"], "msg": "Field required", "input": {"nonsense": 1}}, {"type": "missing", "loc": ["body", "average_balance"], "msg": "Field required", "input": {"nonsense": 1}}, {"type": "missing", "loc": ["body", "balance_trend"], "msg": "Field required", "input": {"nonsense": 1}}, {"type": "missing", "loc": ["body", "salary_credit_frequency"], "msg": "Field requi
+
+$ GET /model-info
+HTTP 200  {"model_version": "v1", "trained_at": "2026-10-07T13:27:22+00:00", "metrics": {"roc_auc": 0.9046, "pr_auc": 0.6183, "recall_at_10pct": 0.6939, "lift_at_10pct": 6.927, "ks": 0.6577}, "threshold": 0.05418585351401291, "input_columns": ["balance_trend", "salary_credit_frequency", "loan_payment_ratio", "missed_payment_count", "credit_utilization", "recent_transaction_count", "income_stability", "util_x_missed", "balance_trend_norm", "log_average_balance"]}
+
+LATENCY /predict over 200 sequential requests (client side, includes HTTP): p50 = 59.8 ms, p95 = 217.9 ms, max = 1217.4 ms
+
+$ GET /metrics   (excerpt)
+  api_requests_total{endpoint="/health",method="GET",status="200"} 2.0
+  api_requests_total{endpoint="/predict",method="POST",status="200"} 203.0
+  api_requests_total{endpoint="/predict",method="POST",status="422"} 4.0
+  api_requests_total{endpoint="/model-info",method="GET",status="200"} 1.0
+  model_predictions_total{risk_level="MEDIUM"} 14.0
+  model_predictions_total{risk_level="HIGH"} 15.0
+  model_predictions_total{risk_level="LOW"} 174.0
+  model_score_count 203.0
+  model_info{version="v1"} 1.0
+  api_prediction_errors_total 0.0

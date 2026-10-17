@@ -1,0 +1,21 @@
+$ python -m src.models.train --bootstrap-champion
+rows  train=12,336 (2023-01-31..2024-06-30)  valid=2,200 (2024-07-01..2024-09-30)  test=2,208 (2024-10-01..2024-12-31)
+features (14): ['product_id', 'store_id', 'day_of_week', 'is_holiday', 'month_sin', 'month_cos', 'lag_1', 'lag_7', 'lag_14', 'rolling_mean_7', 'discount_pct', 'price_change', 'promotion_flag', 'forecast_temp']
+
+BASELINES (no learning) - validation and test
+  naive              valid WAPE=0.1973 bias=+0.28% | test WAPE=0.1944
+  seasonal_naive     valid WAPE=0.1910 bias=+0.05% | test WAPE=0.2077
+  moving_average_7   valid WAPE=0.1831 bias=+0.06% | test WAPE=0.1864
+
+CANDIDATES (fit on TRAIN, scored on VALID)
+  candidate ridge_log  valid WAPE=0.1351  bias=-1.16%  MAE=16.11
+  candidate hgb        valid WAPE=0.1300  bias=-1.53%  MAE=15.49
+
+CHAMPION RULE: lowest validation WAPE with |bias| <= 3%  ->  'hgb'
+
+FINAL 'hgb' re-fitted on TRAIN+VALID (14,536 rows), scored ONCE on TEST:
+  mae=15.6152  rmse=25.2737  wape=0.1285  bias=-2.786  bias_pct=-0.0229  roc_auc=0.8637  coverage=0.7867  val_wape=0.13  val_bias_pct=-0.0153  skill_vs_seasonal_naive=0.3813
+  skill vs seasonal naive = 1 - 0.1285/0.2077 = 38.1% fewer errors
+  80% interval (relative residual quantiles from VALID): [-0.19, +0.22] x forecast; coverage on TEST = 78.7%
+  MLflow run id: a368de6ef6154423af9f071a2dfa8d44
+installed as champion (v1) and recorded in models/registry.json

@@ -1,0 +1,29 @@
+$ python -m src.governance.model_card
+written <project root>/reports/model_review_pack.md  (179 lines, 11315 characters)
+sections: ['1. Model purpose and scope', '2. Data lineage', '3. Feature approval table (features used by the model)', '4. Rejected features and reasons', '5. Performance (TEST = newest 15% of applications, untouched during development)', '6. Stability', '7. Fairness (gender and age are audit-only, never model inputs)', '8. Explainability', '9. Limitations', '10. Monitoring plan', '11. Sign-off checklist']
+
+$ python -m src.governance.review_gate
+REVIEW GATE for champion v1  (features: ['employment_years', 'loan_amount', 'credit_history_years', 'bureau_score', 'existing_loans', 'debt_to_income_ratio', 'employment_type', 'log_income', 'loan_to_income'])
+
+  [PASS] 1 all features approved in registry                            9 features approved
+  [PASS] 2 no sensitive / restricted / proxy feature in model           none
+  [PASS] 3 adverse impact ratio (gender) >= 0.8                         AIR = 0.9774
+  [PASS] 4 model card / review pack present and complete                model_review_pack.md found, all 11 sections
+  [PASS] 5 test ROC-AUC >= 0.72                                         AUC = 0.7683
+  [PASS] 6 reason codes available                                       reason codes produced for 20 sample applicants (max 3 each)
+
+GATE: GO - ready for the human review steps (independent validation, compliance, model risk committee)
+
+$ python -m src.governance.review_gate --demo-bad-model
+REVIEW GATE on a deliberately BAD model (leaky + sensitive features, black-box learner, no model card)
+  its test AUC is 0.9458  <- 'great' accuracy does not make a model acceptable
+
+  [FAIL] 1 all features approved in registry                            not approved: interest_rate_offered (LEAKAGE), gender (SENSITIVE_POLICY), age (REQUIRES_GOVERNANCE), location (REQUIRES_GOVERNANCE)
+  [FAIL] 2 no sensitive / restricted / proxy feature in model           found: ['gender', 'age', 'location']
+  [PASS] 3 adverse impact ratio (gender) >= 0.8                         AIR = 0.9399
+  [FAIL] 4 model card / review pack present and complete                model_review_pack_BAD_DEMO.md NOT FOUND
+  [PASS] 5 test ROC-AUC >= 0.72                                         AUC = 0.9458
+  [FAIL] 6 reason codes available                                       HistGradientBoostingClassifier has no coefficients: cannot produce linear reason codes
+
+GATE: NO-GO - do not promote; fix the failed checks
+[exit code 1]

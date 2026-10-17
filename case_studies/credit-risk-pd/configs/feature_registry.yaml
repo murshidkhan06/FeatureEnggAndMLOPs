@@ -1,0 +1,642 @@
+# FEATURE REGISTRY (feature metadata + lifecycle).  One entry per feature version.
+# A feature can be used for training ONLY if status == Approved AND stage == Production (see src/governance/feature_lifecycle.py).
+# Lifecycle:  Development -> Validation -> Approval -> Production   (or Rejected from Validation/Approval)
+# A feature may enter Production only if its Validation record shows: leakage_test pass, null_rate <= max_null_rate,
+# availability rule declared, owner assigned.   View as a table:  python -m src.governance.feature_lifecycle table
+registry_version: 1
+model: credit_risk_pd_model
+stages:
+- Development
+- Validation
+- Approval
+- Production
+validation_rules:
+  max_null_rate: 0.2
+  require_leakage_test_pass: true
+  require_availability_rule: true
+  require_owner: true
+features:
+- name: average_balance
+  version: 2
+  definition: Average balance of the current account over the last 90 days (customer's money buffer).
+  source: transactions.balance_after
+  data_type: float (INR)
+  owner: retail-risk-analytics
+  calculation_logic: mean(balance_after) over transactions with txn_date in (as_of_date - 90 days, as_of_date]
+  window: 90 days
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - every transaction is posted the day it happens; we only use rows dated on or before as_of_date.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-10-24'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-11-07'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-11-14'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-11-21'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+  replaces: average_balance_leaky v1
+  change_note: v1 averaged balances up to the OUTCOME date (leakage). v2 stops at as_of_date.
+- name: balance_trend
+  version: 1
+  definition: 'Direction of the balance: OLS slope of the six month-end balances (INR per month). Negative = savings are being eaten.'
+  source: transactions.balance_after
+  data_type: float (INR / month)
+  owner: retail-risk-analytics
+  calculation_logic: slope of month-end balances for the 6 months ending at as_of_date (carry the last balance forward if a month has no transaction)
+  window: 6 months
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - uses only month-end balances up to as_of_date.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-12'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-09-26'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-03'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-10'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+- name: salary_credit_frequency
+  version: 1
+  definition: 'How regularly salary arrives: salary credits per month over 6 months (1.0 = every month).'
+  source: transactions.txn_type == salary_credit
+  data_type: float (0..1)
+  owner: retail-risk-analytics
+  calculation_logic: count(salary_credit with txn_date in window) / 6
+  window: 6 months
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - credits are posted the day they arrive.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-12'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-09-26'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-03'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-10'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+- name: loan_payment_ratio
+  version: 1
+  definition: Share of due loan instalments that were actually paid over 6 months.
+  source: transactions.txn_type == loan_payment + customers.loan_start_date
+  data_type: float (0..1)
+  owner: retail-risk-analytics
+  calculation_logic: payments made in window / instalments due in window (months after the loan start month); 1.0 if nothing was due
+  window: 6 months
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - a payment is visible in the account the day it is made (earlier than loan_status, which is published 5 days
+    later).
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-12'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-09-26'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-03'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-10'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+- name: missed_payment_count
+  version: 1
+  definition: Number of missed loan instalments in the last 6 PUBLISHED months of loan_status.
+  source: loan_status.missed_payment
+  data_type: int
+  owner: retail-risk-analytics
+  calculation_logic: sum(missed_payment) over loan_status months M-6 .. M-1 with available_at <= as_of_date
+  window: 6 published months
+  availability:
+    lag_days: 5
+    rule: available_at <= as_of_date
+  prediction_time_availability: PARTLY - loan_status for month M is published on day 5 of month M+1, so at the month-end of M only months up to
+    M-1 exist. The latest month is NOT used.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-12'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-09-26'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-03'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-10'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+- name: credit_utilization
+  version: 1
+  definition: 'How much of the credit-card limit the customer uses on average: mean monthly card spend / credit_limit.'
+  source: transactions.txn_type == credit_card_spend + customers.credit_limit
+  data_type: float (0..~1.2)
+  owner: retail-risk-analytics
+  calculation_logic: sum(credit_card_spend in window) / 6 / credit_limit  (empty if the customer has no card)
+  window: 6 months
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - card purchases are posted the day they happen; credit_limit is a static attribute known at signup.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-19'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-10-03'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.162
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-10'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-17'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+  null_reason: 'MAR missing: customers without a credit card have no limit (about 16 % of rows). Imputed + missing-indicator inside the model
+    pipeline.'
+- name: recent_transaction_count
+  version: 1
+  definition: 'How active the account is right now: number of transactions in the last 30 days.'
+  source: transactions (all types)
+  data_type: int
+  owner: retail-risk-analytics
+  calculation_logic: count(rows with txn_date in (as_of_date - 30 days, as_of_date])
+  window: 30 days
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - same-day availability.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-19'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-10-03'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-10'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-17'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+- name: income_stability
+  version: 1
+  definition: 'How regular the salary amount is: coefficient of variation (std / mean) of salary amounts over 6 months. Higher = less stable.'
+  source: transactions.amount where txn_type == salary_credit
+  data_type: float (>= 0)
+  owner: retail-risk-analytics
+  calculation_logic: std(amount, ddof=1) / mean(amount) over salary credits in window; NaN if fewer than 2 salary credits
+  window: 6 months
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - same-day availability.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-19'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-10-03'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.002
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-10'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-17'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+  null_reason: 'MNAR missing: undefined when the customer received fewer than 2 salary credits - the missingness itself is a risk signal (kept
+    via missing-indicator).'
+- name: account_age
+  version: 1
+  definition: Whole months since the customer signed up.
+  source: customers.signup_date
+  data_type: int (months)
+  owner: retail-risk-analytics
+  calculation_logic: (as_of.year - signup.year) * 12 + (as_of.month - signup.month)
+  window: n/a (static)
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - signup_date is known at account opening.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-09-19'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-10-03'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-10-10'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-10-17'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+- name: util_x_missed
+  version: 1
+  definition: 'Interaction: card utilisation x missed payments (heavy card users who also miss instalments).'
+  source: 'derived: credit_utilization, missed_payment_count'
+  data_type: float
+  owner: retail-risk-analytics
+  calculation_logic: credit_utilization * missed_payment_count
+  window: same as parents
+  availability:
+    lag_days: 5
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - computed by add_derived_features() from credit_utilization, missed_payment_count; inherits the availability
+    of its parents.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-10-31'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-11-14'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.162
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-11-21'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-11-28'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+  derived_from:
+  - credit_utilization
+  - missed_payment_count
+- name: balance_trend_norm
+  version: 1
+  definition: 'Balance trend relative to the balance level: a fall of 1,000/month matters more on a 5,000 balance than on 500,000.'
+  source: 'derived: balance_trend, average_balance'
+  data_type: float
+  owner: retail-risk-analytics
+  calculation_logic: clip(balance_trend / (abs(average_balance) + 1), -1, 1)
+  window: same as parents
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - computed by add_derived_features() from balance_trend, average_balance; inherits the availability of its
+    parents.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-10-31'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-11-14'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-11-21'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-11-28'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+  derived_from:
+  - balance_trend
+  - average_balance
+- name: log_average_balance
+  version: 1
+  definition: Log of the average balance (log transform tames the long right tail; useful for the linear baseline).
+  source: 'derived: average_balance'
+  data_type: float
+  owner: retail-risk-analytics
+  calculation_logic: log1p(max(average_balance, 0))
+  window: same as parents
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - computed by add_derived_features() from average_balance; inherits the availability of its parents.
+  status: Approved
+  stage: Production
+  sensitivity: none
+  history:
+  - stage: Development
+    date: '2022-10-31'
+    by: A. Rao
+    note: Feature designed and prototyped in a notebook.
+  - stage: Validation
+    date: '2022-11-14'
+    by: S. Iyer
+    note: Independent validation checks run.
+    checks:
+      leakage_test: pass
+      null_rate: 0.0
+      availability_rule_declared: true
+      owner_assigned: true
+  - stage: Approval
+    date: '2022-11-21'
+    by: Model Risk Committee
+    note: Approved for use in the PD early-warning model.
+  - stage: Production
+    date: '2022-11-28'
+    by: MLOps team
+    note: Added to the monthly feature pipeline and the online lookup.
+  derived_from:
+  - average_balance
+- name: average_balance_leaky
+  version: 1
+  definition: Average balance over the 90 days up to the data-EXTRACT date (as_of + 7 months, when the outcome is confirmed).
+  source: transactions.balance_after
+  data_type: float
+  owner: retail-risk-analytics
+  calculation_logic: mean(balance_after) over (as_of + 7 months - 90 days, as_of + 7 months]
+  window: extends beyond as_of_date
+  availability:
+    lag_days: null
+    rule: NOT DECLARED - uses data from the future
+  prediction_time_availability: NO - at scoring time the next 6 months have not happened yet.
+  status: Rejected
+  stage: Rejected
+  sensitivity: none
+  rejection_reason: 'Leakage: includes the post-default balance collapse. Fails the future-perturbation test. Replaced by average_balance v2.'
+  history:
+  - stage: Development
+    date: '2022-09-26'
+    by: A. Rao
+    note: Prototype showed a spectacular AUC (suspicious).
+  - stage: Validation
+    date: '2022-10-10'
+    by: S. Iyer
+    note: Validation FAILED.
+    checks:
+      leakage_test: FAIL
+      null_rate: 0.0
+      availability_rule_declared: false
+      owner_assigned: true
+  - stage: Rejected
+    date: '2022-10-11'
+    by: Model Risk Committee
+    note: 'Leakage: includes the post-default balance collapse. Fails the future-perturbation test. Replaced by average_balance v2.'
+- name: dpd_target_period
+  version: 1
+  definition: Maximum days_past_due inside the 6-month target window.
+  source: loan_status.days_past_due
+  data_type: float
+  owner: retail-risk-analytics
+  calculation_logic: max(days_past_due) for months in (as_of, as_of + 6 months]
+  window: extends beyond as_of_date
+  availability:
+    lag_days: null
+    rule: NOT DECLARED - uses data from the future
+  prediction_time_availability: NO - future loan_status.
+  status: Rejected
+  stage: Rejected
+  sensitivity: none
+  rejection_reason: 'Target leakage: default IS 90+ days past due, so this column is the label in disguise.'
+  history:
+  - stage: Development
+    date: '2022-09-26'
+    by: A. Rao
+    note: Prototype showed a spectacular AUC (suspicious).
+  - stage: Validation
+    date: '2022-10-10'
+    by: S. Iyer
+    note: Validation FAILED.
+    checks:
+      leakage_test: FAIL
+      null_rate: 0.0
+      availability_rule_declared: false
+      owner_assigned: true
+  - stage: Rejected
+    date: '2022-10-11'
+    by: Model Risk Committee
+    note: 'Target leakage: default IS 90+ days past due, so this column is the label in disguise.'
+- name: recoveries_target_period
+  version: 1
+  definition: Recoveries collected inside the 6-month target window.
+  source: loan_status.recovery_amount
+  data_type: float
+  owner: retail-risk-analytics
+  calculation_logic: sum(recovery_amount) for months in (as_of, as_of + 6 months]
+  window: extends beyond as_of_date
+  availability:
+    lag_days: null
+    rule: NOT DECLARED - uses data from the future
+  prediction_time_availability: NO - future loan_status.
+  status: Rejected
+  stage: Rejected
+  sensitivity: none
+  rejection_reason: 'Target leakage: recoveries exist only AFTER a default has happened.'
+  history:
+  - stage: Development
+    date: '2022-09-26'
+    by: A. Rao
+    note: Prototype showed a spectacular AUC (suspicious).
+  - stage: Validation
+    date: '2022-10-10'
+    by: S. Iyer
+    note: Validation FAILED.
+    checks:
+      leakage_test: FAIL
+      null_rate: 0.0
+      availability_rule_declared: false
+      owner_assigned: true
+  - stage: Rejected
+    date: '2022-10-11'
+    by: Model Risk Committee
+    note: 'Target leakage: recoveries exist only AFTER a default has happened.'
+- name: collections_status_latest
+  version: 1
+  definition: Collections status of the customer at the data-extract date.
+  source: loan_status.collections_status
+  data_type: float
+  owner: retail-risk-analytics
+  calculation_logic: last collections_status in the extract (after the outcome)
+  window: extends beyond as_of_date
+  availability:
+    lag_days: null
+    rule: NOT DECLARED - uses data from the future
+  prediction_time_availability: NO - known only after the outcome.
+  status: Rejected
+  stage: Rejected
+  sensitivity: none
+  rejection_reason: 'Target leakage: ''in_collections'' is set after the default.'
+  history:
+  - stage: Development
+    date: '2022-09-26'
+    by: A. Rao
+    note: Prototype showed a spectacular AUC (suspicious).
+  - stage: Validation
+    date: '2022-10-10'
+    by: S. Iyer
+    note: Validation FAILED.
+    checks:
+      leakage_test: FAIL
+      null_rate: 0.0
+      availability_rule_declared: false
+      owner_assigned: true
+  - stage: Rejected
+    date: '2022-10-11'
+    by: Model Risk Committee
+    note: 'Target leakage: ''in_collections'' is set after the default.'
+- name: segment
+  version: 1
+  definition: Customer segment (mass / affluent / small_business).
+  source: customers.segment
+  data_type: category
+  owner: retail-risk-analytics
+  calculation_logic: as stored
+  window: n/a (static)
+  availability:
+    lag_days: 0
+    rule: available_at <= as_of_date
+  prediction_time_availability: YES - static attribute.
+  status: Rejected
+  stage: Rejected
+  sensitivity: proxy-risk
+  rejection_reason: 'Not needed for v1 (behaviour already explains risk) and a possible proxy for occupation/income: requires a fairness review
+    before use.'
+  history:
+  - stage: Development
+    date: '2022-09-12'
+    by: A. Rao
+    note: Considered as a raw feature.
+  - stage: Rejected
+    date: '2022-10-10'
+    by: Model Risk Committee
+    note: 'Rejected for v1: proxy risk, low incremental value.'

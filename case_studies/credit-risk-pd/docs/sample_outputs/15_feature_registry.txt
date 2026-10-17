@@ -1,0 +1,151 @@
+$ python -m src.governance.feature_lifecycle table
+                  feature  ver   status      stage                 owner  lag_days                    window                                                              source                                  last_event
+          average_balance    2 Approved Production retail-risk-analytics       0.0                   90 days                                          transactions.balance_after         Production 2022-11-21 by MLOps team
+            balance_trend    1 Approved Production retail-risk-analytics       0.0                  6 months                                          transactions.balance_after         Production 2022-10-10 by MLOps team
+  salary_credit_frequency    1 Approved Production retail-risk-analytics       0.0                  6 months                              transactions.txn_type == salary_credit         Production 2022-10-10 by MLOps team
+       loan_payment_ratio    1 Approved Production retail-risk-analytics       0.0                  6 months   transactions.txn_type == loan_payment + customers.loan_start_date         Production 2022-10-10 by MLOps team
+     missed_payment_count    1 Approved Production retail-risk-analytics       5.0        6 published months                                          loan_status.missed_payment         Production 2022-10-10 by MLOps team
+       credit_utilization    1 Approved Production retail-risk-analytics       0.0                  6 months transactions.txn_type == credit_card_spend + customers.credit_limit         Production 2022-10-17 by MLOps team
+ recent_transaction_count    1 Approved Production retail-risk-analytics       0.0                   30 days                                            transactions (all types)         Production 2022-10-17 by MLOps team
+         income_stability    1 Approved Production retail-risk-analytics       0.0                  6 months                 transactions.amount where txn_type == salary_credit         Production 2022-10-17 by MLOps team
+              account_age    1 Approved Production retail-risk-analytics       0.0              n/a (static)                                               customers.signup_date         Production 2022-10-17 by MLOps team
+            util_x_missed    1 Approved Production retail-risk-analytics       5.0           same as parents                   derived: credit_utilization, missed_payment_count         Production 2022-11-28 by MLOps team
+       balance_trend_norm    1 Approved Production retail-risk-analytics       0.0           same as parents                             derived: balance_trend, average_balance         Production 2022-11-28 by MLOps team
+      log_average_balance    1 Approved Production retail-risk-analytics       0.0           same as parents                                            derived: average_balance         Production 2022-11-28 by MLOps team
+    average_balance_leaky    1 Rejected   Rejected retail-risk-analytics       NaN extends beyond as_of_date                                          transactions.balance_after Rejected 2022-10-11 by Model Risk Committee
+        dpd_target_period    1 Rejected   Rejected retail-risk-analytics       NaN extends beyond as_of_date                                           loan_status.days_past_due Rejected 2022-10-11 by Model Risk Committee
+ recoveries_target_period    1 Rejected   Rejected retail-risk-analytics       NaN extends beyond as_of_date                                         loan_status.recovery_amount Rejected 2022-10-11 by Model Risk Committee
+collections_status_latest    1 Rejected   Rejected retail-risk-analytics       NaN extends beyond as_of_date                                      loan_status.collections_status Rejected 2022-10-11 by Model Risk Committee
+                  segment    1 Rejected   Rejected retail-risk-analytics       0.0              n/a (static)                                                   customers.segment Rejected 2022-10-10 by Model Risk Committee
+
+$ python -m src.governance.feature_lifecycle history
+
+average_balance v2  [Approved / Production]  owner=retail-risk-analytics
+   2022-10-24  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-11-07  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-11-14  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-11-21  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+balance_trend v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-12  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-09-26  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-10-03  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-10  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+salary_credit_frequency v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-12  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-09-26  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-10-03  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-10  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+loan_payment_ratio v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-12  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-09-26  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-10-03  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-10  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+missed_payment_count v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-12  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-09-26  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-10-03  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-10  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+credit_utilization v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-19  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-10-03  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.162 availability=True owner=True
+   2022-10-10  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-17  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+recent_transaction_count v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-19  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-10-03  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-10-10  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-17  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+income_stability v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-19  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-10-03  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.002 availability=True owner=True
+   2022-10-10  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-17  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+account_age v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-09-19  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-10-03  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-10-10  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-10-17  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+util_x_missed v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-10-31  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-11-14  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.162 availability=True owner=True
+   2022-11-21  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-11-28  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+balance_trend_norm v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-10-31  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-11-14  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-11-21  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-11-28  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+log_average_balance v1  [Approved / Production]  owner=retail-risk-analytics
+   2022-10-31  Development A. Rao                 Feature designed and prototyped in a notebook.
+   2022-11-14  Validation  S. Iyer                Independent validation checks run.  checks: leakage=pass null=0.0 availability=True owner=True
+   2022-11-21  Approval    Model Risk Committee   Approved for use in the PD early-warning model.
+   2022-11-28  Production  MLOps team             Added to the monthly feature pipeline and the online lookup.
+
+average_balance_leaky v1  [Rejected / Rejected]  owner=retail-risk-analytics
+   2022-09-26  Development A. Rao                 Prototype showed a spectacular AUC (suspicious).
+   2022-10-10  Validation  S. Iyer                Validation FAILED.  checks: leakage=FAIL null=0.0 availability=False owner=True
+   2022-10-11  Rejected    Model Risk Committee   Leakage: includes the post-default balance collapse. Fails the future-perturbation test. Replaced by average_balance v2.
+
+dpd_target_period v1  [Rejected / Rejected]  owner=retail-risk-analytics
+   2022-09-26  Development A. Rao                 Prototype showed a spectacular AUC (suspicious).
+   2022-10-10  Validation  S. Iyer                Validation FAILED.  checks: leakage=FAIL null=0.0 availability=False owner=True
+   2022-10-11  Rejected    Model Risk Committee   Target leakage: default IS 90+ days past due, so this column is the label in disguise.
+
+recoveries_target_period v1  [Rejected / Rejected]  owner=retail-risk-analytics
+   2022-09-26  Development A. Rao                 Prototype showed a spectacular AUC (suspicious).
+   2022-10-10  Validation  S. Iyer                Validation FAILED.  checks: leakage=FAIL null=0.0 availability=False owner=True
+   2022-10-11  Rejected    Model Risk Committee   Target leakage: recoveries exist only AFTER a default has happened.
+
+collections_status_latest v1  [Rejected / Rejected]  owner=retail-risk-analytics
+   2022-09-26  Development A. Rao                 Prototype showed a spectacular AUC (suspicious).
+   2022-10-10  Validation  S. Iyer                Validation FAILED.  checks: leakage=FAIL null=0.0 availability=False owner=True
+   2022-10-11  Rejected    Model Risk Committee   Target leakage: 'in_collections' is set after the default.
+
+segment v1  [Rejected / Rejected]  owner=retail-risk-analytics
+   2022-09-12  Development A. Rao                 Considered as a raw feature.
+   2022-10-10  Rejected    Model Risk Committee   Rejected for v1: proxy risk, low incremental value.
+
+$ python -m src.governance.feature_lifecycle validate
+                  feature  ver leakage_test  null_rate  availability_declared  owner may_enter_production registry_status                                                                         why_not
+          average_balance    2         pass     0.0000                   True   True                  YES        Approved                                                                                
+            balance_trend    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+  salary_credit_frequency    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+       loan_payment_ratio    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+     missed_payment_count    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+       credit_utilization    1         pass     0.1637                   True   True                  YES        Approved                                                                                
+ recent_transaction_count    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+         income_stability    1         pass     0.0003                   True   True                  YES        Approved                                                                                
+              account_age    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+            util_x_missed    1         pass     0.1637                   True   True                  YES        Approved                                                                                
+       balance_trend_norm    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+      log_average_balance    1         pass     0.0000                   True   True                  YES        Approved                                                                                
+    average_balance_leaky    1         FAIL     0.0000                  False   True                   NO        Rejected                             leakage_test = FAIL; availability rule not declared
+        dpd_target_period    1         FAIL     0.0000                  False   True                   NO        Rejected                             leakage_test = FAIL; availability rule not declared
+ recoveries_target_period    1         FAIL     0.0000                  False   True                   NO        Rejected                             leakage_test = FAIL; availability rule not declared
+collections_status_latest    1         FAIL     0.0000                  False   True                   NO        Rejected                             leakage_test = FAIL; availability rule not declared
+                  segment    1         pass     0.0000                   True   True                   NO        Rejected Rejected by the Model Risk Committee (a policy decision, not a technical check)
+
+$ python -m src.governance.feature_lifecycle gate-demo
+1) Try to approve average_balance_leaky (its Validation record says leakage_test FAIL):
+   BLOCKED -> average_balance_leaky: gate to Approval blocked - leakage_test = FAIL; availability rule not declared
+2) Try to jump average_balance straight from Development to Production:
+   BLOCKED -> average_balance: cannot go Development -> Production (allowed: ['Validation'])
+3) Legal path for a clean feature:
+   -> Validation
+   -> Approval
+   -> Production
+4) Training-time check:
+   ['average_balance', 'salary_credit_frequency']: OK
+   ['average_balance_leaky']: REFUSED -> Training refused. average_balance_leaky v1 is Rejected / Rejected (Leakage: includes the post-default balance collapse. Fails the future-perturbation test. Replaced by average_balance v2.)
+   ['segment']: REFUSED -> Training refused. segment v1 is Rejected / Rejected (Not needed for v1 (behaviour already explains risk) and a possible proxy for occupation/income: requires a fairness review before use.)

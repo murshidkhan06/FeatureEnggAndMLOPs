@@ -1,0 +1,64 @@
+$ python -m src.monitoring.run_drift_check --prod data/production/batch_normal.csv
+PRODUCTION BATCH data/production/batch_normal.csv: 1,416 rows, 2025-01-01 .. 2025-02-28
+
+STEP 1 - DATA QUALITY
+  [PASS] schema                     all required columns present
+  [PASS] duplicates                 0 duplicated (date, product, store) rows
+  [PASS] sales_negative             0 rows with negative sales
+  [PASS] null_rate_sales            sales null rate 1.1% (limit 5%)
+  [PASS] null_rate_price            price null rate 0.0% (limit 1%)
+  [PASS] null_rate_forecast_temp    forecast_temp null rate 1.7% (limit 10%)
+  [PASS] price_range                0 rows outside 0 < price <= 5000
+  [PASS] price_unit                 median price ratio vs reference is 0.5-2.0 for every product
+  [PASS] unknown_ids                all ids known
+  [PASS] calendar_gaps              largest share of missing days in any series: 0.0% (limit 5%)
+  DATA QUALITY: OK
+
+REFERENCE: all training rows (5,000 sampled rows, level 100 -> 130)
+
+STEP 2 - DRIFT (two-sample KS test)
+H0: reference and production values come from the same distribution;   alpha = 0.05   practical threshold D >= 0.1 
+
+        feature  n_ref  n_prod  ks_statistic       p_value  signif  large                status  used_by_champion
+          lag_1   5000    1400        0.0740  1.188932e-05    True  False significant_but_small              True
+ rolling_mean_7   5000    1400        0.1021  2.215613e-10    True   True                 drift              True
+rolling_mean_30   5000    1400        0.1100  5.670435e-12    True   True                 drift             False
+          price   5000    1400        0.1225  9.104844e-15    True   True                 drift             False
+   discount_pct   5000    1400        0.0163  9.268707e-01   False  False  no_evidence_of_drift              True
+  forecast_temp   4931    1376        0.4835 1.681406e-229    True   True                 drift              True
+          sales   5000    1400        0.0744  1.043653e-05    True  False significant_but_small             False
+(drift in a column the champion does not use - e.g. absolute price, or the target itself - is information, not a threat)
+
+ - lag_1: D=0.074, p=1.2e-05 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - rolling_mean_7: D=0.102, p=2.2e-10 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - rolling_mean_30: D=0.110, p=5.7e-12 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - price: D=0.122, p=9.1e-15 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - discount_pct: D=0.016, p=0.93 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - forecast_temp: D=0.483, p=1.7e-229 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - sales: D=0.074, p=1e-05 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+
+STEP 3 - LABELLED PERFORMANCE (labels arrive the next day in retail)
+ week  from_date   wape  bias_pct  vs_validation  breach
+    1 2025-01-01 0.1260   -0.0119        -0.0309   False
+    2 2025-01-08 0.1622   -0.0696         0.2479   False
+    3 2025-01-15 0.1230   -0.0405        -0.0542   False
+    4 2025-01-22 0.1201   -0.0245        -0.0759   False
+    5 2025-01-29 0.1212   -0.0269        -0.0679   False
+    6 2025-02-05 0.1340   -0.0336         0.0309   False
+    7 2025-02-12 0.1170   -0.0522        -0.0999   False
+    8 2025-02-19 0.1543   -0.0830         0.1867   False
+validation WAPE 0.130; smallest worsening over the last 2 weeks = -10.0% (trigger: >= 25%)
+
+STEP 4 - BUSINESS IMPACT
+under-forecast (lost-sales risk) 15,136 units; over-forecast (waste risk) 7,733 units; bias of the last weeks -6.8% -> impact LOW (threshold |bias| >= 10%)
+
+DECISION LADDER RESULT
+DATA QUALITY: OK
+DECISION: MONITOR
+  * Drift (significant AND large) in: ['rolling_mean_7', 'rolling_mean_30', 'price', 'forecast_temp'].
+  * Statistically significant but small shift in: ['lag_1'] (watch, do not act alone).
+  * Labelled performance is stable (drop -0.100 < 0.25).
+  * Inputs moved but the model still performs: monitor, do not retrain yet.
+
+SUMMARY: 4 of 7 tested columns show significant+large drift (lag drift: yes); performance evidence: no.
+-> Distribution shift WITHOUT model failure: the lags followed the level.  Not a reason to retrain.

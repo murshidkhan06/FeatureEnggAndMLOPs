@@ -1,0 +1,14 @@
+.git
+.dvc
+data/raw
+data/production
+mlruns
+mlflow.db
+logs
+reports
+notebooks
+tests
+__pycache__
+*.pyc
+.pytest_cache
+.venv

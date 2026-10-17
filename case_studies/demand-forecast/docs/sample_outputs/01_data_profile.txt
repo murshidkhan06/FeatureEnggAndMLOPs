@@ -1,0 +1,90 @@
+$ python -m src.data.profile_data
+=== 1. SHAPE ===
+training rows      : 17,544  (2023-01-01 .. 2024-12-31, 731 days)
+series             : 24  (8 products x 3 stores)
+production rows    : normal=1,416  drifted=1,416  (2025-01-01 .. 2025-02-28)
+
+first 4 rows:
+      date product_id store_id  sales  price  discount  promotion  holiday  temperature  forecast_temp  day_of_week
+2023-01-01        P01       S1  158.0   45.0       0.0          0        1         15.5           15.2            6
+2023-01-01        P01       S2  157.0   45.0       0.0          0        1         24.7           21.3            6
+2023-01-01        P01       S3   89.0   45.0       0.0          0        1         21.1            NaN            6
+2023-01-01        P02       S1   42.0  220.0       0.0          0        1         15.5           15.2            6
+
+=== 2. TARGET: units sold per series-day ===
+count    17464.0
+mean       114.7
+std         63.5
+min          0.0
+25%         62.0
+50%        106.0
+75%        156.0
+max       1102.0
+
+zero-sales rows (stock-outs)         : 42 (0.24%)  <- MAPE would divide by zero here
+candidate outliers (> 2.2 x local median): 59 (0.34%)  <- bulk orders / data-entry spikes
+
+=== 3. MISSING VALUES (injected, documented in docs/DATASET.md) ===
+sales            0.46%
+forecast_temp    1.50%
+  sales missing        = POS outage of a whole store-day        -> MCAR (independent of the sales value)
+  forecast_temp missing = weather-API outage of a whole store-day -> MCAR; handled by median + missing indicator
+  temperature (ACTUAL)  = never missing but NOT available at prediction time -> rejected (leakage)
+
+=== 4. TREND: weekly average sales (units per series-day) vs the design level ===
+             period week_start  avg_units_per_series_day  design_level
+    training week 1 2023-01-01                     102.8         100.0
+   training week 27 2023-07-02                     111.4         108.0
+   training week 53 2023-12-31                     110.2         115.0
+   training week 79 2024-06-30                     121.6         123.0
+  training week 105 2024-12-29                     116.8         130.0
+ prod NORMAL week 1 2025-01-01                     119.0         130.0
+ prod NORMAL week 2 2025-01-08                     120.0         130.0
+ prod NORMAL week 3 2025-01-15                     122.8         131.0
+ prod NORMAL week 4 2025-01-22                     126.7         131.0
+ prod NORMAL week 5 2025-01-29                     122.2         131.0
+ prod NORMAL week 6 2025-02-05                     121.9         131.0
+ prod NORMAL week 7 2025-02-12                     126.4         132.0
+ prod NORMAL week 8 2025-02-19                     129.8         132.0
+prod DRIFTED week 1 2025-01-01                     142.6         150.0
+prod DRIFTED week 2 2025-01-08                     141.6         150.0
+prod DRIFTED week 3 2025-01-15                     151.4         170.0
+prod DRIFTED week 4 2025-01-22                     156.3         170.0
+prod DRIFTED week 5 2025-01-29                     172.8         190.0
+prod DRIFTED week 6 2025-02-05                     168.7         190.0
+prod DRIFTED week 7 2025-02-12                     184.5         210.0
+prod DRIFTED week 8 2025-02-19                     180.5         210.0
+Averages sit a little below the design level in Jan-Feb (winter dip, fewer cold-drink sales); the SHIFT is clear:
+  training level 100 -> 130 over two years;  DRIFTED production 150 -> 170 -> 190 -> 210 in four steps.
+
+=== 5. WEEKLY SEASONALITY (average units by weekday, training) ===
+day_of_week
+Mon    0.88
+Tue    0.86
+Wed    0.90
+Thu    0.95
+Fri    1.06
+Sat    1.21
+Sun    1.13
+
+=== 6. CORRELATIONS (engineered training frame) ===
+top |correlation| with sales:
+rolling_mean_30    0.846
+rolling_mean_7     0.841
+lag_1              0.815
+lag_7              0.795
+lag_14             0.790
+price             -0.672
+day_of_week        0.208
+dow_sin           -0.206
+NOTE: price correlates strongly NEGATIVELY with sales only because expensive products (rice, shampoo) simply sell
+      fewer units than cheap ones (a BETWEEN-product effect).  It is NOT 'raising the price cuts sales' -
+      correlation is not causation.  That is one reason absolute price is not used as a model input.
+
+most correlated FEATURE pairs (redundancy):
+  week_of_year     month            |r|=0.980
+  rolling_mean_7   rolling_mean_30  |r|=0.972
+  lag_1            rolling_mean_7   |r|=0.875
+  lag_7            rolling_mean_7   |r|=0.875
+  lag_14           rolling_mean_30  |r|=0.863
+  lag_7            rolling_mean_30  |r|=0.862

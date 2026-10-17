@@ -1,0 +1,57 @@
+$ python -m src.data.profile_data
+1. SHAPE and TYPES: 12000 applications x 26 columns
+                                 dtype  missing_%  n_unique
+applicant_id                       str        0.0     11160
+application_date                   str        0.0       730
+age                              int64        0.0        45
+annual_income                  float64       12.2      1946
+monthly_income                 float64        0.0      1333
+employment_years               float64        0.0       231
+loan_amount                    float64        0.0      1189
+loan_term_months                 int64        0.0         5
+credit_history_years           float64        0.0       231
+bureau_score                   float64        8.1       410
+existing_loans                   int64        0.0         7
+monthly_debt                   float64        0.0       728
+debt_to_income_ratio           float64        0.0      5203
+number_of_dependents             int64        0.0         6
+employment_type                    str        0.0         4
+education                          str        0.0         4
+location                           str        0.0        15
+gender                             str        0.0         2
+marital_status                     str        0.0         3
+interest_rate_offered          float64        0.0      1739
+loan_approved                    int64        0.0         2
+days_past_due_after_disbursal    int64        0.0       181
+collections_status                 str        0.0         4
+post_disbursal_payment_ratio   float64        0.0       709
+credit_officer_override            str        0.0         3
+default_12m                      int64        0.0         2
+
+2. CLASS BALANCE: default_12m = 1 for 11.3% of applicants (1352 of 12000).
+   A model that says 'nobody defaults' is 88.7% accurate and useless -> we use ROC-AUC, KS, PR-AUC and recall.
+
+3. INCOME SHAPE: median 603,000  mean 656,700  (mean > median = right tail)
+   skewness raw = 20.83   after log(1+x) = 0.20   -> the log transform makes income symmetric
+   IQR rule: fence = 1,316,000;  305 values above it;  largest = 22,320,000 (37x the median -> data-entry errors such as an extra zero)
+   rows where annual_income > 5 x (12 x monthly_income): 11   (monthly_income is always present and noisy -> a sanity cross-check)
+
+4. MISSINGNESS of annual_income is NOT random (looks MNAR: depends on the value itself / type of work)
+   share missing by employment_type: {'business': 0.218, 'gig': 0.062, 'salaried': 0.082, 'self_employed': 0.204}
+   share missing for below-median vs above-median monthly_income: {'others': 0.084, 'high earners': 0.161}
+   -> median imputation + an explicit `income_missing` flag lets the model learn from the fact that income is missing.
+
+5. CORRELATION of numeric columns.  Pairs with |r| >= 0.5 (Pearson = linear, Spearman = rank-based, robust to outliers):
+            annual_income ~ monthly_income         Pearson +0.65  Spearman +0.89  <- above threshold: keep only ONE
+             monthly_debt ~ debt_to_income_ratio   Pearson +0.75  Spearman +0.81  <- above threshold: keep only ONE
+            annual_income ~ loan_amount            Pearson +0.45  Spearman +0.65
+           monthly_income ~ loan_amount            Pearson +0.58  Spearman +0.60
+            annual_income ~ monthly_debt           Pearson +0.36  Spearman +0.52
+   Note: the few x10 income outliers pull Pearson(annual_income, monthly_income) down; the rank (Spearman) view shows the true strength.
+   Rule used later (select_features.py): if |Spearman r| > 0.8, keep the column that is more directly useful / easier to explain.
+
+6. REPEAT APPLICANTS: 840 applications (7.0%) share an applicant_id with an earlier one -> a random row split would put the same person in train AND test.
+
+7. COLUMNS THAT MUST NOT BE MODEL INPUTS: ['interest_rate_offered', 'loan_approved', 'days_past_due_after_disbursal', 'collections_status', 'post_disbursal_payment_ratio', 'credit_officer_override', 'gender', 'marital_status', 'age']
+   (leakage = information from after the decision; sensitive/restricted = policy; see docs/DATASET.md)
+   correlation with the target (a leaky column looks 'too good'): {'interest_rate_offered': 0.59, 'loan_approved': -0.27, 'days_past_due_after_disbursal': 0.88, 'collections_status': 'default rate 0.00 .. 1.00 across categories', 'post_disbursal_payment_ratio': -0.9, 'credit_officer_override': 'default rate 0.08 .. 0.56 across categories'}

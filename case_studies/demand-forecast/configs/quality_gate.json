@@ -1,0 +1,5 @@
+{
+  "min": {"roc_auc": 0.70},
+  "max": {"wape": 0.16},
+  "max_abs": {"bias_pct": 0.08}
+}

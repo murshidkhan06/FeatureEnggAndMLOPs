@@ -1,0 +1,27 @@
+selected:
+- product_id
+- store_id
+- day_of_week
+- is_holiday
+- month_sin
+- month_cos
+- lag_1
+- lag_7
+- lag_14
+- rolling_mean_7
+- discount_pct
+- price_change
+- promotion_flag
+- forecast_temp
+dropped:
+  trend_index: only 0/3 votes
+  week_of_year: annual cycle encoded by month_sin/month_cos
+  month: annual cycle encoded by month_sin/month_cos
+  rolling_mean_30: 'redundant: |r|=0.979 with rolling_mean_7'
+  is_weekend: weekday already encoded by day_of_week (one-hot)
+  dow_sin: weekday already encoded by day_of_week (one-hot)
+  dow_cos: weekday already encoded by day_of_week (one-hot)
+  price: absolute INR price is not comparable across products and is unit-fragile;
+    relative features (discount_pct, price_change) are used instead
+votes_needed: 2
+selected_on: training rows only

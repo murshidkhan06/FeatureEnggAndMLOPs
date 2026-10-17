@@ -1,0 +1,22 @@
+# The retraining STRATEGY (documented AND coded: src/models/retrain.py reads this file)
+weekly:                      # runs every Monday - no model change, just fresh inputs
+  feature_refresh: true      # append last week's actual sales to the history store
+  batch_forecast: true       # python -m src.models.batch_forecast  -> reports/forecast_next_7d.csv
+monthly_scheduled:           # runs on the 1st of every month, regardless of drift
+  strategy: rolling          # rolling = last N months only; expanding = everything since the start
+  window_months: 12
+trigger:                     # extra, event-driven retraining
+  wape_worsen_pct: 0.25      # weekly WAPE is >= 25% worse than the validation WAPE ...
+  consecutive_weeks: 2       # ... in 2 weeks in a row ...
+  require_lag_drift: true    # ... AND the KS test shows real drift in the lag / rolling features
+business_impact_bias_pct: 0.10   # |bias| of the last 2 weeks >= 10% of units sold = HIGH business impact (stock-outs / waste)
+holdout_days: 28             # champion and challenger are compared on the most recent 4 weeks (time-based hold-out)
+valid_days: 14               # the 2 weeks before the hold-out are used to choose between Ridge and HGB
+promotion:
+  primary_metric: wape       # lower is better
+  min_improvement: 0.005     # challenger WAPE must be at least 0.5 percentage points lower
+  guardrails:
+    max_abs_bias_pct: 0.08   # |bias| of the challenger must stay within +-8% of average sales.  Why 8%?  It is below the 10% line that
+                             # the ladder calls HIGH business impact, with a margin.  (5% would have blocked even a good challenger on
+                             # the 150 -> 210 level shift: a model trained on only 2-4 weeks of the new level is still a bit low.)
+    max_bias_worsening: 0.01 # ... and may not be more than 1 point worse than the champion

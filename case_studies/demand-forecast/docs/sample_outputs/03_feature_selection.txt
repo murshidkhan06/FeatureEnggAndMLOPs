@@ -1,0 +1,37 @@
+$ python -m src.features.select_features
+Training rows used for selection: 12,336 (dates <= 2024-06-30; validation/test untouched)
+
+                                          group  abs_corr  mutual_info  rfe_rank  lasso_coef  filter_vote  wrapper_vote  embedded_vote  votes decision                                                                                                                                     reason
+lag_1                level  (target: log sales)     0.826        0.782         1       0.383            1             1              1      3     KEEP                                                                                                                                  3/3 votes
+lag_7                level  (target: log sales)     0.764        0.797         1       0.131            1             1              1      3     KEEP                                                                                                                                  3/3 votes
+lag_14               level  (target: log sales)     0.755        0.777         1       0.098            1             1              1      3     KEEP                                                                                                                                  3/3 votes
+rolling_mean_7       level  (target: log sales)     0.839        0.803         2       0.042            1             0              1      2     KEEP                                                                                                                                  2/3 votes
+rolling_mean_30      level  (target: log sales)     0.839        0.833         1       0.268            1             1              1      3     drop                                                                                                   redundant: |r|=0.979 with rolling_mean_7
+trend_index          level  (target: log sales)     0.050        0.021         3      -0.000            0             0              0      0     drop                                                                                                                             only 0/3 votes
+day_of_week      pattern (target: demand index)     0.350        0.218         1       0.105            1             1              1      3     KEEP                                                                                                                                  3/3 votes
+week_of_year     pattern (target: demand index)     0.005        0.020         3      -0.000            0             0              0      0     drop                                                                                                annual cycle encoded by month_sin/month_cos
+month            pattern (target: demand index)     0.003        0.000         2      -0.000            0             0              0      0     drop                                                                                                annual cycle encoded by month_sin/month_cos
+is_weekend       pattern (target: demand index)     0.308        0.141         1       0.095            1             1              1      3     drop                                                                                           weekday already encoded by day_of_week (one-hot)
+is_holiday       pattern (target: demand index)     0.058        0.001         1       0.071            1             1              1      3     KEEP                                                                                                                                  3/3 votes
+dow_sin          pattern (target: demand index)     0.337        0.220         1      -0.176            1             1              1      3     drop                                                                                           weekday already encoded by day_of_week (one-hot)
+dow_cos          pattern (target: demand index)     0.124        0.057         1      -0.097            1             1              1      3     drop                                                                                           weekday already encoded by day_of_week (one-hot)
+month_sin        pattern (target: demand index)     0.018        0.000         1       0.010            0             1              1      2     KEEP                                                                                                                                  2/3 votes
+month_cos        pattern (target: demand index)     0.013        0.000         4       0.000            0             0              0      0     KEEP                                                                                                            encoding rule (domain decision)
+price            pattern (target: demand index)     0.033        0.096         5      -0.006            1             0              1      2     drop  absolute INR price is not comparable across products and is unit-fragile; relative features (discount_pct, price_change) are used instead
+discount_pct     pattern (target: demand index)     0.272        0.074         1       0.186            1             1              1      3     KEEP                                                                                                                                  3/3 votes
+price_change     pattern (target: demand index)     0.093        0.018         6      -0.005            1             0              1      2     KEEP                                                                                                                                  2/3 votes
+promotion_flag   pattern (target: demand index)     0.256        0.062         1       0.088            1             1              1      3     KEEP                                                                                                                                  3/3 votes
+forecast_temp    pattern (target: demand index)     0.033        0.027         1       0.017            0             1              1      2     KEEP                                                                                                                                  2/3 votes
+
+SELECTED (14): ['product_id', 'store_id', 'day_of_week', 'is_holiday', 'month_sin', 'month_cos', 'lag_1', 'lag_7', 'lag_14', 'rolling_mean_7', 'discount_pct', 'price_change', 'promotion_flag', 'forecast_temp']
+DROPPED :
+  trend_index      only 0/3 votes
+  week_of_year     annual cycle encoded by month_sin/month_cos
+  month            annual cycle encoded by month_sin/month_cos
+  rolling_mean_30  redundant: |r|=0.979 with rolling_mean_7
+  is_weekend       weekday already encoded by day_of_week (one-hot)
+  dow_sin          weekday already encoded by day_of_week (one-hot)
+  dow_cos          weekday already encoded by day_of_week (one-hot)
+  price            absolute INR price is not comparable across products and is unit-fragile; relative features (discount_pct, price_change) are used instead
+
+wrote configs/selected_features.yaml  (all selected features are Approved in the registry)

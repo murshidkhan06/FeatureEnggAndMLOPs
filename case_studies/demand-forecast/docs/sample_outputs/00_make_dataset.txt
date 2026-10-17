@@ -1,0 +1,2 @@
+$ python -m src.data.make_dataset
+train rows=17544  production rows=1416  reference rows=5000

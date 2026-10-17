@@ -1,0 +1,19 @@
+$ python -m src.models.batch_score
+model v1 scored 986 customers on 2025-06-30  -> reports/monthly_scores.csv
+mean PD 0.0681   risk bands: HIGH=142, MEDIUM=147, LOW=697
+contact list (top 10%): 99 customers, PD range 0.176 .. 0.945
+
+top 10 customers to call first:
+ customer_id features_as_of  probability_of_default_6m risk_band  rank  contact_recommended model_version
+         557     2025-06-30                     0.9449      HIGH     1                 True            v1
+         966     2025-06-30                     0.8938      HIGH     2                 True            v1
+        1486     2025-06-30                     0.8256      HIGH     3                 True            v1
+        1153     2025-06-30                     0.8160      HIGH     4                 True            v1
+         333     2025-06-30                     0.7929      HIGH     5                 True            v1
+        1254     2025-06-30                     0.7773      HIGH     6                 True            v1
+        1059     2025-06-30                     0.7706      HIGH     7                 True            v1
+         611     2025-06-30                     0.6869      HIGH     8                 True            v1
+        1472     2025-06-30                     0.6720      HIGH     9                 True            v1
+        1144     2025-06-30                     0.6675      HIGH    10                 True            v1
+
+contrast: the champion's stored threshold (0.0542) flags 27.7% of customers (plan 10%); a stress period inflates this.

@@ -1,0 +1,15 @@
+$ python -m src.governance.age_experiment
+AGE EXPERIMENT on the TEST set (1800 applicants), same decline rate (12.8%) for both models
+
+                          model  test_auc  test_ks  gender_AIR  age_AIR  approval_under25  approval_25_34  approval_35_49  approval_50plus
+WITHOUT age (production policy)    0.7683   0.4394      0.9774   0.9170            0.8164          0.8706          0.8903           0.8416
+     WITH age (experiment only)    0.7699   0.4381      0.9801   0.8647            0.7778          0.8674          0.8995           0.8614
+
+AUC gain from adding age: +0.0015   95% bootstrap interval [-0.0023, +0.0048]  -> NOT distinguishable from zero (within noise)
+Age-band adverse impact ratio: 0.917 without age  ->  0.8647 with age
+Young applicants (<25) approval rate: 0.8164 without age -> 0.7778 with age
+
+DECISION RECORD (a POLICY decision owned by Compliance, laws differ by country):
+  Evidence : adding age changes accuracy by a negligible amount but lowers the approval rate of the youngest band (<25).
+  Default  : age EXCLUDED from the scoring model; age is kept only in the audit table (never sent to the API).
+  Owner    : Compliance + Model Risk Committee.  Changing this requires a new registry version and a new review.

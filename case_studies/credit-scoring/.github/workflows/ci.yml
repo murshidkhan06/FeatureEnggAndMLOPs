@@ -1,0 +1,53 @@
+name: ci
+on:
+  push: {branches: [main]}
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements.txt
+      - name: Generate data and train (small, deterministic)
+        run: |
+          python -m src.data.make_dataset
+          python -m src.features.build_features
+          python -m src.features.select_features
+          python -m src.models.train --bootstrap-champion
+      - name: Run tests (data, features, model, API)
+        run: pytest -q
+      - name: Model quality gate (minimum metrics)
+        run: python scripts/quality_gate.py
+      - name: Governance gate (fairness audit -> review pack -> GO / NO-GO)
+        run: |
+          python -m src.models.evaluate
+          python -m src.models.explain
+          python -m src.governance.fairness_audit
+          python -m src.governance.model_card
+          python -m src.governance.review_gate
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      HAS_SECRETS: ${{ secrets.DOCKERHUB_TOKEN != '' }}   # job-level so the step `if:` below can read it
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11", cache: pip}
+      - run: pip install -r requirements.txt
+      - run: |
+          python -m src.data.make_dataset
+          python -m src.features.build_features
+          python -m src.features.select_features
+          python -m src.models.train --bootstrap-champion
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME || 'local' }}/credit-scoring:${{ github.sha }} .
+      - name: Push to Docker Hub (only on main, only if secrets exist)
+        if: github.ref == 'refs/heads/main' && env.HAS_SECRETS == 'true'
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/credit-scoring:${{ github.sha }}
+      # Deployment to a real cluster is intentionally NOT automated here (needs credentials).
+      # In class: `kubectl set image deployment/credit-scoring api=<image>` after the push.

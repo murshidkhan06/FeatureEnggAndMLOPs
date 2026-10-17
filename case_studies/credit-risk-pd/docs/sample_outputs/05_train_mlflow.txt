@@ -1,0 +1,16 @@
+$ python -m src.models.train --bootstrap-champion
+features (10): ['balance_trend', 'salary_credit_frequency', 'loan_payment_ratio', 'missed_payment_count', 'credit_utilization', 'recent_transaction_count', 'income_stability', 'util_x_missed', 'balance_trend_norm', 'log_average_balance']
+rows  train=11,807 val=3,545 test=3,554   default rate  3.82% / 3.98% / 4.14%
+
+model              period   ROC-AUC   PR-AUC  recall@10%  lift@10%      KS
+BASELINE  logistic train     0.8844   0.6012      0.7073      7.07  0.6380
+                   val       0.8899   0.5441      0.6596      6.59  0.6470
+                   test      0.8822   0.6009      0.6735      6.72  0.6360
+CANDIDATE hist-GB  train     0.9261   0.6404      0.7472      7.47  0.6895
+                   val       0.8971   0.5290      0.6312      6.30  0.6791
+                   test      0.9046   0.6183      0.6939      6.93  0.6577
+
+Validation ROC-AUC gain of the candidate over the baseline: +0.0072  (rule: keep the simple model unless gain >= 0.005)
+WINNER -> hgb.  (train > val > test is normal: the model has seen the train customers; trust val/test.)
+saved models/challenger.joblib  version=v1  test metrics={'roc_auc': 0.9046, 'pr_auc': 0.6183, 'recall_at_10pct': 0.6939, 'lift_at_10pct': 6.927, 'ks': 0.6577}  contact threshold=0.0542
+installed as champion (models/champion.joblib) and recorded in models/registry.json

@@ -1,0 +1,60 @@
+# The whole pipeline as a DAG:  make_data -> features -> select -> train -> evaluate
+# Run:  dvc init --no-scm   (or `dvc init` inside a git repo)   then   dvc repro        (`dvc dag` draws the graph, `dvc metrics show` prints the metrics)
+# Parameters (split dates, hyper-parameters, thresholds) live in params.yaml; changing one re-runs only the stages that depend on it.
+stages:
+  make_data:
+    cmd: python -m src.data.make_dataset
+    deps:
+      - src/data/make_dataset.py
+    params:
+      - data
+    outs:
+      - data/raw
+  features:
+    cmd: python -m src.features.build_features
+    deps:
+      - src/features/build_features.py
+      - src/features/definitions.py
+      - data/raw
+    params:
+      - splits
+      - production
+      - reference_sample_rows
+    outs:
+      - data/processed
+      - data/production
+  select:
+    cmd: python -m src.features.select_features
+    deps:
+      - src/features/select_features.py
+      - src/governance/feature_lifecycle.py
+      - configs/feature_registry.yaml
+      - data/processed/snapshots.csv
+    params:
+      - selection
+    outs:
+      - configs/selected_features.yaml:
+          cache: false
+  train:
+    cmd: python -m src.models.train --bootstrap-champion
+    deps:
+      - src/models/train.py
+      - src/models/pipelines.py
+      - data/processed/snapshots.csv
+      - configs/selected_features.yaml
+      - configs/feature_registry.yaml
+    params:
+      - model
+    outs:
+      - models/challenger.joblib
+      - models/champion.joblib
+      - models/registry.json
+  evaluate:
+    cmd: python -m src.models.evaluate
+    deps:
+      - src/models/evaluate.py
+      - models/champion.joblib
+      - data/processed/snapshots.csv
+    metrics:
+      - reports/evaluation.json:
+          cache: false

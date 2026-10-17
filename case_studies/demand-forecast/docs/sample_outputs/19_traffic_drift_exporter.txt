@@ -1,0 +1,25 @@
+$ python scripts/traffic_demo.py
+
+=== NORMAL traffic: data/production/batch_normal.csv  (history: data/processed/sales_history.csv) ===
+sent=400 ok=400 errors=0 in 24.1s
+predictions by demand band: ['risk_level="NORMAL"} 294.0', 'risk_level="LOW"} 58.0', 'risk_level="HIGH"} 48.0']
+drift exporter gauges (window = last 400 logged requests):
+  feature             KS D    p-value  flag
+  lag_1              0.075      0.029  0
+  rolling_mean_7     0.104    0.00061  1
+  rolling_mean_30    0.102    0.00083  1
+  price              0.115     0.0001  1
+  discount_pct       0.025       0.97  0
+  forecast_temp      0.488    4.3e-80  1
+
+=== DRIFTED traffic: data/production/batch_drifted.csv  (history: data/processed/sales_history_drifted.csv) ===
+sent=400 ok=400 errors=0 in 23.1s
+predictions by demand band: ['risk_level="NORMAL"} 244.0', 'risk_level="LOW"} 118.0', 'risk_level="HIGH"} 38.0']
+drift exporter gauges (window = last 400 logged requests):
+  feature             KS D    p-value  flag
+  lag_1              0.250    7.7e-21  1
+  rolling_mean_7     0.273    8.6e-25  1
+  rolling_mean_30    0.222    1.7e-16  1
+  price              0.188    6.5e-12  1
+  discount_pct       0.025       0.97  0
+  forecast_temp      0.488    4.3e-80  1

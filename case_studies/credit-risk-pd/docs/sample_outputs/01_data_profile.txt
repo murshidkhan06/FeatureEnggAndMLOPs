@@ -1,0 +1,80 @@
+$ python -m src.data.profile_data
+1) RAW TABLES (what the core-banking systems deliver)
+   customers     rows=   1,500  cols=6  signup_date: 1998-01-03 .. 2023-12-25
+   transactions  rows= 324,370  cols=5  txn_date: 2021-01-01 .. 2025-06-28
+   loan_status   rows=  75,228  cols=7  month: 2021-01-31 .. 2025-06-30
+   defaults      rows=   1,500  cols=2  default_date: 2021-04-30 .. 2025-06-30
+
+   transactions by type:
+                    rows     mean   median        max
+txn_type                                             
+atm                36993   4693.0   3800.0    49000.0
+credit_card_spend  73787  31893.0  21167.0   709781.0
+debit              82611  29483.0  23161.0   483176.0
+loan_payment       60501  11375.0   9193.0    56796.0
+other_credit       11505   9190.0   6592.0  2607871.0
+salary_credit      58973  52570.0  42314.0   287075.0
+
+   customers that default at some point in the 54 months: 514 of 1500 (34.3%)  (high on purpose: a bank portfolio would show ~2-4 % per year; we need enough positives to teach with)
+   defaults per calendar year: {2021: 72, 2022: 97, 2023: 126, 2024: 151, 2025: 68}  <- the rise from 2023-09 is the simulated macro stress
+
+2) SNAPSHOT DATASET (one row per customer x month-end; target = default in the next 6 months)
+   shape (49764, 16)   target = default_next_6m
+             rows  customers  positives    rate      first       last
+split                                                                
+train       11807       1255        451  0.0382 2021-06-30 2022-03-31
+purge        5899       1215        232  0.0393 2022-04-30 2022-08-31
+val          3545       1196        141  0.0398 2022-09-30 2022-11-30
+test         3554       1200        147  0.0414 2022-12-31 2023-02-28
+production  24959       1302       1598  0.0640 2023-03-31 2024-12-31
+
+   IMBALANCE: 3.8% positives in the training period.  'Nobody defaults' would be 96.2% accurate and useless.
+
+3) MISSING VALUES (training rows)
+credit_utilization    16.37
+income_stability       0.03
+util_x_missed         16.37
+   credit_utilization: missing for customers WITHOUT a credit card (16.4%) - MAR: depends on segment (affluent 2 % no card, mass 22 %)
+   income_stability: undefined with < 2 salary credits in 6 months - MNAR: the missingness itself is a risk signal (job loss)
+              size   mean
+inc_missing              
+False        11804  0.038
+True             3  1.000
+   -> only 3 training rows have it missing (rare in calm months), but every one of those customers has stopped receiving a salary; the pipeline
+      still keeps a MISSING INDICATOR (SimpleImputer add_indicator=True) because under stress this becomes more common (see drifted batch).
+
+4) CORRELATION WITH THE TARGET (training rows, Pearson with the 0/1 target; a quick screen, not a verdict)
+loan_payment_ratio         -0.332
+credit_utilization          0.310
+salary_credit_frequency    -0.305
+util_x_missed               0.270
+balance_trend              -0.262
+balance_trend_norm         -0.242
+income_stability            0.228
+log_average_balance        -0.197
+missed_payment_count        0.182
+recent_transaction_count   -0.109
+average_balance            -0.085
+account_age                 0.052
+
+   strongest FEATURE-FEATURE correlations (multicollinearity):
+   loan_payment_ratio        missed_payment_count      |r| = 0.84
+   balance_trend             salary_credit_frequency   |r| = 0.565
+   credit_utilization        income_stability          |r| = 0.315
+   loan_payment_ratio        credit_utilization        |r| = 0.239
+   average_balance           income_stability          |r| = 0.228
+
+5) OUTLIERS (one-off huge credits: property sale / inheritance)
+   median other_credit 6,592;  credits above 8x the median: 18 on 12 customers; largest 2,607,871
+   average_balance quantiles: median 102,785, p99 580,340, p99.9 841,732, max 2,719,069  -> long right tail: log_average_balance tames it, trees are robust
+
+6) SENSITIVE / PROXY ATTRIBUTE: segment (NOT used as a model input; see registry: Rejected)
+                rows  default_rate  income_stability  missing_income_stability
+segment                                                                       
+affluent        3169        0.0486            0.0387                    0.0000
+mass            6744        0.0323            0.0388                    0.0004
+small_business  1894        0.0417            0.1006                    0.0000
+   small_business customers have irregular income by construction: income_stability and salary features act as PROXIES for the segment.
+
+7) LABEL LAG: the label of as_of is known only 6 months later
+   last as_of with a known label (data ends 2025-06-30): 2024-12-31.  The newest 6 monthly snapshots have NO label yet - they are what we score in production.

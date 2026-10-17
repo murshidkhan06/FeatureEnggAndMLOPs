@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credit-scoring
+  labels: {app: credit-scoring}
+spec:
+  replicas: 2                      # two pods: one can restart while the other keeps serving
+  selector:
+    matchLabels: {app: credit-scoring}
+  template:
+    metadata:
+      labels: {app: credit-scoring}
+      annotations:                 # used if you later install Prometheus inside the cluster
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8000"
+    spec:
+      containers:
+        - name: api
+          image: credit-scoring:1.0
+          imagePullPolicy: IfNotPresent   # Minikube: load the local image with `minikube image load`
+          ports: [{containerPort: 8000}]
+          readinessProbe:                 # "is this pod ready to receive traffic?"
+            httpGet: {path: /health, port: 8000}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:                  # "is the process still alive?"
+            httpGet: {path: /health, port: 8000}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits:   {cpu: 500m, memory: 512Mi}

@@ -1,0 +1,283 @@
+$ python -m src.models.retrain --prod data/production/batch_normal.csv
+====================================================================================================
+RETRAINING REVIEW   champion = v1 (hgb)   today = 2025-06-30   batch = data/production/batch_normal.csv
+====================================================================================================
+
+STEPS 1-3  data quality -> drift -> decision ladder
+   data quality : OK
+   KS test (H0: same distribution, alpha=0.05, large = D >= 0.1):
+      average_balance            D=0.043  p=1.2e-01  no_evidence_of_drift
+      balance_trend              D=0.029  p=5.6e-01  no_evidence_of_drift
+      salary_credit_frequency    D=0.006  p=1.0e+00  no_evidence_of_drift
+      loan_payment_ratio         D=0.002  p=1.0e+00  no_evidence_of_drift
+      missed_payment_count       D=0.001  p=1.0e+00  no_evidence_of_drift
+      credit_utilization         D=0.045  p=1.5e-01  no_evidence_of_drift
+      recent_transaction_count   D=0.026  p=6.9e-01  no_evidence_of_drift
+      income_stability           D=0.034  p=3.4e-01  no_evidence_of_drift
+      account_age                D=0.056  p=1.8e-02  significant_but_small
+   DECISION     : MONITOR
+      * Statistically significant but small shift in: ['account_age'] (watch, do not act alone).
+      * Key features with significant AND large drift: 0 ([]); rule needs >= 2.
+      * Labelled evidence: AUC drop +0.031 (threshold 0.05), calibration x1.17, contact rate x0.94 of plan -> no evidence.
+      * Pseudo-label (early delinquency): x1.04 of the normal rate -> no evidence.
+      * Some shifts exist (see table) but none justifies action: keep watching.
+
+STOP: the ladder says MONITOR, not RETRAIN_CANDIDATE.  No challenger is trained.  (Drift alone never triggers retraining.)
+
+$ python -m src.models.retrain --prod data/production/batch_dq_issue.csv
+====================================================================================================
+RETRAINING REVIEW   champion = v1 (hgb)   today = 2025-06-30   batch = data/production/batch_dq_issue.csv
+====================================================================================================
+
+STEPS 1-3  data quality -> drift -> decision ladder
+   data quality : FAILED ['salary_credit_frequency: null rate 40% vs 0% in the reference (+40 pp)']
+   KS test (H0: same distribution, alpha=0.05, large = D >= 0.1):
+      average_balance            D=0.043  p=1.2e-01  no_evidence_of_drift
+      balance_trend              D=0.029  p=5.6e-01  no_evidence_of_drift
+      salary_credit_frequency    D=0.003  p=1.0e+00  no_evidence_of_drift
+      loan_payment_ratio         D=0.002  p=1.0e+00  no_evidence_of_drift
+      missed_payment_count       D=0.001  p=1.0e+00  no_evidence_of_drift
+      credit_utilization         D=0.045  p=1.5e-01  no_evidence_of_drift
+      recent_transaction_count   D=0.026  p=6.9e-01  no_evidence_of_drift
+      income_stability           D=0.034  p=3.4e-01  no_evidence_of_drift
+      account_age                D=0.056  p=1.8e-02  significant_but_small
+   DECISION     : FIX_DATA_PIPELINE
+      * Data quality checks failed: fix the source/pipeline first. Retraining on broken data would make things worse.
+      * Problems: ['salary_credit_frequency: null rate 40% vs 0% in the reference (+40 pp)']
+
+STOP: the ladder says FIX_DATA_PIPELINE, not RETRAIN_CANDIDATE.  No challenger is trained.  (Drift alone never triggers retraining.)
+
+$ python -m src.models.retrain --prod data/production/batch_drifted.csv --today 2024-02-29
+====================================================================================================
+RETRAINING REVIEW   champion = v1 (hgb)   today = 2024-02-29   batch = data/production/batch_drifted.csv
+====================================================================================================
+
+STEPS 1-3  data quality -> drift -> decision ladder
+   data quality : OK
+   KS test (H0: same distribution, alpha=0.05, large = D >= 0.1):
+      average_balance            D=0.030  p=5.1e-01  no_evidence_of_drift
+      balance_trend              D=0.295  p=2.1e-56  drift
+      salary_credit_frequency    D=0.237  p=1.9e-36  drift
+      loan_payment_ratio         D=0.075  p=5.2e-04  significant_but_small
+      missed_payment_count       D=0.068  p=2.3e-03  significant_but_small
+      credit_utilization         D=0.152  p=1.2e-12  drift
+      recent_transaction_count   D=0.049  p=6.3e-02  no_evidence_of_drift
+      income_stability           D=0.427  p=1.8e-119  drift
+      account_age                D=0.084  p=6.9e-05  significant_but_small
+   DECISION     : INVESTIGATE
+      * Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].
+      * Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).
+      * Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.
+      * Labelled evidence: NOT AVAILABLE yet (labels arrive 6 months after as_of).
+      * Pseudo-label (early delinquency): NOT READY yet (needs 3 published months).
+      * Broad drift but no outcome evidence yet: find the cause (macro shock? upstream change?), estimate the business impact, watch the proxy metrics and wait for labels. Do NOT retrain on drift alone.
+
+STOP: the ladder says INVESTIGATE, not RETRAIN_CANDIDATE.  No challenger is trained.  (Drift alone never triggers retraining.)
+
+$ python -m src.models.retrain --prod data/production/batch_drifted.csv --min-improvement 0.05 --approve-as 'Priya Nair (Model Risk)'
+====================================================================================================
+RETRAINING REVIEW   champion = v1 (hgb)   today = 2025-06-30   batch = data/production/batch_drifted.csv
+====================================================================================================
+
+STEPS 1-3  data quality -> drift -> decision ladder
+   data quality : OK
+   KS test (H0: same distribution, alpha=0.05, large = D >= 0.1):
+      average_balance            D=0.030  p=5.1e-01  no_evidence_of_drift
+      balance_trend              D=0.295  p=2.1e-56  drift
+      salary_credit_frequency    D=0.237  p=1.9e-36  drift
+      loan_payment_ratio         D=0.075  p=5.2e-04  significant_but_small
+      missed_payment_count       D=0.068  p=2.3e-03  significant_but_small
+      credit_utilization         D=0.152  p=1.2e-12  drift
+      recent_transaction_count   D=0.049  p=6.3e-02  no_evidence_of_drift
+      income_stability           D=0.427  p=1.8e-119  drift
+      account_age                D=0.084  p=6.9e-05  significant_but_small
+   DECISION     : RETRAIN_CANDIDATE
+      * Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].
+      * Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).
+      * Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.
+      * Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.
+      * Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.
+      * Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves.
+
+STEP 4  train challenger v2   window=rolling
+   training rows 41,067  as_of 2021-06-30 .. 2024-04-30  defaulters 2060 (5.02%)
+   hold-out rows 3,186  as_of 2024-10-31 .. 2024-12-31  (newer than every training row; purge gap = 6 months)
+
+STEP 5  champion vs challenger on the SAME newer hold-out (labels known; neither model trained on these rows)
+   metric               champion v1 challenger v2    difference
+   roc_auc                   0.8005        0.8157       +0.0152
+   pr_auc                    0.3989        0.4838       +0.0849
+   recall_at_10pct           0.5101        0.5455       +0.0354
+   lift_at_10pct             5.0950        5.4480       +0.3530
+   ks                        0.4976        0.5122       +0.0146
+   what the collections team sees (champion uses ITS OWN stored contact threshold, challenger its own):
+      champion v1      top-10% list reaches 101/198 defaulters (51%); score >= its threshold flags 32.1% of customers (plan 10%)
+      challenger v2    top-10% list reaches 108/198 defaulters (55%); score >= its threshold flags 10.3% of customers (plan 10%)
+
+STEP 6  promotion rules (promotion.compare):  ROC-AUC delta +0.0152
+      [FAIL] roc_auc_improvement>=0.05
+      [PASS] guardrail_recall_at_10pct_worsening<=0.03
+   rules say: DO NOT PROMOTE
+
+STEP 7  APPROVAL RECORD  (saved to reports/approval_record.json)
+   proposed by : retraining job (decision ladder = RETRAIN_CANDIDATE)
+   change      : champion v1 -> challenger v2   (window rolling, 41,067 training rows)
+   evidence    : hold-out ROC-AUC 0.8005 -> 0.8157, recall@10% 0.5101 -> 0.5455
+   rules       : FAILED: roc_auc_improvement>=0.05
+   approver    : Priya Nair (Model Risk)
+
+STEP 8  promotion
+   NOT PROMOTED: the rules failed.  The champion keeps serving.  (A human signature cannot override a failed guardrail here.)
+
+$ python -m src.models.retrain --prod data/production/batch_drifted.csv
+====================================================================================================
+RETRAINING REVIEW   champion = v1 (hgb)   today = 2025-06-30   batch = data/production/batch_drifted.csv
+====================================================================================================
+
+STEPS 1-3  data quality -> drift -> decision ladder
+   data quality : OK
+   KS test (H0: same distribution, alpha=0.05, large = D >= 0.1):
+      average_balance            D=0.030  p=5.1e-01  no_evidence_of_drift
+      balance_trend              D=0.295  p=2.1e-56  drift
+      salary_credit_frequency    D=0.237  p=1.9e-36  drift
+      loan_payment_ratio         D=0.075  p=5.2e-04  significant_but_small
+      missed_payment_count       D=0.068  p=2.3e-03  significant_but_small
+      credit_utilization         D=0.152  p=1.2e-12  drift
+      recent_transaction_count   D=0.049  p=6.3e-02  no_evidence_of_drift
+      income_stability           D=0.427  p=1.8e-119  drift
+      account_age                D=0.084  p=6.9e-05  significant_but_small
+   DECISION     : RETRAIN_CANDIDATE
+      * Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].
+      * Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).
+      * Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.
+      * Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.
+      * Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.
+      * Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves.
+
+STEP 4  train challenger v2   window=rolling
+   training rows 41,067  as_of 2021-06-30 .. 2024-04-30  defaulters 2060 (5.02%)
+   hold-out rows 3,186  as_of 2024-10-31 .. 2024-12-31  (newer than every training row; purge gap = 6 months)
+
+STEP 5  champion vs challenger on the SAME newer hold-out (labels known; neither model trained on these rows)
+   metric               champion v1 challenger v2    difference
+   roc_auc                   0.8005        0.8157       +0.0152
+   pr_auc                    0.3989        0.4838       +0.0849
+   recall_at_10pct           0.5101        0.5455       +0.0354
+   lift_at_10pct             5.0950        5.4480       +0.3530
+   ks                        0.4976        0.5122       +0.0146
+   what the collections team sees (champion uses ITS OWN stored contact threshold, challenger its own):
+      champion v1      top-10% list reaches 101/198 defaulters (51%); score >= its threshold flags 32.1% of customers (plan 10%)
+      challenger v2    top-10% list reaches 108/198 defaulters (55%); score >= its threshold flags 10.3% of customers (plan 10%)
+
+STEP 6  promotion rules (promotion.compare):  ROC-AUC delta +0.0152
+      [PASS] roc_auc_improvement>=0.005
+      [PASS] guardrail_recall_at_10pct_worsening<=0.03
+   rules say: PROMOTE
+
+STEP 7  APPROVAL RECORD  (saved to reports/approval_record.json)
+   proposed by : retraining job (decision ladder = RETRAIN_CANDIDATE)
+   change      : champion v1 -> challenger v2   (window rolling, 41,067 training rows)
+   evidence    : hold-out ROC-AUC 0.8005 -> 0.8157, recall@10% 0.5101 -> 0.5455
+   rules       : ALL PASSED
+   approver    : << none yet >>
+
+STEP 8  promotion
+   AWAITING APPROVAL: rules passed, but promotion needs a human sign-off.  Re-run with  --approve-as "Name (role)".
+
+$ python -m src.models.retrain --prod data/production/batch_drifted.csv --approve-as 'Priya Nair (Model Risk)'
+====================================================================================================
+RETRAINING REVIEW   champion = v1 (hgb)   today = 2025-06-30   batch = data/production/batch_drifted.csv
+====================================================================================================
+
+STEPS 1-3  data quality -> drift -> decision ladder
+   data quality : OK
+   KS test (H0: same distribution, alpha=0.05, large = D >= 0.1):
+      average_balance            D=0.030  p=5.1e-01  no_evidence_of_drift
+      balance_trend              D=0.295  p=2.1e-56  drift
+      salary_credit_frequency    D=0.237  p=1.9e-36  drift
+      loan_payment_ratio         D=0.075  p=5.2e-04  significant_but_small
+      missed_payment_count       D=0.068  p=2.3e-03  significant_but_small
+      credit_utilization         D=0.152  p=1.2e-12  drift
+      recent_transaction_count   D=0.049  p=6.3e-02  no_evidence_of_drift
+      income_stability           D=0.427  p=1.8e-119  drift
+      account_age                D=0.084  p=6.9e-05  significant_but_small
+   DECISION     : RETRAIN_CANDIDATE
+      * Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].
+      * Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).
+      * Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.
+      * Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.
+      * Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.
+      * Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves.
+
+STEP 4  train challenger v2   window=rolling
+   training rows 41,067  as_of 2021-06-30 .. 2024-04-30  defaulters 2060 (5.02%)
+   hold-out rows 3,186  as_of 2024-10-31 .. 2024-12-31  (newer than every training row; purge gap = 6 months)
+
+STEP 5  champion vs challenger on the SAME newer hold-out (labels known; neither model trained on these rows)
+   metric               champion v1 challenger v2    difference
+   roc_auc                   0.8005        0.8157       +0.0152
+   pr_auc                    0.3989        0.4838       +0.0849
+   recall_at_10pct           0.5101        0.5455       +0.0354
+   lift_at_10pct             5.0950        5.4480       +0.3530
+   ks                        0.4976        0.5122       +0.0146
+   what the collections team sees (champion uses ITS OWN stored contact threshold, challenger its own):
+      champion v1      top-10% list reaches 101/198 defaulters (51%); score >= its threshold flags 32.1% of customers (plan 10%)
+      challenger v2    top-10% list reaches 108/198 defaulters (55%); score >= its threshold flags 10.3% of customers (plan 10%)
+
+STEP 6  promotion rules (promotion.compare):  ROC-AUC delta +0.0152
+      [PASS] roc_auc_improvement>=0.005
+      [PASS] guardrail_recall_at_10pct_worsening<=0.03
+   rules say: PROMOTE
+
+STEP 7  APPROVAL RECORD  (saved to reports/approval_record.json)
+   proposed by : retraining job (decision ladder = RETRAIN_CANDIDATE)
+   change      : champion v1 -> challenger v2   (window rolling, 41,067 training rows)
+   evidence    : hold-out ROC-AUC 0.8005 -> 0.8157, recall@10% 0.5101 -> 0.5455
+   rules       : ALL PASSED
+   approver    : Priya Nair (Model Risk)
+
+STEP 8  promotion
+   PROMOTED: v2 is now the champion (approved by Priya Nair (Model Risk)).  The previous champion is archived: models/model_v1.joblib
+   models/registry.json:
+      v1   Archived   approved_by='bootstrap'                  roc_auc=0.9046
+      v2   Production approved_by='Priya Nair (Model Risk)'    roc_auc=0.8157
+   (a registry roc_auc is measured on THAT model's own evaluation period: v1 = calm test months, v2 = the stress hold-out.  Compare models only on the SAME hold-out, as in step 5.)
+   NEXT: the new model's drift reference = reference_v2.csv (its training data).  Copy it over data/processed/reference.csv when you deploy v2.
+   To undo:  python -m src.models.retrain --rollback
+
+$ python -m src.models.retrain --rollback
+ROLLBACK: champion was v2; restored previous version -> v1
+[
+  {
+    "version": "v1",
+    "stage": "Production",
+    "metrics": {
+      "roc_auc": 0.9046,
+      "pr_auc": 0.6183,
+      "recall_at_10pct": 0.6939,
+      "lift_at_10pct": 6.927,
+      "ks": 0.6577
+    },
+    "approved_by": "bootstrap",
+    "reason": "first model of the project",
+    "promoted_at": "2026-10-07T13:27:22+00:00"
+  },
+  {
+    "version": "v2",
+    "stage": "Archived",
+    "metrics": {
+      "roc_auc": 0.8157,
+      "pr_auc": 0.4838,
+      "recall_at_10pct": 0.5455,
+      "lift_at_10pct": 5.448,
+      "ks": 0.5122,
+      "base_rate": 0.0621,
+      "n": 3186,
+      "mean_score": 0.0918
+    },
+    "previous_version": "v1",
+    "approved_by": "Priya Nair (Model Risk)",
+    "reason": "hold-out ROC-AUC 0.8005 -> 0.8157; window=rolling; decision ladder RETRAIN_CANDIDATE",
+    "promoted_at": "2026-10-07T13:40:54+00:00"
+  }
+]

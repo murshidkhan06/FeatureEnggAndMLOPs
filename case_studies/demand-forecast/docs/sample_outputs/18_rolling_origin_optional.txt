@@ -1,0 +1,11 @@
+$ python -m src.models.rolling_origin
+ROLLING-ORIGIN EVALUATION (OPTIONAL) - WAPE per fold, 5 folds x 60 test days, light boosting model
+ fold   train_to  test_from    test_to  moving_average_7  ridge_log    hgb
+    1 2024-03-06 2024-03-07 2024-05-05            0.1883     0.1332 0.1236
+    2 2024-05-05 2024-05-06 2024-07-04            0.1901     0.1294 0.1240
+    3 2024-07-04 2024-07-05 2024-09-02            0.1769     0.1278 0.1248
+    4 2024-09-02 2024-09-03 2024-11-01            0.1935     0.1403 0.1363
+    5 2024-11-01 2024-11-02 2024-12-31            0.1863     0.1349 0.1303
+
+mean WAPE: moving_average_7 0.1870 | ridge_log 0.1331 | hgb 0.1278
+spread of the hgb WAPE across folds: 0.124 .. 0.136  -> one split would have hidden this variation.

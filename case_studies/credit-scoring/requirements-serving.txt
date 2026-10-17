@@ -1,0 +1,10 @@
+# Lean set used inside the Docker image (no MLflow / SHAP / DVC / plotting needed to SERVE)
+pandas>=2.0
+numpy>=1.26
+scikit-learn>=1.4,<2
+scipy>=1.11
+joblib>=1.3
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.6
+prometheus-client>=0.20

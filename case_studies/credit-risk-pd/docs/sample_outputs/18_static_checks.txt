@@ -1,0 +1,36 @@
+$ python scripts/static_checks.py
+PASS  17 yaml/json/ipynb files parse
+PASS  Dockerfile COPY source exists: requirements-serving.txt
+PASS  Dockerfile COPY source exists: src/
+PASS  Dockerfile COPY source exists: models/champion.joblib
+PASS  Dockerfile COPY source exists: data/processed/reference.csv
+PASS  Dockerfile COPY source exists: configs/
+PASS  Dockerfile header names the image
+PASS  src.api.app imports without dev-only packages
+PASS  src.monitoring.drift_exporter imports without dev-only packages
+PASS  requirements-serving.txt lists fastapi
+PASS  requirements-serving.txt lists uvicorn
+PASS  requirements-serving.txt lists pydantic
+PASS  requirements-serving.txt lists prometheus-client
+PASS  requirements-serving.txt lists pandas
+PASS  requirements-serving.txt lists numpy
+PASS  requirements-serving.txt lists scikit-learn
+PASS  requirements-serving.txt lists scipy
+PASS  requirements-serving.txt lists joblib
+PASS  Service selector {'app': 'credit-risk-pd'} matches pod labels {'app': 'credit-risk-pd'}
+PASS  Deployment selector matches pod labels
+PASS  Deployment image is credit-risk-pd:1.0
+PASS  probes use /health
+PASS  Service targetPort == containerPort
+PASS  k8s object names use the project slug
+PASS  Prometheus targets match compose service names
+PASS  compose volume source exists: ./logs
+PASS  compose volume source exists: ./logs
+PASS  compose volume source exists: ./monitoring/prometheus.yml
+PASS  compose volume source exists: ./monitoring/grafana/provisioning
+PASS  compose volume source exists: ./monitoring/grafana/dashboards
+PASS  CI workflow exists and uses the project name
+PASS  MLproject name + entry points
+PASS  no PROJECT_NAME / PROJECT_IMAGE placeholders left
+
+STATIC CHECKS: ALL PASSED

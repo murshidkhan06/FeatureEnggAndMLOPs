@@ -1,0 +1,56 @@
+# Single source of truth for every tunable number in the pipeline (DVC tracks these as "params").
+data:
+  seed: 2024
+  n_customers: 1500
+  n_months: 54                  # month-end 0 = 2021-01-31 ... month-end 53 = 2025-06-30
+  first_month_end: "2021-01-31"
+  stress_onset_month: 31        # macro stress(t) = clip((t - 31) / 3, 0, 1): 0.33 in 2023-09, 0.67 in 2023-10, 1.0 from 2023-11
+  base_monthly_hazard: 0.0033   # default hazard of an average customer in a normal month
+
+splits:                         # time-based split on as_of_date (NEVER random for this problem)
+  first_as_of: "2021-06-30"     # need 6 full months of history before the first snapshot
+  train_end: "2022-03-31"       # train: 2021-06-30 .. 2022-03-31
+  val_start: "2022-09-30"       # purge gap = label horizon: labels of train rows are known only 6 months later
+  val_end: "2022-11-30"
+  test_start: "2022-12-31"
+  test_end: "2023-02-28"
+  production_start: "2023-03-31"
+  last_as_of: "2024-12-31"      # last snapshot whose 6-month label is fully inside the data (data ends 2025-06-30)
+
+reference_sample_rows: 2000
+
+production:
+  normal_as_of: "2023-03-31"    # calm month, before the macro stress (starts 2023-09)
+  drifted_as_of: "2024-01-31"   # stress month
+
+model:
+  top_pct: 0.10                 # collections capacity: contact the riskiest 10% every month
+  logistic: {C: 0.5, max_iter: 2000}
+  hgb: {max_iter: 100, learning_rate: 0.05, max_depth: 3, min_samples_leaf: 100, l2_regularization: 5.0, random_state: 42}
+
+selection:
+  min_variance: 1.0e-6
+  max_abs_corr: 0.80            # filter: of two features correlated above this, drop the one with the lower mutual information
+  n_rfe: 8                      # wrapper: keep this many features
+  l1_C: 0.05                    # embedded: L1-penalised logistic regression strength
+  min_votes: 2                  # keep a feature if at least this many of the 3 families keep it
+  oot_veto_below: 0.003         # out-of-time veto: drop a feature if shuffling it IMPROVES validation ROC-AUC by more than this
+
+retrain:
+  today: "2025-06-30"           # the "current date" of the retraining story (labels exist for as_of <= 2024-12-31)
+  train_end: "2024-04-30"       # challenger sees snapshots up to here (their labels are known by 2024-10-31)
+  holdout_start: "2024-10-31"   # NEWER hold-out; gap of 6 months to train_end = purge
+  holdout_end: "2024-12-31"
+  stress_window_start: "2023-09-30"
+  min_improvement: 0.005        # challenger must beat champion ROC-AUC by at least this
+  guardrails: {recall_at_10pct: 0.03}
+  quarterly: true
+
+drift:
+  alpha: 0.05
+  min_effect: 0.10              # KS statistic D below this is "significant but small"
+  key_features: [salary_credit_frequency, credit_utilization, income_stability, missed_payment_count, balance_trend]
+  min_key_features: 2           # drift in at least 2 key features ...
+  perf_drop_threshold: 0.05     # ... AND (labelled AUC drop >= this, or calibration ratio >= 1.5, or early-delinquency ratio >= 1.5). One month has only ~50 defaulters: AUC noise is about +-0.03, so 0.05 = a real drop
+  calibration_ratio: 1.5
+  max_null_rate_increase: 0.05

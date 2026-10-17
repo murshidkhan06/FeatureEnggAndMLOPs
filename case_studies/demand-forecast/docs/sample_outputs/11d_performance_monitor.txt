@@ -1,0 +1,31 @@
+$ python -m src.monitoring.performance --prod data/production/batch_normal.csv
+champion v1 (hgb); validation WAPE = 0.1300; alarm level = 0.1625 (+25%)
+
+ week  from_date  actual_units  forecast_units   wape  bias_pct  vs_validation  breach
+    1 2025-01-01         19992           19754 0.1260   -0.0119        -0.0309   False
+    2 2025-01-08         19193           17857 0.1622   -0.0696         0.2479   False
+    3 2025-01-15         20626           19791 0.1230   -0.0405        -0.0542   False
+    4 2025-01-22         21281           20758 0.1201   -0.0245        -0.0759   False
+    5 2025-01-29         20526           19972 0.1212   -0.0269        -0.0679   False
+    6 2025-02-05         19503           18847 0.1340   -0.0336         0.0309   False
+    7 2025-02-12         21229           20120 0.1170   -0.0522        -0.0999   False
+    8 2025-02-19         21814           20002 0.1543   -0.0830         0.1867   False
+
+consecutive breaching weeks at the end: 0 (rule needs 2)
+performance evidence: NO; average bias of the last 2 weeks = -6.8%
+
+$ python -m src.monitoring.performance --prod data/production/batch_drifted.csv
+champion v1 (hgb); validation WAPE = 0.1300; alarm level = 0.1625 (+25%)
+
+ week  from_date  actual_units  forecast_units   wape  bias_pct  vs_validation  breach
+    1 2025-01-01         23960           20745 0.1742   -0.1342         0.3404    True
+    2 2025-01-08         22653           20309 0.1586   -0.1034         0.2201   False
+    3 2025-01-15         25442           21309 0.1981   -0.1624         0.5238    True
+    4 2025-01-22         26263           23740 0.1569   -0.0960         0.2066   False
+    5 2025-01-29         29022           24784 0.1912   -0.1460         0.4708    True
+    6 2025-02-05         26988           22975 0.2151   -0.1487         0.6550    True
+    7 2025-02-12         31003           24743 0.2315   -0.2019         0.7809    True
+    8 2025-02-19         30320           24475 0.2212   -0.1928         0.7016    True
+
+consecutive breaching weeks at the end: 4 (rule needs 2)
+performance evidence: YES; average bias of the last 2 weeks = -19.7%

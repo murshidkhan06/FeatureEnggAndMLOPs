@@ -1,0 +1,19 @@
+# Training / development (everything students need on their laptop)
+pandas>=2.0
+numpy>=1.26
+scikit-learn>=1.4
+scipy>=1.11
+matplotlib>=3.8
+seaborn>=0.13
+joblib>=1.3
+pyyaml>=6.0
+mlflow>=3.0
+dvc>=3.50
+shap>=0.45
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.6
+prometheus-client>=0.20
+requests>=2.31
+httpx>=0.27
+pytest>=8.0

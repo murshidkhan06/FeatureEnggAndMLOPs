@@ -1,0 +1,64 @@
+# The whole pipeline as a DAG:  make_data -> features -> select -> train -> evaluate
+# Run:  dvc init --no-scm   (or `dvc init` in a git repo)  then  dvc repro        (dvc dag shows the graph)
+stages:
+  make_data:
+    cmd: python -m src.data.make_dataset
+    deps:
+      - src/data/make_dataset.py
+      - src/features/build_features.py
+      - src/features/calendar.py
+      - src/features/definitions.py
+    outs:
+      - data/raw/sales_daily.csv
+      - data/production
+      - data/processed/reference.csv
+      - data/processed/sales_history.csv
+      - data/processed/sales_history_drifted.csv
+  features:
+    cmd: python -m src.features.build_features
+    deps:
+      - src/features/build_features.py
+      - data/raw/sales_daily.csv
+    outs:
+      - data/processed/features.csv
+  select:
+    cmd: python -m src.features.select_features
+    deps:
+      - src/features/select_features.py
+      - data/processed/features.csv
+      - data/raw/sales_daily.csv
+      - configs/feature_registry.yaml
+    params:
+      - configs/params.yaml:
+          - split
+    outs:
+      - configs/selected_features.yaml:
+          cache: false
+  train:
+    cmd: python -m src.models.train --bootstrap-champion
+    deps:
+      - src/models/train.py
+      - src/models/pipelines.py
+      - data/raw/sales_daily.csv
+      - configs/selected_features.yaml
+      - configs/feature_registry.yaml
+    params:
+      - configs/params.yaml:
+          - split
+          - ridge
+          - hgb
+          - champion_rule
+          - interval
+    outs:
+      - models/challenger.joblib
+      - models/champion.joblib
+      - models/registry.json
+  evaluate:
+    cmd: python -m src.models.evaluate
+    deps:
+      - src/models/evaluate.py
+      - models/champion.joblib
+      - data/raw/sales_daily.csv
+    metrics:
+      - reports/metrics.json:
+          cache: false

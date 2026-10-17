@@ -1,0 +1,33 @@
+# Local observability stack:  docker compose up --build
+#   API         http://localhost:8000/docs
+#   Prometheus  http://localhost:9090
+#   Grafana     http://localhost:3000   (admin / admin)  -> dashboard "ML Service Overview"
+services:
+  api:
+    build: .
+    ports: ["8000:8000"]
+    volumes:
+      - ./logs:/app/logs            # prediction log is shared with the drift exporter
+  drift-exporter:
+    build: .
+    command: ["python", "-m", "src.monitoring.drift_exporter", "--port", "9100", "--window", "500", "--interval", "15"]
+    ports: ["9100:9100"]
+    volumes:
+      - ./logs:/app/logs
+    depends_on: [api]
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+    ports: ["9090:9090"]
+    depends_on: [api]
+  grafana:
+    image: grafana/grafana:latest
+    ports: ["3000:3000"]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus]

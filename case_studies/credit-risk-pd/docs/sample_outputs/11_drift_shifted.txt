@@ -1,0 +1,152 @@
+$ python -m src.monitoring.run_drift_check --prod data/production/batch_drifted.csv --today 2024-02-29
+BATCH  data/production/batch_drifted.csv   as_of=2024-01-31   customers=1,140   TODAY=2024-02-29
+
+[1] DATA QUALITY: OK
+                 feature  ref_null  prod_null  increase_pp  out_of_range
+         average_balance     0.000     0.0000          0.0             0
+           balance_trend     0.000     0.0000          0.0             0
+ salary_credit_frequency     0.000     0.0000          0.0             0
+      loan_payment_ratio     0.000     0.0000          0.0             0
+    missed_payment_count     0.000     0.0000          0.0             0
+      credit_utilization     0.169     0.1684         -0.1             0
+recent_transaction_count     0.000     0.0000          0.0             0
+        income_stability     0.001     0.0026          0.2             0
+             account_age     0.000     0.0000          0.0             0
+
+[2] DRIFT (two-sample KS test).  H0: reference and production come from the SAME distribution.  alpha=0.05, 'large' means D >= 0.1
+                 feature   ref_mean  prod_mean  ks_statistic   p_value                status
+         average_balance 134400.847 130187.743        0.0303  5.06e-01  no_evidence_of_drift
+           balance_trend   -257.296  -3749.120        0.2954  2.09e-56                 drift
+ salary_credit_frequency      0.965      0.908        0.2375  1.95e-36                 drift
+      loan_payment_ratio      0.978      0.962        0.0751  5.17e-04 significant_but_small
+    missed_payment_count      0.119      0.191        0.0681  2.25e-03 significant_but_small
+      credit_utilization      0.225      0.256        0.1520  1.22e-12                 drift
+recent_transaction_count      5.003      4.846        0.0485  6.29e-02  no_evidence_of_drift
+        income_stability      0.049      0.073        0.4275 1.78e-119                 drift
+             account_age    144.853    147.520        0.0838  6.94e-05 significant_but_small
+
+ - average_balance: D=0.030, p=0.51 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - balance_trend: D=0.295, p=2.1e-56 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - salary_credit_frequency: D=0.237, p=1.9e-36 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - loan_payment_ratio: D=0.075, p=0.00052 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - missed_payment_count: D=0.068, p=0.0023 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - credit_utilization: D=0.152, p=1.2e-12 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - recent_transaction_count: D=0.049, p=0.063 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - income_stability: D=0.427, p=1.8e-119 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - account_age: D=0.084, p=6.9e-05 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+
+[3] SCORE SHIFT (champion v1): mean PD 0.080 vs 0.039 reference (x2.06); 27.6% of customers above the contact threshold vs 10% planned (x2.76)
+
+[4] PSEUDO-LABEL (early delinquency in the 3 months after as_of): NOT READY - needs loan_status published through 2024-05-05
+
+[5] LABELLED PERFORMANCE: NOT AVAILABLE - the 6-month label of 2024-01-31 is known only on 2024-07-31 (today is 2024-02-29). Performance is UNKNOWN; do not pretend otherwise.
+
+[6] DECISION: INVESTIGATE
+   * Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].
+   * Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).
+   * Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.
+   * Labelled evidence: NOT AVAILABLE yet (labels arrive 6 months after as_of).
+   * Pseudo-label (early delinquency): NOT READY yet (needs 3 published months).
+   * Broad drift but no outcome evidence yet: find the cause (macro shock? upstream change?), estimate the business impact, watch the proxy metrics and wait for labels. Do NOT retrain on drift alone.
+
+$ python -m src.monitoring.run_drift_check --prod data/production/batch_drifted.csv --today 2024-05-15
+BATCH  data/production/batch_drifted.csv   as_of=2024-01-31   customers=1,140   TODAY=2024-05-15
+
+[1] DATA QUALITY: OK
+                 feature  ref_null  prod_null  increase_pp  out_of_range
+         average_balance     0.000     0.0000          0.0             0
+           balance_trend     0.000     0.0000          0.0             0
+ salary_credit_frequency     0.000     0.0000          0.0             0
+      loan_payment_ratio     0.000     0.0000          0.0             0
+    missed_payment_count     0.000     0.0000          0.0             0
+      credit_utilization     0.169     0.1684         -0.1             0
+recent_transaction_count     0.000     0.0000          0.0             0
+        income_stability     0.001     0.0026          0.2             0
+             account_age     0.000     0.0000          0.0             0
+
+[2] DRIFT (two-sample KS test).  H0: reference and production come from the SAME distribution.  alpha=0.05, 'large' means D >= 0.1
+                 feature   ref_mean  prod_mean  ks_statistic   p_value                status
+         average_balance 134400.847 130187.743        0.0303  5.06e-01  no_evidence_of_drift
+           balance_trend   -257.296  -3749.120        0.2954  2.09e-56                 drift
+ salary_credit_frequency      0.965      0.908        0.2375  1.95e-36                 drift
+      loan_payment_ratio      0.978      0.962        0.0751  5.17e-04 significant_but_small
+    missed_payment_count      0.119      0.191        0.0681  2.25e-03 significant_but_small
+      credit_utilization      0.225      0.256        0.1520  1.22e-12                 drift
+recent_transaction_count      5.003      4.846        0.0485  6.29e-02  no_evidence_of_drift
+        income_stability      0.049      0.073        0.4275 1.78e-119                 drift
+             account_age    144.853    147.520        0.0838  6.94e-05 significant_but_small
+
+ - average_balance: D=0.030, p=0.51 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - balance_trend: D=0.295, p=2.1e-56 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - salary_credit_frequency: D=0.237, p=1.9e-36 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - loan_payment_ratio: D=0.075, p=0.00052 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - missed_payment_count: D=0.068, p=0.0023 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - credit_utilization: D=0.152, p=1.2e-12 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - recent_transaction_count: D=0.049, p=0.063 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - income_stability: D=0.427, p=1.8e-119 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - account_age: D=0.084, p=6.9e-05 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+
+[3] SCORE SHIFT (champion v1): mean PD 0.080 vs 0.039 reference (x2.06); 27.6% of customers above the contact threshold vs 10% planned (x2.76)
+
+[4] PSEUDO-LABEL: 16.8% of customers missed >= 1 instalment in the 3 months after as_of (normal 8.1%) -> x2.08
+
+[5] LABELLED PERFORMANCE: NOT AVAILABLE - the 6-month label of 2024-01-31 is known only on 2024-07-31 (today is 2024-05-15). Performance is UNKNOWN; do not pretend otherwise.
+
+[6] DECISION: RETRAIN_CANDIDATE
+   * Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].
+   * Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).
+   * Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.
+   * Labelled evidence: NOT AVAILABLE yet (labels arrive 6 months after as_of).
+   * Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.
+   * Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves.
+
+$ python -m src.monitoring.run_drift_check --prod data/production/batch_drifted.csv --today 2025-06-30
+BATCH  data/production/batch_drifted.csv   as_of=2024-01-31   customers=1,140   TODAY=2025-06-30
+
+[1] DATA QUALITY: OK
+                 feature  ref_null  prod_null  increase_pp  out_of_range
+         average_balance     0.000     0.0000          0.0             0
+           balance_trend     0.000     0.0000          0.0             0
+ salary_credit_frequency     0.000     0.0000          0.0             0
+      loan_payment_ratio     0.000     0.0000          0.0             0
+    missed_payment_count     0.000     0.0000          0.0             0
+      credit_utilization     0.169     0.1684         -0.1             0
+recent_transaction_count     0.000     0.0000          0.0             0
+        income_stability     0.001     0.0026          0.2             0
+             account_age     0.000     0.0000          0.0             0
+
+[2] DRIFT (two-sample KS test).  H0: reference and production come from the SAME distribution.  alpha=0.05, 'large' means D >= 0.1
+                 feature   ref_mean  prod_mean  ks_statistic   p_value                status
+         average_balance 134400.847 130187.743        0.0303  5.06e-01  no_evidence_of_drift
+           balance_trend   -257.296  -3749.120        0.2954  2.09e-56                 drift
+ salary_credit_frequency      0.965      0.908        0.2375  1.95e-36                 drift
+      loan_payment_ratio      0.978      0.962        0.0751  5.17e-04 significant_but_small
+    missed_payment_count      0.119      0.191        0.0681  2.25e-03 significant_but_small
+      credit_utilization      0.225      0.256        0.1520  1.22e-12                 drift
+recent_transaction_count      5.003      4.846        0.0485  6.29e-02  no_evidence_of_drift
+        income_stability      0.049      0.073        0.4275 1.78e-119                 drift
+             account_age    144.853    147.520        0.0838  6.94e-05 significant_but_small
+
+ - average_balance: D=0.030, p=0.51 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - balance_trend: D=0.295, p=2.1e-56 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - salary_credit_frequency: D=0.237, p=1.9e-36 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - loan_payment_ratio: D=0.075, p=0.00052 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - missed_payment_count: D=0.068, p=0.0023 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - credit_utilization: D=0.152, p=1.2e-12 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - recent_transaction_count: D=0.049, p=0.063 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - income_stability: D=0.427, p=1.8e-119 (alpha=0.05) -> reject H0: distributions differ AND the gap is large enough to matter.
+ - account_age: D=0.084, p=6.9e-05 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+
+[3] SCORE SHIFT (champion v1): mean PD 0.080 vs 0.039 reference (x2.06); 27.6% of customers above the contact threshold vs 10% planned (x2.76)
+
+[4] PSEUDO-LABEL: 16.8% of customers missed >= 1 instalment in the 3 months after as_of (normal 8.1%) -> x2.08
+
+[5] LABELLED PERFORMANCE (labels known since 2024-07-31): ROC-AUC 0.8245 (reference 0.9046, drop +0.080); recall@10% 0.5125 (reference 0.6939); mean PD 0.0799 vs observed default rate 0.0702 (x1.139)
+
+[6] DECISION: RETRAIN_CANDIDATE
+   * Drift (significant AND large) in: ['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability'].
+   * Statistically significant but small shift in: ['loan_payment_ratio', 'missed_payment_count', 'account_age'] (watch, do not act alone).
+   * Key features with significant AND large drift: 4 (['balance_trend', 'salary_credit_frequency', 'credit_utilization', 'income_stability']); rule needs >= 2.
+   * Labelled evidence: AUC drop +0.080 (threshold 0.05), calibration x1.14, contact rate x2.76 of plan -> EVIDENCE.
+   * Pseudo-label (early delinquency): x2.08 of the normal rate -> EVIDENCE.
+   * Rule met: broad key-feature drift AND outcome evidence. Train a challenger; promote only if it beats the champion and a human approves.

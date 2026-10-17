@@ -1,0 +1,46 @@
+# Every tunable number of the project in one place (DVC tracks the sections used by each stage).
+data:
+  n_applicants: 12000
+  seed: 42
+
+split:                    # TIME-BASED split (never a random split for lending data)
+  train_frac: 0.70        # oldest 70% of applications
+  valid_frac: 0.15        # next 15%  -> model choice, calibration
+  test_frac: 0.15         # newest 15% -> final, untouched report card
+
+features:
+  assumed_annual_rate_pct: 14.0     # ASSUMPTION used by emi_estimate (the bank's typical personal-loan rate)
+
+selection:
+  corr_threshold: 0.80              # |Spearman r| above this -> keep only one of the pair
+  min_scaled_variance: 0.002        # near-constant features are removed
+  alpha: 0.05                       # significance level for ANOVA / chi-square
+  min_mutual_info: 0.002
+  rfe_keep_fraction: 0.5
+  lasso_C: 0.05
+  enet_C: 0.10
+  enet_l1_ratio: 0.5
+  min_votes: 2                      # a feature needs votes from >= 2 of 3 families (filter, wrapper, embedded)
+
+model:
+  C: 0.5                            # L2 strength of the scorecard (smaller = stronger shrinkage)
+  gb_margin: 0.02                   # GB must beat LR by this much AUC (validation) to be worth the loss of explainability
+  decline_cutoff: 0.22              # PD >= this -> HIGH band -> DECLINE
+  refer_cutoff: 0.10                # PD >= this -> MEDIUM band -> REFER_TO_UNDERWRITER
+
+business:                           # stated cost assumptions for the money view of the model
+  loss_given_default: 0.60          # we lose 60% of the loan amount when a borrower defaults
+  margin_on_good_loan: 0.08         # we earn 8% of the loan amount on a loan that is repaid
+  approval_rate: 0.80               # "fixed approval rate" used for recall / KS style comparisons
+
+fairness:
+  min_adverse_impact_ratio: 0.80    # four-fifths rule
+  gate_attribute: gender
+
+retrain:
+  perf_drop_threshold: 0.03         # AUC fall on labelled production data that triggers a challenger
+  min_improvement: 0.005            # challenger must beat champion by this on the SAME hold-out
+  guardrail_ks_drop: 0.03
+  guardrail_recall_drop: 0.03
+  recency_weight: 3.0               # fresh production rows count 3x in the refreshed training set
+  holdout_frac: 0.40                # newest 40% of the labelled production batch = hold-out

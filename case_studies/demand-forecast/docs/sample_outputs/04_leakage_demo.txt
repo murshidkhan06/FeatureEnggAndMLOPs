@@ -1,0 +1,34 @@
+$ python -m src.features.leakage_demo
+LESSON 1 - RANDOM split vs CHRONOLOGICAL split  (light HistGradientBoosting, mean of 3 seeds, lower = better)
+  set-up                                                        WAPE  MAE (units)
+  WRONG  shuffled 80/20 over all rows (other test rows!)      0.1291        14.81
+  WRONG  same test days, future neighbours also in train      0.1234        14.52
+  RIGHT  chronological: train on the past only                0.1260        14.82
+  Controlled comparison on IDENTICAL rows (rows 2 vs 3): the random split understates the error by 2.0% (WAPE) / 2.0% (MAE).
+  (Row 1 scores different rows, so it cannot be compared fairly with row 3 - one more reason to control the experiment.)
+  Direct proof of the leak: after a random 80/20 split, 99% of the TEST labels already appear as lag_1/lag_7/lag_14
+  inside TRAINING rows (the answer is printed in the textbook).  After a chronological split this share is 0%.
+  HONEST NOTE: the optimism is SMALL here because one-day-ahead lag features already carry most of the signal and the
+  boosting model cannot memorise single days.  Do not conclude 'random split is fine': (1) a few percent of error is exactly the
+  size of a real model improvement, (2) lessons 2-4 below show leaks that are LARGE, (3) the principle - never train on the future -
+  does not depend on the size of the gap.
+
+LESSON 2 - centred rolling window leaks the answer
+  correct features (shift(1) before rolling)                           test WAPE = 0.1297
+  + rolling_mean_7_noshift  (window t-6..t, includes TODAY)            test WAPE = 0.0872
+  + rolling_mean_7_centered (window t-3..t+3, includes the FUTURE)     test WAPE = 0.1112
+  Why: for day t the centred window = mean(sales t-3 .. t+3) contains sales(t) itself - the target.
+  In production, day t+1..t+3 do not exist yet, so the feature cannot be computed: the model is unusable.
+
+LESSON 3 - scaler fitted on ALL data (including the future) vs on TRAIN only
+  test-period max of scaled rolling_mean_7:  scaler fit on ALL data -> 1.000   |  scaler fit on TRAIN only -> 1.047
+  train-only scaling shows values above 1.0 (1.05): the test level exceeds anything seen in training - an honest warning.
+  The leaked scaler squeezes the future into [0, 1] and HIDES that shift.  Mean used for centering would also
+  differ: all data 115.2 vs train only 114.2 units (future level leaking into preprocessing).
+
+LESSON 4 - ACTUAL temperature instead of the FORECAST
+  with forecast_temp (available at prediction time)      test WAPE = 0.1297
+  with actual temperature (known only AFTER the day)      test WAPE = 0.1279   <- slightly better, but unusable
+  The gain is small (weather is a weak driver here) but the principle matters: the registry marks `temperature` as Rejected.
+
+RULE OF THUMB: every feature must have an entry 'available at prediction time = yes' in configs/feature_registry.yaml.

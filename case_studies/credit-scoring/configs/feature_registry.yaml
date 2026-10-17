@@ -1,0 +1,429 @@
+# FEATURE REGISTRY (feature metadata) - the governance record of EVERY column.
+# status: Approved -> may be used by a model;  Rejected -> training / review gate must refuse it.
+# decision_category: ELIGIBLE | LEAKAGE | UNAVAILABLE_AT_PREDICTION | SENSITIVE_POLICY | REQUIRES_GOVERNANCE | IDENTIFIER
+# 'Approved' means ALLOWED, not SELECTED: the selection step (configs/selected_features.yaml) picks the subset.
+registry_version: '1.0'
+features:
+- name: annual_income
+  definition: Annual income declared by the applicant (INR). Optional on the form; ~12% missing (MNAR-ish).
+  source: application form
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: as declared (no transformation)
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: Approved. Eligible; v1 model uses its log version `log_income` instead.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: monthly_income
+  definition: Average monthly credit into the salary/business account (INR), always present but noisy.
+  source: application form + bank statement parser
+  data_type: numeric
+  owner: Data Engineering
+  calculation_logic: average of last 3 months credits
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: Approved. Eligible; strongly correlated with annual_income (one of the pair is kept).
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: employment_years
+  definition: Years in the current job / business.
+  source: application form
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: loan_amount
+  definition: Requested loan amount (INR).
+  source: application form
+  data_type: numeric
+  owner: Product Team
+  calculation_logic: as requested
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: loan_term_months
+  definition: Requested tenure in months (12/24/36/48/60).
+  source: application form
+  data_type: numeric
+  owner: Product Team
+  calculation_logic: as requested
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: credit_history_years
+  definition: Years since the applicant's first credit account.
+  source: credit bureau
+  data_type: numeric
+  owner: Bureau Data Team
+  calculation_logic: today - date of oldest account
+  prediction_time_availability: YES - bureau enquiry made during the application (seconds)
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: bureau_score
+  definition: Credit bureau score (300-900). Missing for thin-file applicants.
+  source: credit bureau
+  data_type: numeric
+  owner: Bureau Data Team
+  calculation_logic: as returned by the bureau
+  prediction_time_availability: YES - bureau enquiry made during the application (seconds)
+  status: Approved
+  reason: Approved. Missing is meaningful (thin file) -> bureau_score_missing flag.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: existing_loans
+  definition: Number of open loans at other lenders.
+  source: credit bureau
+  data_type: numeric
+  owner: Bureau Data Team
+  calculation_logic: count of open tradelines of type loan
+  prediction_time_availability: YES - bureau enquiry made during the application (seconds)
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: monthly_debt
+  definition: Total monthly EMI payments on existing loans (INR).
+  source: credit bureau
+  data_type: numeric
+  owner: Bureau Data Team
+  calculation_logic: sum of EMIs of open loans
+  prediction_time_availability: YES - bureau enquiry made during the application (seconds)
+  status: Approved
+  reason: Approved. Correlated with debt_to_income_ratio.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: debt_to_income_ratio
+  definition: Monthly debt payments / monthly income.
+  source: derived
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: monthly_debt / monthly_income
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: number_of_dependents
+  definition: People financially dependent on the applicant (0-5).
+  source: application form
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: employment_type
+  definition: salaried / self_employed / gig / business.
+  source: application form
+  data_type: nominal
+  owner: Credit Risk Analytics
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: education
+  definition: school / diploma / graduate / postgraduate (ordered).
+  source: application form
+  data_type: ordinal
+  owner: Credit Risk Analytics
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Approved
+  reason: 'Approved. Reviewed by Compliance: allowed because it is a legitimate predictor of income stability and is not a protected attribute in this policy.'
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: location
+  definition: City of residence (15 values).
+  source: application form
+  data_type: nominal
+  owner: Credit Risk Analytics
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Rejected
+  reason: 'REQUIRES GOVERNANCE -> default policy decision: EXCLUDED. Fine-grained location can act as a proxy for gender (see reports/fairness_report.json).
+    The coarse `city_tier` keeps most of the signal.'
+  decision_category: REQUIRES_GOVERNANCE
+  sensitivity: proxy_risk
+  version: '1.0'
+- name: log_income
+  definition: 'log(1 + annual_income): reduces right-skew and the pull of outliers.'
+  source: derived from annual_income
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: log(1 + annual_income)
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved. NaN when income is missing -> median imputation inside the Pipeline.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: loan_to_income
+  definition: loan_amount / annual_income.
+  source: derived
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: loan_amount / annual_income
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved. NaN when income is missing.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: emi_estimate
+  definition: Instalment of the NEW loan at an ASSUMED 14% p.a. rate.
+  source: derived
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: EMI = P*r*(1+r)^n / ((1+r)^n - 1),  r = annual_rate/12
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved. Uses an assumed rate, NOT the rate offered (that would be leakage).
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: emi_to_income
+  definition: emi_estimate / monthly_income.
+  source: derived
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: emi_estimate / monthly_income
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: debt_service_ratio
+  definition: '(monthly_debt + emi_estimate) / monthly_income: total burden after the new loan.'
+  source: derived
+  data_type: numeric
+  owner: Credit Risk Analytics
+  calculation_logic: (monthly_debt + emi_estimate) / monthly_income
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: income_missing
+  definition: 1 if annual_income was not declared.
+  source: derived
+  data_type: binary
+  owner: Credit Risk Analytics
+  calculation_logic: 1 if annual_income is missing else 0
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved. Missingness itself is informative (MNAR).
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: bureau_score_missing
+  definition: 1 if there is no bureau score (thin file).
+  source: derived
+  data_type: binary
+  owner: Credit Risk Analytics
+  calculation_logic: 1 if bureau_score is missing else 0
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: employment_stability
+  definition: 'Bucket of employment_years: lt_1y, 1_3y, 3_7y, 7y_plus.'
+  source: derived
+  data_type: ordinal
+  owner: Credit Risk Analytics
+  calculation_logic: cut(employment_years, [0,1,3,7,inf))
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: credit_history_bucket
+  definition: 'Bucket of credit_history_years: thin, young, established, long.'
+  source: derived
+  data_type: ordinal
+  owner: Credit Risk Analytics
+  calculation_logic: cut(credit_history_years, [0,1,3,8,inf))
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved.
+  decision_category: ELIGIBLE
+  sensitivity: none
+  version: '1.0'
+- name: city_tier
+  definition: Coarse city class tier1/tier2/tier3.
+  source: derived from location
+  data_type: nominal
+  owner: Credit Risk Analytics
+  calculation_logic: lookup(location)
+  prediction_time_availability: YES - computed from application fields by src/features/build_features.engineer()
+  status: Approved
+  reason: Approved by Compliance as the coarse replacement of `location` (lower proxy risk).
+  decision_category: ELIGIBLE
+  sensitivity: proxy_risk_reduced
+  version: '1.0'
+- name: age
+  definition: Applicant age in years.
+  source: application form
+  data_type: numeric
+  owner: Compliance
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Rejected
+  reason: 'REQUIRES GOVERNANCE -> default policy decision: EXCLUDED from the scoring model. Use of age in credit decisions is restricted or regulated in
+    many countries (rules differ by country). This is a POLICY decision owned by Compliance, not a technical one: see src/governance/age_experiment.py for
+    the evidence.'
+  decision_category: REQUIRES_GOVERNANCE
+  sensitivity: restricted_attribute
+  version: '1.0'
+- name: gender
+  definition: Gender of the applicant.
+  source: application form
+  data_type: nominal
+  owner: Compliance
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Rejected
+  reason: SENSITIVE attribute - never a model feature. Used ONLY by the fairness audit (src/governance/fairness_audit.py).
+  decision_category: SENSITIVE_POLICY
+  sensitivity: sensitive_attribute
+  version: '1.0'
+- name: marital_status
+  definition: single / married / divorced.
+  source: application form
+  data_type: nominal
+  owner: Compliance
+  calculation_logic: as declared
+  prediction_time_availability: YES - collected on the application form
+  status: Rejected
+  reason: SENSITIVE attribute (protected in many jurisdictions) - never a model feature.
+  decision_category: SENSITIVE_POLICY
+  sensitivity: sensitive_attribute
+  version: '1.0'
+- name: interest_rate_offered
+  definition: Rate quoted to the customer.
+  source: pricing engine
+  data_type: numeric
+  owner: Pricing Team
+  calculation_logic: assigned AFTER the risk score and re-priced after review
+  prediction_time_availability: NO - created after risk scoring
+  status: Rejected
+  reason: 'TARGET LEAKAGE: set after (and as a function of) the risk assessment, so it leaks the score and the outcome.'
+  decision_category: LEAKAGE
+  sensitivity: none
+  version: '1.0'
+- name: loan_approved
+  definition: Historical approve/decline decision.
+  source: decision engine
+  data_type: binary
+  owner: Credit Policy
+  calculation_logic: the decision itself
+  prediction_time_availability: NO - it is the OUTPUT of the process we are building
+  status: Rejected
+  reason: 'The decision itself: a model that uses it just copies old decisions (circular).'
+  decision_category: LEAKAGE
+  sensitivity: none
+  version: '1.0'
+- name: days_past_due_after_disbursal
+  definition: Days an instalment was overdue after the loan was paid out.
+  source: loan servicing
+  data_type: numeric
+  owner: Collections
+  calculation_logic: max days past due in months 1-12
+  prediction_time_availability: NO - only exists months after disbursal
+  status: Rejected
+  reason: 'FUTURE INFORMATION (look-ahead): this is practically the target.'
+  decision_category: LEAKAGE
+  sensitivity: none
+  version: '1.0'
+- name: collections_status
+  definition: none / reminder / legal / written_off.
+  source: collections system
+  data_type: nominal
+  owner: Collections
+  calculation_logic: set by the collections team after missed payments
+  prediction_time_availability: NO - only exists after missed payments
+  status: Rejected
+  reason: FUTURE INFORMATION created BECAUSE the customer defaulted.
+  decision_category: LEAKAGE
+  sensitivity: none
+  version: '1.0'
+- name: post_disbursal_payment_ratio
+  definition: Share of due EMIs paid in the first 6 months.
+  source: loan servicing
+  data_type: numeric
+  owner: Collections
+  calculation_logic: paid_emis / due_emis (months 1-6)
+  prediction_time_availability: NO - only exists after disbursal
+  status: Rejected
+  reason: FUTURE INFORMATION (look-ahead).
+  decision_category: LEAKAGE
+  sensitivity: none
+  version: '1.0'
+- name: credit_officer_override
+  definition: none / upgrade / downgrade applied by an officer.
+  source: loan origination system
+  data_type: nominal
+  owner: Credit Operations
+  calculation_logic: manual action after the model score
+  prediction_time_availability: NO - a human step that happens AFTER the model score
+  status: Rejected
+  reason: NOT AVAILABLE at prediction time and circular (officers react to the score).
+  decision_category: UNAVAILABLE_AT_PREDICTION
+  sensitivity: none
+  version: '1.0'
+- name: applicant_id
+  definition: Customer identifier.
+  source: origination system
+  data_type: identifier
+  owner: Data Engineering
+  calculation_logic: unique id
+  prediction_time_availability: YES (but not a feature)
+  status: Rejected
+  reason: 'Identifier: no predictive meaning; memorising ids = overfitting. Used only for the applicant-level split.'
+  decision_category: IDENTIFIER
+  sensitivity: none
+  version: '1.0'
+- name: application_date
+  definition: Date the application was submitted.
+  source: origination system
+  data_type: date
+  owner: Data Engineering
+  calculation_logic: date
+  prediction_time_availability: YES (but not a feature)
+  status: Rejected
+  reason: Metadata used for the TIME-based split and drift monitoring, not as a feature.
+  decision_category: IDENTIFIER
+  sensitivity: none
+  version: '1.0'

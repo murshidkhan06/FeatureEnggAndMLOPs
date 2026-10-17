@@ -1,0 +1,55 @@
+$ python scripts/api_session.py --url http://127.0.0.1:34809 --n 200
+GET /health
+    {'status': 'ok', 'model_loaded': True, 'model_version': 'v1'}
+GET /model-info
+    {"model_version": "v1", "trained_at": "2026-10-07T13:43:43+00:00", "metrics": {"roc_auc": 0.7683, "gini": 0.5365, "ks_stat": 0.4394, "pr_auc": 0.3305, "recall_at_80_approval": 0.515, "brier": 0.0869}, "threshold": 0.22, "input_columns": ["employment_years", "loan_amount", "credit_history_years", "bureau_score", "existing_loans", "debt_to_income_ratio", "employment_type", "log_income", "loan_to_inc
+
+--- POST /predict  [low_risk]  ->  HTTP 200
+    probability_of_default=0.0411  risk_band=LOW  decision_hint=APPROVE  model_version=v1
+      reason: Number of existing loans is high (3)  (contribution +0.35)
+      reason: Large loan amount  (contribution +0.24)
+      reason: Time in current employment is short (2.0 years)  (contribution +0.14)
+
+--- POST /predict  [medium_risk]  ->  HTTP 200
+    probability_of_default=0.1526  risk_band=MEDIUM  decision_hint=REFER_TO_UNDERWRITER  model_version=v1
+      reason: Declared annual income is low compared with typical applicants  (contribution +0.43)
+      reason: Credit history is short (3.0 years)  (contribution +0.26)
+      reason: Number of existing loans is high (2)  (contribution +0.17)
+
+--- POST /predict  [high_risk]  ->  HTTP 200
+    probability_of_default=0.3739  risk_band=HIGH  decision_hint=DECLINE  model_version=v1
+      reason: Monthly debt payments are high relative to income (DTI 63%)  (contribution +0.95)
+      reason: Credit bureau score is low (564)  (contribution +0.57)
+      reason: Number of existing loans is high (2)  (contribution +0.17)
+
+--- POST /predict  [missing_income]  ->  HTTP 200
+    probability_of_default=0.1399  risk_band=MEDIUM  decision_hint=REFER_TO_UNDERWRITER  model_version=v1
+      reason: Credit history is short (1.6 years)  (contribution +0.38)
+      reason: Credit bureau score is low (611)  (contribution +0.32)
+      reason: Time in current employment is short (1.4 years)  (contribution +0.16)
+
+--- POST /predict  [INVALID: loan_amount = -5]  ->  HTTP 422
+    {"detail": [{"type": "greater_than_equal", "loc": ["body", "loan_amount"], "msg": "Input should be greater than or equal to 10000", "input": -5, "ctx": {"ge": 10000.0}}]}
+
+--- POST /predict  [INVALID: unknown category employment_type='Salaried']  ->  HTTP 422
+    {"detail": [{"type": "literal_error", "loc": ["body", "employment_type"], "msg": "Input should be 'salaried', 'self_employed', 'gig' or 'business'", "input": "Salaried", "ctx": {"expected": "'salaried', 'self_employed', 'gig' or 'business'"}}]}
+
+--- POST /predict  [REJECTED: sensitive field gender is not part of the contract]  ->  HTTP 422
+    {"detail": [{"type": "extra_forbidden", "loc": ["body", "gender"], "msg": "Extra inputs are not permitted", "input": "female"}]}
+
+--- POST /predict  [REJECTED: leaky field interest_rate_offered]  ->  HTTP 422
+    {"detail": [{"type": "extra_forbidden", "loc": ["body", "interest_rate_offered"], "msg": "Extra inputs are not permitted", "input": 12.5}]}
+
+LATENCY over 200 sequential requests: {'n': 200, 'mean_ms': 70.1, 'p50_ms': 64.9, 'p95_ms': 126.8, 'max_ms': 190.1}
+
+GET /metrics (excerpt)
+    api_requests_total{endpoint="/health",method="GET",status="200"} 3.0
+    api_requests_total{endpoint="/predict",method="POST",status="200"} 815.0
+    api_requests_total{endpoint="/predict",method="POST",status="422"} 5.0
+    api_requests_total{endpoint="/model-info",method="GET",status="200"} 1.0
+    api_request_latency_seconds_count{endpoint="/predict"} 820.0
+    model_predictions_total{risk_level="MEDIUM"} 371.0
+    model_predictions_total{risk_level="HIGH"} 100.0
+    model_predictions_total{risk_level="LOW"} 344.0
+    model_info{version="v1"} 1.0
+    api_prediction_errors_total 0.0

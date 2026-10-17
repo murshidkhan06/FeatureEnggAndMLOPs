@@ -1,0 +1,46 @@
+# Reproducible pipeline:  dvc repro   (DVC re-runs only the stages whose inputs / params / code changed)
+# Parameters live in configs/params.yaml (DVC reads only the listed keys of that file).
+stages:
+  make_data:
+    cmd: python -m src.data.make_dataset
+    deps: [src/data/make_dataset.py]
+    params:
+      - configs/params.yaml:
+          - data
+    outs: [data/raw, data/production]
+  features:
+    cmd: python -m src.features.build_features
+    deps: [src/features/build_features.py, src/features/definitions.py, data/raw]
+    params:
+      - configs/params.yaml:
+          - split
+          - features
+    outs: [data/processed]
+  select:
+    cmd: python -m src.features.select_features
+    deps: [src/features/select_features.py, configs/feature_registry.yaml, data/processed/train.csv]
+    params:
+      - configs/params.yaml:
+          - selection
+    outs:
+      - configs/selected_features.yaml:
+          cache: false        # a small text file that is ALSO committed to git (the audit trail of the selection)
+      - reports/feature_selection.csv
+      - reports/correlated_pairs.csv
+  train:
+    cmd: python -m src.models.train --bootstrap-champion
+    deps: [src/models/train.py, src/models/pipeline.py, configs/selected_features.yaml, configs/feature_registry.yaml, data/processed]
+    params:
+      - configs/params.yaml:
+          - model
+    outs: [models/champion.joblib, models/challenger.joblib]
+    metrics:
+      - reports/metrics.json:
+          cache: false
+  evaluate:
+    cmd: python -m src.models.evaluate
+    deps: [src/models/evaluate.py, models/champion.joblib, data/processed]
+    params:
+      - configs/params.yaml:
+          - business
+    outs: [reports/evaluation.json]

@@ -1,0 +1,61 @@
+{
+  "low_risk": {
+    "annual_income": 1326000.0,
+    "monthly_income": 137300.0,
+    "employment_years": 2.0,
+    "loan_amount": 730000.0,
+    "loan_term_months": 36,
+    "credit_history_years": 5.3,
+    "bureau_score": 670.0,
+    "existing_loans": 3,
+    "monthly_debt": 4600.0,
+    "number_of_dependents": 1,
+    "employment_type": "salaried",
+    "education": "graduate",
+    "location": "Coimbatore"
+  },
+  "medium_risk": {
+    "annual_income": 360000.0,
+    "monthly_income": 31400.0,
+    "employment_years": 2.0,
+    "loan_amount": 159000.0,
+    "loan_term_months": 60,
+    "credit_history_years": 3.0,
+    "bureau_score": 661.0,
+    "existing_loans": 2,
+    "monthly_debt": 10600.0,
+    "number_of_dependents": 1,
+    "employment_type": "salaried",
+    "education": "graduate",
+    "location": "Nagpur"
+  },
+  "high_risk": {
+    "annual_income": 514000.0,
+    "monthly_income": 39000.0,
+    "employment_years": 3.5,
+    "loan_amount": 316000.0,
+    "loan_term_months": 36,
+    "credit_history_years": 4.7,
+    "bureau_score": 564.0,
+    "existing_loans": 2,
+    "monthly_debt": 24500.0,
+    "number_of_dependents": 3,
+    "employment_type": "salaried",
+    "education": "graduate",
+    "location": "Hyderabad"
+  },
+  "missing_income": {
+    "monthly_income": 37600.0,
+    "employment_years": 1.4,
+    "loan_amount": 225000.0,
+    "loan_term_months": 48,
+    "credit_history_years": 1.6,
+    "bureau_score": 611.0,
+    "existing_loans": 1,
+    "monthly_debt": 12100.0,
+    "number_of_dependents": 0,
+    "employment_type": "salaried",
+    "education": "postgraduate",
+    "location": "Mumbai"
+  }
+}

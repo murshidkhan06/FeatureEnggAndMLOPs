@@ -1,0 +1,38 @@
+$ python -m src.features.manual_examples
+EMI by hand (the standard loan formula)
+   monthly rate r = 14% / 12 / 100          = 0.011667
+   growth (1 + r)^24                        = 1.32099
+   EMI = P * r * growth / (growth - 1)      = 300,000 * 0.011667 * 1.32099 / 0.32099 = 14,403.86
+   (sanity: 24 payments of ~14,404 = ~345,700 -> about 45,700 of interest on a 300,000 loan)
+
+HAND CALCULATION vs engineer() for one applicant
+              feature hand_calculation engineer_code agree
+ debt_to_income_ratio              0.2           0.2   YES
+           log_income          13.3047       13.3047   YES
+       loan_to_income              0.5           0.5   YES
+         emi_estimate        14403.865     14403.865   YES
+        emi_to_income           0.2881        0.2881   YES
+   debt_service_ratio           0.4881        0.4881   YES
+       income_missing                0           0.0   YES
+ employment_stability             1_3y          1_3y   YES
+credit_history_bucket      established   established   YES
+            city_tier            tier1         tier1   YES
+
+all features agree: True
+
+Business reading: this applicant would pay 28.8% of monthly income for the NEW loan alone, and 48.8% for ALL debts together;
+a debt-service ratio above ~50% is a classic warning sign for lenders.
+
+LOG TRANSFORM: log(1 + income) pulls an extreme value back towards the others
+   income      : ['300,000', '450,000', '600,000', '900,000', '6,000,000']
+   log(1+inc)  : [12.61, 13.02, 13.3, 13.71, 15.61]
+   biggest/median = 10.0x on the raw scale, but only 2.30 log units above the median.
+
+MEDIAN IMPUTATION (learned on TRAIN only) + MISSING INDICATOR
+   train values [10.0, 20.0, 90.0, nan] -> median of the observed values = 20.0  -> NaN becomes 20.0
+   income_missing = 1 for that row: the model can still learn that 'did not report income' is informative.
+   The API does exactly the same: annual_income omitted -> NaN -> engineer() -> same Pipeline -> same median.
+
+STANDARDIZATION z = (x - mean) / std  (mean and std also learned on TRAIN only)
+   x = [2.0, 4.0, 6.0]  mean = 4.0  std = 1.6330  ->  z = [-1.225, 0.0, 1.225]
+   After this every coefficient reads 'change in log-odds of default per +1 standard deviation' -> comparable and explainable.

@@ -1,0 +1,49 @@
+$ python -m src.models.explain
+CHAMPION v1 (hgb); TEST period 2024-10-01..2024-12-31, MAE = 15.62 units
+
+1) PERMUTATION IMPORTANCE on TEST (MAE increase in units when the column is shuffled)
+       feature  mae_increase   std
+         lag_1        13.160 0.429
+rolling_mean_7        12.975 0.476
+   day_of_week         3.318 0.118
+    product_id         1.845 0.067
+        lag_14         1.592 0.079
+  discount_pct         1.302 0.053
+         lag_7         1.276 0.105
+      store_id         1.264 0.191
+    is_holiday         0.688 0.044
+  price_change         0.412 0.045
+promotion_flag         0.226 0.027
+ forecast_temp         0.216 0.013
+     month_cos         0.020 0.013
+     month_sin        -0.007 0.019
+
+   The four level features (lag_1, lag_7, lag_14, rolling_mean_7) together: 29.00 units.  They are strongly correlated,
+   so each one alone understates how much the model depends on 'the recent level of this series'.
+
+2) LINEAR VIEW: standardised coefficients of ridge_log (train period only; log scale)
+        column  coefficient  abs_coefficient
+         lag_1       +0.208           +0.208
+rolling_mean_7       +0.202           +0.202
+    is_holiday       +0.171           +0.171
+ day_of_week_0       -0.154           +0.154
+ day_of_week_5       +0.154           +0.154
+product_id_P07       -0.132           +0.132
+product_id_P04       +0.105           +0.105
+product_id_P06       -0.098           +0.098
+ day_of_week_1       -0.098           +0.098
+product_id_P05       +0.096           +0.096
+   Positive = more units.  The coefficients of log(lag) columns say 'the recent level dominates' (the same message as above).
+
+3) SHAP (OPTIONAL)
+       feature  mean_abs_shap
+         lag_1         20.251
+rolling_mean_7         18.851
+   day_of_week          9.222
+        lag_14          5.841
+         lag_7          5.022
+   store_id_S1          3.231
+product_id_P04          2.862
+    is_holiday          2.644
+
+REMINDER: importance = what the MODEL uses (association).  It does not prove that a feature CAUSES sales.

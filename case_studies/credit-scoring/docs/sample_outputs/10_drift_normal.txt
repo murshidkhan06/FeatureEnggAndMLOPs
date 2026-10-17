@@ -1,0 +1,40 @@
+$ python -m src.monitoring.run_drift_check --prod data/production/batch_normal.csv
+champion: v1   batch: data/production/batch_normal.csv  (3000 applications)
+
+1. DATA QUALITY    OK {'schema': 'OK', 'ranges': 'OK', 'null_rates': 'OK', 'categories': 'OK', 'unit_sanity': 'OK'} income unit ratio=0.994
+
+2. DRIFT (two-sample KS test, reference = training sample, production = this batch)
+   H0: reference and production values come from the same distribution;  alpha = 0.05  practical threshold D >= 0.1
+             feature  ref_median  prod_median  ref_mean  prod_mean  ref_missing_pct  prod_missing_pct
+      monthly_income   52200.000    50700.000 57705.933  56667.367            0.000             0.000
+          log_income      13.321       13.295    13.309     13.301           12.633            12.133
+      loan_to_income       0.505        0.507     0.557      0.555           12.633            12.133
+debt_to_income_ratio       0.223        0.229     0.282      0.287            0.000             0.000
+       emi_to_income       0.215        0.221     0.274      0.273            0.000             0.000
+credit_history_years       5.200        5.600     6.001      6.231            0.000             0.000
+        bureau_score     671.000      674.000   670.840    675.190            8.100             7.200
+
+             feature  n_ref  n_prod  ks_statistic  p_value  statistically_significant  practically_significant                status
+      monthly_income   3000    3000        0.0333 0.071340                      False                    False  no_evidence_of_drift
+          log_income   2621    2636        0.0322 0.128048                      False                    False  no_evidence_of_drift
+      loan_to_income   2621    2636        0.0157 0.895200                      False                    False  no_evidence_of_drift
+debt_to_income_ratio   3000    3000        0.0193 0.629311                      False                    False  no_evidence_of_drift
+       emi_to_income   3000    3000        0.0243 0.336918                      False                    False  no_evidence_of_drift
+credit_history_years   3000    3000        0.0490 0.001486                       True                    False significant_but_small
+        bureau_score   2757    2784        0.0333 0.089574                      False                    False  no_evidence_of_drift
+
+ - monthly_income: D=0.033, p=0.071 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - log_income: D=0.032, p=0.13 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - loan_to_income: D=0.016, p=0.9 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - debt_to_income_ratio: D=0.019, p=0.63 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - emi_to_income: D=0.024, p=0.34 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+ - credit_history_years: D=0.049, p=0.0015 (alpha=0.05) -> reject H0, but the gap (D) is small: statistically real, practically minor.
+ - bureau_score: D=0.033, p=0.09 (alpha=0.05) -> fail to reject H0: no evidence of a difference (this is NOT proof of no drift).
+
+3. PERFORMANCE   labels not available yet (defaults are known 12 months after disbursal) -> performance UNKNOWN
+
+4. BUSINESS IMPACT  decision mix {'LOW': 0.622, 'MEDIUM': 0.25, 'HIGH': 0.128}  (HIGH-band share changed by -0.000 vs training)
+   business impact judged LOW
+
+DECISION: NO_ACTION
+  * Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).

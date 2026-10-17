@@ -1,0 +1,59 @@
+$ python -m src.features.leakage_demo
+====================================================================================================
+ACT 1 - average_balance_leaky  (WRONG)  vs  average_balance  (RIGHT)
+====================================================================================================
+single-feature AUC on the TEST period (higher balance should mean LOWER risk, so we use -balance):
+   average_balance          AUC = 0.6445
+   average_balance_leaky    AUC = 0.9130
+
+HistGradientBoosting trained on the train period (ROC-AUC):
+   model                                train     val    test   <- the WRONG model looks fantastic in the lab
+   RIGHT: legit features only          0.9370  0.8855  0.8853
+   WRONG: + average_balance_leaky      0.9803  0.9418  0.9561
+
+GO-LIVE (calm months 2023-03 .. 2023-08, labels arrive 6 months later).
+At prediction time the 'future balance' cannot be computed; the pipeline can only feed the ordinary 90-day balance:
+   RIGHT model  live AUC = 0.8341   (test was 0.8853, gap +0.051)  -> an honest, modest drop (new months, early stress)
+   WRONG model  live AUC = 0.7750   (test was 0.9561, gap +0.181)  -> FAILURE SCENARIO (a): live far below test, and now WORSE than the honest model (0.8341)
+
+Variant 'all available history up to the extract date' (2024-12-31): single-feature test AUC = 0.5782 (weaker because customers who default LATER also look bad, but still leaky)
+
+====================================================================================================
+ACT 2 - the second, subtler leak: columns that only exist because the customer already defaulted
+====================================================================================================
+   feature                        single-feature test AUC   model(legit + feature) test AUC
+   dpd_target_period                               1.0000                            1.0000
+   recoveries_target_period                        0.8265                            0.9402
+   collections_status_latest                       0.8869                            0.9632
+   Why: default is DEFINED as 90+ days past due, so max(days_past_due in the target window) IS the label;
+        recoveries and 'in_collections' are set after the default.  Nothing here is available on as_of_date.
+
+====================================================================================================
+ACT 3 - the FIX: availability rule + leakage-safe pipeline + future-perturbation test + registry gate
+====================================================================================================
+Corrupt every row not yet available at 2022-06-30 (211,924 future transactions + unpublished loan_status), rebuild features:
+   build_snapshot_features()   unchanged?  True   changed columns: []
+   average_balance_leaky        unchanged?  False   -> LEAKS (it reads the future)
+   dpd_target_period            unchanged?  False   -> LEAKS (it reads the future)
+   recoveries_target_period     unchanged?  False   -> LEAKS (it reads the future)
+   collections_status_latest    unchanged?  False   -> LEAKS (it reads the future)
+
+Availability rule in action (loan_status for 2022-05 is published on 2022-06-05):
+   as_of 2022-05-31:  available_at 2022-06-05 <= as_of ?  False  -> NOT usable
+   as_of 2022-06-30:  available_at 2022-06-05 <= as_of ?  True  -> usable
+
+Registry gate (training refuses unapproved features):
+   ['salary_credit_frequency', 'average_balance'] -> OK
+   ['average_balance_leaky'] -> REFUSED: Training refused. average_balance_leaky v1 is Rejected / Rejected (Leakage: includes the post-default balance collapse. Fails the future-perturbation test. Replaced by average_balance v2.)
+
+====================================================================================================
+ACT 4 - split leakage: random split vs time-based split (same legit features, same model)
+====================================================================================================
+   RANDOM split (customers appear on both sides):  test AUC = 0.9108   <- optimistic
+   TIME split (train earlier, test later):         test AUC = 0.8853   <- what production will look like
+   Also: a random split would let the model see 2022-12 labels when predicting 2022-08 (using the future).
+
+KEY TAKEAWAYS
+  1. A feature that lifts test AUC from about 0.89 to 0.96 with one column is suspicious, not a triumph.
+  2. Every feature needs a declared window + availability lag; code must filter by available_at <= as_of_date FIRST.
+  3. Prove it with the future-perturbation test, and block unapproved features in training (registry gate).

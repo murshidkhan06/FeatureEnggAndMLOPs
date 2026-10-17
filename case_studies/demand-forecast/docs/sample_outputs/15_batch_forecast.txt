@@ -1,0 +1,43 @@
+$ python -m src.models.batch_forecast
+Forecast made at the END of 2025-02-28 (all history <= that day) with champion v1 (hgb)
+168 rows = 24 series x 7 days -> reports/forecast_next_7d.csv
+
+NEXT 7 DAYS, total units per product (all 3 stores):
+            last_7_days_actual  predicted_units   lower   upper
+product_id                                                     
+P01                     2871.0           2869.0  1822.0  4078.0
+P02                     1737.0           1610.0  1030.0  2280.0
+P03                     3578.0           3334.0  2114.0  4742.0
+P04                     4983.0           3812.0  2403.0  5441.0
+P05                     3769.0           3482.0  2196.0  4968.0
+P06                     1664.0           1498.0   952.0  2128.0
+P07                     1118.0           1135.0   722.0  1612.0
+P08                     1684.0           1647.0  1051.0  2336.0
+
+Daily forecast for one series (P04 milk, S2):
+forecast_date  horizon  predicted_units  lower  upper
+   2025-03-01        1            202.7  163.5  248.1
+   2025-03-02        2            207.2  150.5  272.8
+   2025-03-03        3            167.3  111.2  232.1
+   2025-03-04        4            174.1  106.7  252.1
+   2025-03-05        5            182.5  103.5  273.8
+   2025-03-06        6            192.0  100.9  297.2
+   2025-03-07        7            195.4   95.3  311.1
+
+$ python -m src.models.batch_forecast --backtest
+BACKTEST: 12 weekly origins (2024-10-06 .. 2024-12-22), champion v1 (hgb), 24 series, recursive forecast
+         rows   wape  bias_pct  seasonal_naive_wape  interval_coverage
+horizon                                                               
+1         288  0.146    -0.057                0.188              0.719
+2         288  0.152    -0.054                0.192              0.837
+3         288  0.163    -0.078                0.205              0.882
+4         288  0.170    -0.064                0.230              0.910
+5         288  0.157    -0.074                0.228              0.924
+6         288  0.160    -0.058                0.202              0.948
+7         288  0.152    -0.039                0.204              0.972
+
+Reading: WAPE tends to rise with the horizon because lag features become our own forecasts (errors accumulate).
+Horizon 1 is WORSE than the test-set WAPE of the champion because this batch job does not know the future: it assumes list price, no promotion
+and an average temperature for the coming days (see the ASSUMPTIONS above).  The real-time API gets the real plan in the request.
+Does the champion beat the seasonal-naive baseline at every horizon? YES - if not, a plain 'same weekday last week' rule would be enough.
+Interval coverage: the band is calibrated for horizon 1 on validation data and widened by sqrt(horizon); coverage below 80% at horizon 1 means it is a bit narrow.

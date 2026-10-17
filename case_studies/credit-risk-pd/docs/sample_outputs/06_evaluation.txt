@@ -1,0 +1,31 @@
+$ python -m src.models.evaluate
+CHAMPION v1 (hgb)  features=['balance_trend', 'salary_credit_frequency', 'loan_payment_ratio', 'missed_payment_count', 'credit_utilization', 'recent_transaction_count', 'income_stability', 'util_x_missed', 'balance_trend_norm', 'log_average_balance']
+
+[train] 2021-06-30 .. 2022-03-31  n=11,807  default rate=3.82%
+   roc_auc=0.9261  pr_auc=0.6404  recall_at_10pct=0.7472  lift_at_10pct=7.47  ks=0.6895  mean_score=0.0377
+[val] 2022-09-30 .. 2022-11-30  n=3,545  default rate=3.98%
+   roc_auc=0.8971  pr_auc=0.529  recall_at_10pct=0.6312  lift_at_10pct=6.303  ks=0.6791  mean_score=0.0362
+[test] 2022-12-31 .. 2023-02-28  n=3,554  default rate=4.14%
+   roc_auc=0.9046  pr_auc=0.6183  recall_at_10pct=0.6939  lift_at_10pct=6.927  ks=0.6577  mean_score=0.0389
+
+BUSINESS MEANING on the TEST period (never used for any decision):
+  Of 3,554 customers scored, collections contacts the top 10% = 356 customers.
+  147 customers really defaulted in the next 6 months; the contact list reaches 102 of them (69%), and misses 45.
+  Cost of finding one defaulter: 3.5 calls with the model vs 24.2 calls by random calling.
+
+DECILE TABLE (decile 1 = riskiest 10 % of customers):
+ decile  customers  defaulters  bad_rate  avg_score  cum_capture
+      1        356         102    0.2865     0.2739       0.6939
+      2        355          18    0.0507     0.0356       0.8163
+      3        356           8    0.0225     0.0218       0.8707
+      4        355           7    0.0197     0.0157       0.9184
+      5        355           3    0.0085     0.0115       0.9388
+      6        356           4    0.0112     0.0091       0.9660
+      7        355           3    0.0085     0.0074       0.9864
+      8        356           1    0.0028     0.0056       0.9932
+      9        355           1    0.0028     0.0043       1.0000
+     10        355           0    0.0000     0.0034       1.0000
+
+Fixed contact threshold from validation (score >= 0.0542) -> contacts 9.7% of test customers (capacity plan: 10%)
+
+Caution: the TRAIN row is optimistic (the model has seen those customers); judge the model on val/test.

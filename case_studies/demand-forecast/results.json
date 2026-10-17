@@ -1,0 +1,3129 @@
+{
+ "project": "demand-forecast",
+ "dataset": {
+  "train_shape": [
+   17544,
+   11
+  ],
+  "series": 24,
+  "date_range": [
+   "2023-01-01",
+   "2024-12-31"
+  ],
+  "production_rows": {
+   "normal": 1416,
+   "drifted": 1416
+  },
+  "target_summary": {
+   "mean_units": 114.74,
+   "zero_rate": 0.0024
+  },
+  "missing_rates": {
+   "sales": 0.0046,
+   "forecast_temp": 0.015
+  },
+  "top_correlations_with_target": {
+   "rolling_mean_30": 0.846,
+   "rolling_mean_7": 0.841,
+   "lag_1": 0.815,
+   "lag_7": 0.795,
+   "lag_14": 0.79,
+   "price": -0.672,
+   "day_of_week": 0.208,
+   "dow_sin": -0.206
+  },
+  "top_feature_pairs": [
+   {
+    "a": "week_of_year",
+    "b": "month",
+    "abs_r": 0.98
+   },
+   {
+    "a": "rolling_mean_7",
+    "b": "rolling_mean_30",
+    "abs_r": 0.972
+   },
+   {
+    "a": "lag_1",
+    "b": "rolling_mean_7",
+    "abs_r": 0.875
+   },
+   {
+    "a": "lag_7",
+    "b": "rolling_mean_7",
+    "abs_r": 0.875
+   },
+   {
+    "a": "lag_14",
+    "b": "rolling_mean_30",
+    "abs_r": 0.863
+   },
+   {
+    "a": "lag_7",
+    "b": "rolling_mean_30",
+    "abs_r": 0.862
+   }
+  ],
+  "weekly_average_table": [
+   {
+    "period": "training week 1",
+    "week_start": "2023-01-01",
+    "avg_units_per_series_day": "102.8",
+    "design_level": "100.0"
+   },
+   {
+    "period": "training week 27",
+    "week_start": "2023-07-02",
+    "avg_units_per_series_day": "111.4",
+    "design_level": "108.0"
+   },
+   {
+    "period": "training week 53",
+    "week_start": "2023-12-31",
+    "avg_units_per_series_day": "110.2",
+    "design_level": "115.0"
+   },
+   {
+    "period": "training week 79",
+    "week_start": "2024-06-30",
+    "avg_units_per_series_day": "121.6",
+    "design_level": "123.0"
+   },
+   {
+    "period": "training week 105",
+    "week_start": "2024-12-29",
+    "avg_units_per_series_day": "116.8",
+    "design_level": "130.0"
+   },
+   {
+    "period": "prod NORMAL week 1",
+    "week_start": "2025-01-01",
+    "avg_units_per_series_day": "119.0",
+    "design_level": "130.0"
+   },
+   {
+    "period": "prod NORMAL week 2",
+    "week_start": "2025-01-08",
+    "avg_units_per_series_day": "120.0",
+    "design_level": "130.0"
+   },
+   {
+    "period": "prod NORMAL week 3",
+    "week_start": "2025-01-15",
+    "avg_units_per_series_day": "122.8",
+    "design_level": "131.0"
+   },
+   {
+    "period": "prod NORMAL week 4",
+    "week_start": "2025-01-22",
+    "avg_units_per_series_day": "126.7",
+    "design_level": "131.0"
+   },
+   {
+    "period": "prod NORMAL week 5",
+    "week_start": "2025-01-29",
+    "avg_units_per_series_day": "122.2",
+    "design_level": "131.0"
+   },
+   {
+    "period": "prod NORMAL week 6",
+    "week_start": "2025-02-05",
+    "avg_units_per_series_day": "121.9",
+    "design_level": "131.0"
+   },
+   {
+    "period": "prod NORMAL week 7",
+    "week_start": "2025-02-12",
+    "avg_units_per_series_day": "126.4",
+    "design_level": "132.0"
+   },
+   {
+    "period": "prod NORMAL week 8",
+    "week_start": "2025-02-19",
+    "avg_units_per_series_day": "129.8",
+    "design_level": "132.0"
+   },
+   {
+    "period": "prod DRIFTED week 1",
+    "week_start": "2025-01-01",
+    "avg_units_per_series_day": "142.6",
+    "design_level": "150.0"
+   },
+   {
+    "period": "prod DRIFTED week 2",
+    "week_start": "2025-01-08",
+    "avg_units_per_series_day": "141.6",
+    "design_level": "150.0"
+   },
+   {
+    "period": "prod DRIFTED week 3",
+    "week_start": "2025-01-15",
+    "avg_units_per_series_day": "151.4",
+    "design_level": "170.0"
+   },
+   {
+    "period": "prod DRIFTED week 4",
+    "week_start": "2025-01-22",
+    "avg_units_per_series_day": "156.3",
+    "design_level": "170.0"
+   },
+   {
+    "period": "prod DRIFTED week 5",
+    "week_start": "2025-01-29",
+    "avg_units_per_series_day": "172.8",
+    "design_level": "190.0"
+   },
+   {
+    "period": "prod DRIFTED week 6",
+    "week_start": "2025-02-05",
+    "avg_units_per_series_day": "168.7",
+    "design_level": "190.0"
+   },
+   {
+    "period": "prod DRIFTED week 7",
+    "week_start": "2025-02-12",
+    "avg_units_per_series_day": "184.5",
+    "design_level": "210.0"
+   },
+   {
+    "period": "prod DRIFTED week 8",
+    "week_start": "2025-02-19",
+    "avg_units_per_series_day": "180.5",
+    "design_level": "210.0"
+   }
+  ],
+  "zero_rows": 42,
+  "outlier_candidates": 59
+ },
+ "feature_table": [
+  {
+   "name": "lag_1",
+   "formula": "sales.shift(1) per (product, store)",
+   "example_input": "sales of days 1..8 = 10,12,11,13,20,22,21,14 -> day 8",
+   "example_output": 21.0
+  },
+  {
+   "name": "lag_7",
+   "formula": "sales.shift(7)",
+   "example_input": "same series, day 8",
+   "example_output": 10.0
+  },
+  {
+   "name": "rolling_mean_7",
+   "formula": "sales.shift(1).rolling(7).mean()",
+   "example_input": "same series, day 8: mean(10,12,11,13,20,22,21)",
+   "example_output": 15.57
+  },
+  {
+   "name": "rolling_mean_7 (WRONG, no shift)",
+   "formula": "sales.rolling(7).mean()",
+   "example_input": "same series, day 8: mean(12,11,13,20,22,21,14)",
+   "example_output": 16.14
+  },
+  {
+   "name": "price_change",
+   "formula": "price / price_yesterday - 1",
+   "example_input": "price 40 -> 38",
+   "example_output": -0.05
+  },
+  {
+   "name": "discount_pct",
+   "formula": "discount / (price + discount)",
+   "example_input": "price 38, discount 2",
+   "example_output": 0.05
+  },
+  {
+   "name": "dow_sin/dow_cos",
+   "formula": "sin/cos(2*pi*day_of_week/7)",
+   "example_input": "Monday vs Sunday distance on the circle",
+   "example_output": {
+    "sun_to_mon": 0.868,
+    "mon_to_thu": 1.95
+   }
+  }
+ ],
+ "feature_registry": [
+  {
+   "name": "sales",
+   "role": "target",
+   "status": "Approved",
+   "availability": "NOT available for the day being forecast (that is what we predict). Only past days are available."
+  },
+  {
+   "name": "product_id",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "store_id",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "day_of_week",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "week_of_year",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "month",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "is_weekend",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "is_holiday",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: the holiday calendar is published a year ahead."
+  },
+  {
+   "name": "trend_index",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "dow_sin",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "dow_cos",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "month_sin",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "month_cos",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: available at end of day D for day D+1 (published plan / calendar)."
+  },
+  {
+   "name": "lag_1",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Available at end of day D: uses sales of days <= D only (shift(1) is applied relative to the forecast day)."
+  },
+  {
+   "name": "lag_7",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Available at end of day D: uses sales of days <= D only (shift(1) is applied relative to the forecast day)."
+  },
+  {
+   "name": "lag_14",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Available at end of day D: uses sales of days <= D only (shift(1) is applied relative to the forecast day)."
+  },
+  {
+   "name": "rolling_mean_7",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Available at end of day D: uses sales of days <= D only (shift(1) is applied relative to the forecast day)."
+  },
+  {
+   "name": "rolling_mean_30",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Available at end of day D: uses sales of days <= D only (shift(1) is applied relative to the forecast day)."
+  },
+  {
+   "name": "price",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance: prices are loaded into the POS the evening before."
+  },
+  {
+   "name": "discount_pct",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance (planned promotion)."
+  },
+  {
+   "name": "price_change",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance (both prices are planned prices)."
+  },
+  {
+   "name": "promotion_flag",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Known in advance (campaigns are planned weeks ahead)."
+  },
+  {
+   "name": "forecast_temp",
+   "role": "feature",
+   "status": "Approved",
+   "availability": "Available at forecast time: it is a FORECAST. May be missing when the API is down."
+  },
+  {
+   "name": "discount",
+   "role": "raw_input",
+   "status": "Approved",
+   "availability": "Known in advance (planned promotion)."
+  },
+  {
+   "name": "promotion",
+   "role": "raw_input",
+   "status": "Approved",
+   "availability": "Known in advance."
+  },
+  {
+   "name": "holiday",
+   "role": "raw_input",
+   "status": "Approved",
+   "availability": "Known in advance."
+  },
+  {
+   "name": "temperature",
+   "role": "feature",
+   "status": "Rejected",
+   "availability": "NOT available at prediction time: the day has not happened yet."
+  },
+  {
+   "name": "rolling_mean_7_centered",
+   "role": "feature",
+   "status": "Rejected",
+   "availability": "NOT available: the window contains today and 3 FUTURE days."
+  },
+  {
+   "name": "rolling_mean_7_noshift",
+   "role": "feature",
+   "status": "Rejected",
+   "availability": "NOT available: the window contains today's sales (the target)."
+  },
+  {
+   "name": "sales_today",
+   "role": "feature",
+   "status": "Rejected",
+   "availability": "NOT available: it is the target itself."
+  }
+ ],
+ "feature_selection": {
+  "table": [
+   {
+    "feature": "lag_1",
+    "group": "level  (target: log sales)",
+    "variance_ok": true,
+    "abs_corr": 0.826,
+    "mutual_info": 0.782,
+    "rfe_rank": 1,
+    "lasso_coef": 0.383,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "KEEP",
+    "reason": "3/3 votes"
+   },
+   {
+    "feature": "lag_7",
+    "group": "level  (target: log sales)",
+    "variance_ok": true,
+    "abs_corr": 0.764,
+    "mutual_info": 0.797,
+    "rfe_rank": 1,
+    "lasso_coef": 0.131,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "KEEP",
+    "reason": "3/3 votes"
+   },
+   {
+    "feature": "lag_14",
+    "group": "level  (target: log sales)",
+    "variance_ok": true,
+    "abs_corr": 0.755,
+    "mutual_info": 0.777,
+    "rfe_rank": 1,
+    "lasso_coef": 0.098,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "KEEP",
+    "reason": "3/3 votes"
+   },
+   {
+    "feature": "rolling_mean_7",
+    "group": "level  (target: log sales)",
+    "variance_ok": true,
+    "abs_corr": 0.839,
+    "mutual_info": 0.803,
+    "rfe_rank": 2,
+    "lasso_coef": 0.042,
+    "filter_vote": 1,
+    "wrapper_vote": 0,
+    "embedded_vote": 1,
+    "votes": 2,
+    "decision": "KEEP",
+    "reason": "2/3 votes"
+   },
+   {
+    "feature": "rolling_mean_30",
+    "group": "level  (target: log sales)",
+    "variance_ok": true,
+    "abs_corr": 0.839,
+    "mutual_info": 0.833,
+    "rfe_rank": 1,
+    "lasso_coef": 0.268,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "drop",
+    "reason": "redundant: |r|=0.979 with rolling_mean_7"
+   },
+   {
+    "feature": "trend_index",
+    "group": "level  (target: log sales)",
+    "variance_ok": true,
+    "abs_corr": 0.05,
+    "mutual_info": 0.021,
+    "rfe_rank": 3,
+    "lasso_coef": -0.0,
+    "filter_vote": 0,
+    "wrapper_vote": 0,
+    "embedded_vote": 0,
+    "votes": 0,
+    "decision": "drop",
+    "reason": "only 0/3 votes"
+   },
+   {
+    "feature": "day_of_week",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.35,
+    "mutual_info": 0.218,
+    "rfe_rank": 1,
+    "lasso_coef": 0.105,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "KEEP",
+    "reason": "3/3 votes"
+   },
+   {
+    "feature": "week_of_year",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.005,
+    "mutual_info": 0.02,
+    "rfe_rank": 3,
+    "lasso_coef": -0.0,
+    "filter_vote": 0,
+    "wrapper_vote": 0,
+    "embedded_vote": 0,
+    "votes": 0,
+    "decision": "drop",
+    "reason": "annual cycle encoded by month_sin/month_cos"
+   },
+   {
+    "feature": "month",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.003,
+    "mutual_info": 0.0,
+    "rfe_rank": 2,
+    "lasso_coef": -0.0,
+    "filter_vote": 0,
+    "wrapper_vote": 0,
+    "embedded_vote": 0,
+    "votes": 0,
+    "decision": "drop",
+    "reason": "annual cycle encoded by month_sin/month_cos"
+   },
+   {
+    "feature": "is_weekend",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.308,
+    "mutual_info": 0.141,
+    "rfe_rank": 1,
+    "lasso_coef": 0.095,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "drop",
+    "reason": "weekday already encoded by day_of_week (one-hot)"
+   },
+   {
+    "feature": "is_holiday",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.058,
+    "mutual_info": 0.001,
+    "rfe_rank": 1,
+    "lasso_coef": 0.071,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "KEEP",
+    "reason": "3/3 votes"
+   },
+   {
+    "feature": "dow_sin",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.337,
+    "mutual_info": 0.22,
+    "rfe_rank": 1,
+    "lasso_coef": -0.176,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "drop",
+    "reason": "weekday already encoded by day_of_week (one-hot)"
+   },
+   {
+    "feature": "dow_cos",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.124,
+    "mutual_info": 0.057,
+    "rfe_rank": 1,
+    "lasso_coef": -0.097,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "drop",
+    "reason": "weekday already encoded by day_of_week (one-hot)"
+   },
+   {
+    "feature": "month_sin",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.018,
+    "mutual_info": 0.0,
+    "rfe_rank": 1,
+    "lasso_coef": 0.01,
+    "filter_vote": 0,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 2,
+    "decision": "KEEP",
+    "reason": "2/3 votes"
+   },
+   {
+    "feature": "month_cos",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.013,
+    "mutual_info": 0.0,
+    "rfe_rank": 4,
+    "lasso_coef": 0.0,
+    "filter_vote": 0,
+    "wrapper_vote": 0,
+    "embedded_vote": 0,
+    "votes": 0,
+    "decision": "KEEP",
+    "reason": "encoding rule (domain decision)"
+   },
+   {
+    "feature": "price",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.033,
+    "mutual_info": 0.096,
+    "rfe_rank": 5,
+    "lasso_coef": -0.006,
+    "filter_vote": 1,
+    "wrapper_vote": 0,
+    "embedded_vote": 1,
+    "votes": 2,
+    "decision": "drop",
+    "reason": "absolute INR price is not comparable across products and is unit-fragile; relative features (discount_pct, price_change) are used instead"
+   },
+   {
+    "feature": "discount_pct",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.272,
+    "mutual_info": 0.074,
+    "rfe_rank": 1,
+    "lasso_coef": 0.186,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "KEEP",
+    "reason": "3/3 votes"
+   },
+   {
+    "feature": "price_change",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.093,
+    "mutual_info": 0.018,
+    "rfe_rank": 6,
+    "lasso_coef": -0.005,
+    "filter_vote": 1,
+    "wrapper_vote": 0,
+    "embedded_vote": 1,
+    "votes": 2,
+    "decision": "KEEP",
+    "reason": "2/3 votes"
+   },
+   {
+    "feature": "promotion_flag",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.256,
+    "mutual_info": 0.062,
+    "rfe_rank": 1,
+    "lasso_coef": 0.088,
+    "filter_vote": 1,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 3,
+    "decision": "KEEP",
+    "reason": "3/3 votes"
+   },
+   {
+    "feature": "forecast_temp",
+    "group": "pattern (target: demand index)",
+    "variance_ok": true,
+    "abs_corr": 0.033,
+    "mutual_info": 0.027,
+    "rfe_rank": 1,
+    "lasso_coef": 0.017,
+    "filter_vote": 0,
+    "wrapper_vote": 1,
+    "embedded_vote": 1,
+    "votes": 2,
+    "decision": "KEEP",
+    "reason": "2/3 votes"
+   }
+  ],
+  "selected": [
+   "product_id",
+   "store_id",
+   "day_of_week",
+   "is_holiday",
+   "month_sin",
+   "month_cos",
+   "lag_1",
+   "lag_7",
+   "lag_14",
+   "rolling_mean_7",
+   "discount_pct",
+   "price_change",
+   "promotion_flag",
+   "forecast_temp"
+  ],
+  "dropped": {
+   "trend_index": "only 0/3 votes",
+   "week_of_year": "annual cycle encoded by month_sin/month_cos",
+   "month": "annual cycle encoded by month_sin/month_cos",
+   "rolling_mean_30": "redundant: |r|=0.979 with rolling_mean_7",
+   "is_weekend": "weekday already encoded by day_of_week (one-hot)",
+   "dow_sin": "weekday already encoded by day_of_week (one-hot)",
+   "dow_cos": "weekday already encoded by day_of_week (one-hot)",
+   "price": "absolute INR price is not comparable across products and is unit-fragile; relative features (discount_pct, price_change) are used instead"
+  }
+ },
+ "leakage_demo": {
+  "lesson1": {
+   "time_wape": 0.12598505180560896,
+   "time_mae": 14.818593369631534,
+   "random_same_rows_wape": 0.12344966073350083,
+   "random_same_rows_mae": 14.519760691629278,
+   "random_classic_wape": 0.12905861778220712,
+   "random_classic_mae": 14.809420079996814,
+   "optimism_pct": 2.0,
+   "optimism_pct_mae": 2.0,
+   "label_in_train_features": 0.99
+  },
+  "lesson2_correct": 0.1297,
+  "lesson2_rolling_mean_7_noshift": 0.0872,
+  "lesson2_rolling_mean_7_centered": 0.1112,
+  "lesson3": {
+   "max_scaled_all": 1.0,
+   "max_scaled_train": 1.047,
+   "mean_all": 115.2,
+   "mean_train": 114.2
+  },
+  "lesson4": {
+   "forecast_temp": 0.1297,
+   "actual_temp": 0.1279
+  }
+ },
+ "models": {
+  "champion_rule": "lowest validation WAPE among candidates with |bias| <= 3%",
+  "chosen": "hgb",
+  "final_test_metrics": {
+   "mae": 15.6152,
+   "rmse": 25.2737,
+   "wape": 0.1285,
+   "bias": -2.786,
+   "bias_pct": -0.0229,
+   "roc_auc": 0.8637,
+   "coverage": 0.7867,
+   "val_wape": 0.13,
+   "val_bias_pct": -0.0153,
+   "skill_vs_seasonal_naive": 0.3813
+  },
+  "baselines_valid": {
+   "naive": {
+    "mae": 23.5166,
+    "rmse": 43.1813,
+    "wape": 0.1973,
+    "bias": 0.3307,
+    "bias_pct": 0.0028,
+    "roc_auc": 0.6992
+   },
+   "seasonal_naive": {
+    "mae": 22.761,
+    "rmse": 42.1317,
+    "wape": 0.191,
+    "bias": 0.0552,
+    "bias_pct": 0.0005,
+    "roc_auc": 0.7095
+   },
+   "moving_average_7": {
+    "mae": 21.8144,
+    "rmse": 37.3033,
+    "wape": 0.1831,
+    "bias": 0.0742,
+    "bias_pct": 0.0006,
+    "roc_auc": 0.5939
+   }
+  },
+  "baselines_test": {
+   "naive": {
+    "mae": 23.6363,
+    "rmse": 37.0274,
+    "wape": 0.1944,
+    "bias": -0.0557,
+    "bias_pct": -0.0005,
+    "roc_auc": 0.7097
+   },
+   "seasonal_naive": {
+    "mae": 25.2505,
+    "rmse": 43.3726,
+    "wape": 0.2077,
+    "bias": -0.6463,
+    "bias_pct": -0.0053,
+    "roc_auc": 0.6656
+   },
+   "moving_average_7": {
+    "mae": 22.6634,
+    "rmse": 33.8505,
+    "wape": 0.1864,
+    "bias": 0.0074,
+    "bias_pct": 0.0001,
+    "roc_auc": 0.5896
+   }
+  },
+  "candidates_valid": {
+   "ridge_log": {
+    "mae": 16.1051,
+    "rmse": 31.5026,
+    "wape": 0.1351,
+    "bias": -1.3841,
+    "bias_pct": -0.0116,
+    "roc_auc": 0.8521
+   },
+   "hgb": {
+    "mae": 15.4915,
+    "rmse": 30.7486,
+    "wape": 0.13,
+    "bias": -1.8269,
+    "bias_pct": -0.0153,
+    "roc_auc": 0.8564
+   }
+  },
+  "interval": {
+   "low": -0.19366465474495842,
+   "high": 0.22368596946036287,
+   "level": 0.8
+  },
+  "rows": {
+   "train": 12336,
+   "valid": 2200,
+   "test": 2208
+  }
+ },
+ "evaluation": {
+  "table": [
+   {
+    "model": "naive",
+    "mae": 23.6363,
+    "rmse": 37.0274,
+    "wape": 0.1944,
+    "bias": -0.0557,
+    "bias_pct": -0.0005,
+    "roc_auc": 0.7097,
+    "over_forecast_units": 26033.0,
+    "under_forecast_units": 26156.0,
+    "weighted_cost": 104501.0
+   },
+   {
+    "model": "seasonal_naive",
+    "mae": 25.2505,
+    "rmse": 43.3726,
+    "wape": 0.2077,
+    "bias": -0.6463,
+    "bias_pct": -0.0053,
+    "roc_auc": 0.6656,
+    "over_forecast_units": 27163.0,
+    "under_forecast_units": 28590.0,
+    "weighted_cost": 112933.0
+   },
+   {
+    "model": "moving_average_7",
+    "mae": 22.6634,
+    "rmse": 33.8505,
+    "wape": 0.1864,
+    "bias": 0.0074,
+    "bias_pct": 0.0001,
+    "roc_auc": 0.5896,
+    "over_forecast_units": 25029.0,
+    "under_forecast_units": 25012.0,
+    "weighted_cost": 100065.0
+   },
+   {
+    "model": "champion",
+    "mae": 15.6152,
+    "rmse": 25.2737,
+    "wape": 0.1285,
+    "bias": -2.786,
+    "bias_pct": -0.0229,
+    "roc_auc": 0.8637,
+    "over_forecast_units": 14163.0,
+    "under_forecast_units": 20315.0,
+    "weighted_cost": 75108.0
+   }
+  ],
+  "segments": {
+   "promotion day": {
+    "rows": 201,
+    "wape": 0.124,
+    "bias_pct": -0.015
+   },
+   "no promotion": {
+    "rows": 2007,
+    "wape": 0.129,
+    "bias_pct": -0.024
+   },
+   "holiday": {
+    "rows": 72,
+    "wape": 0.151,
+    "bias_pct": -0.101
+   },
+   "weekend": {
+    "rows": 624,
+    "wape": 0.129,
+    "bias_pct": -0.009
+   },
+   "weekday": {
+    "rows": 1584,
+    "wape": 0.128,
+    "bias_pct": -0.03
+   }
+  },
+  "by_product": {
+   "P01": {
+    "wape": 0.1296,
+    "bias_pct": 0.0186
+   },
+   "P02": {
+    "wape": 0.1885,
+    "bias_pct": 0.0321
+   },
+   "P03": {
+    "wape": 0.1188,
+    "bias_pct": -0.0456
+   },
+   "P04": {
+    "wape": 0.1115,
+    "bias_pct": -0.054
+   },
+   "P05": {
+    "wape": 0.1126,
+    "bias_pct": -0.0361
+   },
+   "P06": {
+    "wape": 0.1465,
+    "bias_pct": 0.0195
+   },
+   "P07": {
+    "wape": 0.1455,
+    "bias_pct": -0.0153
+   },
+   "P08": {
+    "wape": 0.1394,
+    "bias_pct": -0.0313
+   }
+  },
+  "interval": {
+   "low": -0.19366465474495842,
+   "high": 0.22368596946036287,
+   "level": 0.8
+  },
+  "zero_rows_test": 40
+ },
+ "trend_shift": {
+  "A": {
+   "normal": {
+    "naive": {
+     "wape": 0.1967,
+     "bias_pct": -0.0042
+    },
+    "seasonal_naive": {
+     "wape": 0.2044,
+     "bias_pct": -0.003
+    },
+    "moving_average_7": {
+     "wape": 0.185,
+     "bias_pct": 0.0008
+    },
+    "ridge_log": {
+     "wape": 0.1312,
+     "bias_pct": -0.0274
+    },
+    "hgb": {
+     "wape": 0.1323,
+     "bias_pct": -0.0428
+    },
+    "hgb+trend_index": {
+     "wape": 0.145,
+     "bias_pct": 0.0552
+    }
+   },
+   "drifted": {
+    "naive": {
+     "wape": 0.1788,
+     "bias_pct": -0.0127
+    },
+    "seasonal_naive": {
+     "wape": 0.1915,
+     "bias_pct": -0.0433
+    },
+    "moving_average_7": {
+     "wape": 0.1774,
+     "bias_pct": -0.0242
+    },
+    "ridge_log": {
+     "wape": 0.14,
+     "bias_pct": -0.0923
+    },
+    "hgb": {
+     "wape": 0.1959,
+     "bias_pct": -0.1526
+    },
+    "hgb+trend_index": {
+     "wape": 0.1435,
+     "bias_pct": -0.0497
+    }
+   },
+   "festival": {
+    "naive": {
+     "wape": 0.2022,
+     "bias_pct": 0.0047
+    },
+    "seasonal_naive": {
+     "wape": 0.227,
+     "bias_pct": 0.0104
+    },
+    "moving_average_7": {
+     "wape": 0.1909,
+     "bias_pct": -0.0013
+    },
+    "ridge_log": {
+     "wape": 0.1395,
+     "bias_pct": -0.015
+    },
+    "hgb": {
+     "wape": 0.1451,
+     "bias_pct": -0.0173
+    },
+    "hgb+trend_index": {
+     "wape": 0.1655,
+     "bias_pct": 0.0742
+    }
+   }
+  },
+  "B": {
+   "naive": {
+    "1": -1.1,
+    "2": -0.9,
+    "3": -1.1,
+    "4": 0.1,
+    "5": -0.6,
+    "6": -2.7,
+    "7": -1.7,
+    "8": 0.6
+   },
+   "seasonal_naive": {
+    "1": -11.0,
+    "2": -1.2,
+    "3": -5.9,
+    "4": -3.1,
+    "5": -9.5,
+    "6": 0.5,
+    "7": -7.7,
+    "8": 2.3
+   },
+   "moving_average_7": {
+    "1": -6.7,
+    "2": -0.7,
+    "3": -3.7,
+    "4": -1.7,
+    "5": -4.9,
+    "6": 0.6,
+    "7": -5.0,
+    "8": 1.6
+   },
+   "ridge_log": {
+    "1": -8.6,
+    "2": -7.2,
+    "3": -10.7,
+    "4": -4.7,
+    "5": -9.2,
+    "6": -9.9,
+    "7": -12.5,
+    "8": -9.9
+   },
+   "hgb": {
+    "1": -13.4,
+    "2": -10.3,
+    "3": -16.2,
+    "4": -9.6,
+    "5": -14.6,
+    "6": -14.9,
+    "7": -20.2,
+    "8": -19.3
+   },
+   "hgb+trend_index": {
+    "1": -4.8,
+    "2": -0.5,
+    "3": -5.6,
+    "4": 0.1,
+    "5": -4.7,
+    "6": -4.9,
+    "7": -9.4,
+    "8": -6.9
+   }
+  },
+  "C": [
+   {
+    "k": 1.0,
+    "hgb_bias%": -4.3,
+    "hgb_wape": 0.132,
+    "ridge_log_bias%": -2.7,
+    "ridge_log_wape": 0.131,
+    "hgb_max_forecast": 362
+   },
+   {
+    "k": 1.25,
+    "hgb_bias%": -11.9,
+    "hgb_wape": 0.177,
+    "ridge_log_bias%": -6.8,
+    "ridge_log_wape": 0.138,
+    "hgb_max_forecast": 360
+   },
+   {
+    "k": 1.5,
+    "hgb_bias%": -18.8,
+    "hgb_wape": 0.231,
+    "ridge_log_bias%": -10.1,
+    "ridge_log_wape": 0.151,
+    "hgb_max_forecast": 365
+   },
+   {
+    "k": 2.0,
+    "hgb_bias%": -30.9,
+    "hgb_wape": 0.339,
+    "ridge_log_bias%": -14.9,
+    "ridge_log_wape": 0.178,
+    "hgb_max_forecast": 370
+   },
+   {
+    "k": 3.0,
+    "hgb_bias%": -48.4,
+    "hgb_wape": 0.495,
+    "ridge_log_bias%": -21.3,
+    "ridge_log_wape": 0.226,
+    "hgb_max_forecast": 370
+   }
+  ]
+ },
+ "explainability": {
+  "model": "hgb",
+  "base_mae": 15.615173905219631,
+  "permutation": [
+   {
+    "feature": "lag_1",
+    "mae_increase": 13.1605,
+    "std": 0.4289
+   },
+   {
+    "feature": "rolling_mean_7",
+    "mae_increase": 12.9755,
+    "std": 0.4764
+   },
+   {
+    "feature": "day_of_week",
+    "mae_increase": 3.3175,
+    "std": 0.1175
+   },
+   {
+    "feature": "product_id",
+    "mae_increase": 1.8447,
+    "std": 0.0668
+   },
+   {
+    "feature": "lag_14",
+    "mae_increase": 1.5925,
+    "std": 0.079
+   },
+   {
+    "feature": "discount_pct",
+    "mae_increase": 1.302,
+    "std": 0.0528
+   },
+   {
+    "feature": "lag_7",
+    "mae_increase": 1.2757,
+    "std": 0.1046
+   },
+   {
+    "feature": "store_id",
+    "mae_increase": 1.2644,
+    "std": 0.1912
+   },
+   {
+    "feature": "is_holiday",
+    "mae_increase": 0.6877,
+    "std": 0.0441
+   },
+   {
+    "feature": "price_change",
+    "mae_increase": 0.4116,
+    "std": 0.0452
+   }
+  ],
+  "linear": [
+   {
+    "column": "lag_1",
+    "coefficient": 0.2076,
+    "abs_coefficient": 0.2076
+   },
+   {
+    "column": "rolling_mean_7",
+    "coefficient": 0.2021,
+    "abs_coefficient": 0.2021
+   },
+   {
+    "column": "is_holiday",
+    "coefficient": 0.1711,
+    "abs_coefficient": 0.1711
+   },
+   {
+    "column": "day_of_week_0",
+    "coefficient": -0.1539,
+    "abs_coefficient": 0.1539
+   },
+   {
+    "column": "day_of_week_5",
+    "coefficient": 0.1537,
+    "abs_coefficient": 0.1537
+   },
+   {
+    "column": "product_id_P07",
+    "coefficient": -0.1319,
+    "abs_coefficient": 0.1319
+   },
+   {
+    "column": "product_id_P04",
+    "coefficient": 0.1049,
+    "abs_coefficient": 0.1049
+   },
+   {
+    "column": "product_id_P06",
+    "coefficient": -0.0979,
+    "abs_coefficient": 0.0979
+   },
+   {
+    "column": "day_of_week_1",
+    "coefficient": -0.0976,
+    "abs_coefficient": 0.0976
+   },
+   {
+    "column": "product_id_P05",
+    "coefficient": 0.0965,
+    "abs_coefficient": 0.0965
+   }
+  ],
+  "shap": [
+   {
+    "feature": "lag_1",
+    "mean_abs_shap": 20.2505
+   },
+   {
+    "feature": "rolling_mean_7",
+    "mean_abs_shap": 18.8507
+   },
+   {
+    "feature": "day_of_week",
+    "mean_abs_shap": 9.2217
+   },
+   {
+    "feature": "lag_14",
+    "mean_abs_shap": 5.8414
+   },
+   {
+    "feature": "lag_7",
+    "mean_abs_shap": 5.0221
+   },
+   {
+    "feature": "store_id_S1",
+    "mean_abs_shap": 3.2314
+   },
+   {
+    "feature": "product_id_P04",
+    "mean_abs_shap": 2.8624
+   },
+   {
+    "feature": "is_holiday",
+    "mean_abs_shap": 2.6437
+   }
+  ]
+ },
+ "drift": {
+  "normal": {
+   "prod": "data/production/batch_normal.csv",
+   "ref_window": "all",
+   "table": [
+    {
+     "feature": "lag_1",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.074,
+     "p_value": 1.188932263511864e-05,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "rolling_mean_7",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.1021,
+     "p_value": 2.2156128135220672e-10,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "rolling_mean_30",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.11,
+     "p_value": 5.670435199905115e-12,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "price",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.1225,
+     "p_value": 9.104844337698909e-15,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "discount_pct",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.0163,
+     "p_value": 0.9268707055358655,
+     "statistically_significant": false,
+     "practically_significant": false,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "forecast_temp",
+     "n_ref": 4931,
+     "n_prod": 1376,
+     "ks_statistic": 0.4835,
+     "p_value": 1.6814057239400554e-229,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "sales",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.0744,
+     "p_value": 1.0436532598432631e-05,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    }
+   ],
+   "decision": {
+    "decision": "MONITOR",
+    "reasons": [
+     "Drift (significant AND large) in: ['rolling_mean_7', 'rolling_mean_30', 'price', 'forecast_temp'].",
+     "Statistically significant but small shift in: ['lag_1'] (watch, do not act alone).",
+     "Labelled performance is stable (drop -0.100 < 0.25).",
+     "Inputs moved but the model still performs: monitor, do not retrain yet."
+    ]
+   },
+   "weekly": [
+    {
+     "week": 1,
+     "from_date": "2025-01-01",
+     "actual_units": 19992,
+     "forecast_units": 19754,
+     "wape": 0.126,
+     "bias_pct": -0.0119,
+     "vs_validation": -0.0309,
+     "breach": false
+    },
+    {
+     "week": 2,
+     "from_date": "2025-01-08",
+     "actual_units": 19193,
+     "forecast_units": 17857,
+     "wape": 0.1622,
+     "bias_pct": -0.0696,
+     "vs_validation": 0.2479,
+     "breach": false
+    },
+    {
+     "week": 3,
+     "from_date": "2025-01-15",
+     "actual_units": 20626,
+     "forecast_units": 19791,
+     "wape": 0.123,
+     "bias_pct": -0.0405,
+     "vs_validation": -0.0542,
+     "breach": false
+    },
+    {
+     "week": 4,
+     "from_date": "2025-01-22",
+     "actual_units": 21281,
+     "forecast_units": 20758,
+     "wape": 0.1201,
+     "bias_pct": -0.0245,
+     "vs_validation": -0.0759,
+     "breach": false
+    },
+    {
+     "week": 5,
+     "from_date": "2025-01-29",
+     "actual_units": 20526,
+     "forecast_units": 19972,
+     "wape": 0.1212,
+     "bias_pct": -0.0269,
+     "vs_validation": -0.0679,
+     "breach": false
+    },
+    {
+     "week": 6,
+     "from_date": "2025-02-05",
+     "actual_units": 19503,
+     "forecast_units": 18847,
+     "wape": 0.134,
+     "bias_pct": -0.0336,
+     "vs_validation": 0.0309,
+     "breach": false
+    },
+    {
+     "week": 7,
+     "from_date": "2025-02-12",
+     "actual_units": 21229,
+     "forecast_units": 20120,
+     "wape": 0.117,
+     "bias_pct": -0.0522,
+     "vs_validation": -0.0999,
+     "breach": false
+    },
+    {
+     "week": 8,
+     "from_date": "2025-02-19",
+     "actual_units": 21814,
+     "forecast_units": 20002,
+     "wape": 0.1543,
+     "bias_pct": -0.083,
+     "vs_validation": 0.1867,
+     "breach": false
+    }
+   ],
+   "data_quality": {
+    "ok": true,
+    "checks": [
+     [
+      "schema",
+      true,
+      "all required columns present"
+     ],
+     [
+      "duplicates",
+      true,
+      "0 duplicated (date, product, store) rows"
+     ],
+     [
+      "sales_negative",
+      true,
+      "0 rows with negative sales"
+     ],
+     [
+      "null_rate_sales",
+      true,
+      "sales null rate 1.1% (limit 5%)"
+     ],
+     [
+      "null_rate_price",
+      true,
+      "price null rate 0.0% (limit 1%)"
+     ],
+     [
+      "null_rate_forecast_temp",
+      true,
+      "forecast_temp null rate 1.7% (limit 10%)"
+     ],
+     [
+      "price_range",
+      true,
+      "0 rows outside 0 < price <= 5000"
+     ],
+     [
+      "price_unit",
+      true,
+      "median price ratio vs reference is 0.5-2.0 for every product"
+     ],
+     [
+      "unknown_ids",
+      true,
+      "all ids known"
+     ],
+     [
+      "calendar_gaps",
+      true,
+      "largest share of missing days in any series: 0.0% (limit 5%)"
+     ]
+    ]
+   },
+   "perf_drop": -0.0999,
+   "lag_drift": true,
+   "business": {
+    "under_units": 15135.789822303792,
+    "over_units": 7733.1983255361065,
+    "impact_high": false
+   }
+  },
+  "normal_seasonal_reference": {
+   "prod": "data/production/batch_normal.csv",
+   "ref_window": "seasonal",
+   "table": [
+    {
+     "feature": "lag_1",
+     "n_ref": 1265,
+     "n_prod": 1400,
+     "ks_statistic": 0.0946,
+     "p_value": 1.2467901249868925e-05,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "rolling_mean_7",
+     "n_ref": 1265,
+     "n_prod": 1400,
+     "ks_statistic": 0.125,
+     "p_value": 1.6107696147555138e-09,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "rolling_mean_30",
+     "n_ref": 1265,
+     "n_prod": 1400,
+     "ks_statistic": 0.1392,
+     "p_value": 1.078242179455173e-11,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "price",
+     "n_ref": 1265,
+     "n_prod": 1400,
+     "ks_statistic": 0.1245,
+     "p_value": 1.9343203580435205e-09,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "discount_pct",
+     "n_ref": 1265,
+     "n_prod": 1400,
+     "ks_statistic": 0.0265,
+     "p_value": 0.7232963071108949,
+     "statistically_significant": false,
+     "practically_significant": false,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "forecast_temp",
+     "n_ref": 1243,
+     "n_prod": 1376,
+     "ks_statistic": 0.1331,
+     "p_value": 1.508808560450304e-10,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "sales",
+     "n_ref": 1265,
+     "n_prod": 1400,
+     "ks_statistic": 0.0967,
+     "p_value": 7.2379907482849155e-06,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    }
+   ],
+   "decision": {
+    "decision": "MONITOR",
+    "reasons": [
+     "Drift (significant AND large) in: ['rolling_mean_7', 'rolling_mean_30', 'price', 'forecast_temp'].",
+     "Statistically significant but small shift in: ['lag_1'] (watch, do not act alone).",
+     "Labelled performance is stable (drop -0.100 < 0.25).",
+     "Inputs moved but the model still performs: monitor, do not retrain yet."
+    ]
+   },
+   "weekly": [
+    {
+     "week": 1,
+     "from_date": "2025-01-01",
+     "actual_units": 19992,
+     "forecast_units": 19754,
+     "wape": 0.126,
+     "bias_pct": -0.0119,
+     "vs_validation": -0.0309,
+     "breach": false
+    },
+    {
+     "week": 2,
+     "from_date": "2025-01-08",
+     "actual_units": 19193,
+     "forecast_units": 17857,
+     "wape": 0.1622,
+     "bias_pct": -0.0696,
+     "vs_validation": 0.2479,
+     "breach": false
+    },
+    {
+     "week": 3,
+     "from_date": "2025-01-15",
+     "actual_units": 20626,
+     "forecast_units": 19791,
+     "wape": 0.123,
+     "bias_pct": -0.0405,
+     "vs_validation": -0.0542,
+     "breach": false
+    },
+    {
+     "week": 4,
+     "from_date": "2025-01-22",
+     "actual_units": 21281,
+     "forecast_units": 20758,
+     "wape": 0.1201,
+     "bias_pct": -0.0245,
+     "vs_validation": -0.0759,
+     "breach": false
+    },
+    {
+     "week": 5,
+     "from_date": "2025-01-29",
+     "actual_units": 20526,
+     "forecast_units": 19972,
+     "wape": 0.1212,
+     "bias_pct": -0.0269,
+     "vs_validation": -0.0679,
+     "breach": false
+    },
+    {
+     "week": 6,
+     "from_date": "2025-02-05",
+     "actual_units": 19503,
+     "forecast_units": 18847,
+     "wape": 0.134,
+     "bias_pct": -0.0336,
+     "vs_validation": 0.0309,
+     "breach": false
+    },
+    {
+     "week": 7,
+     "from_date": "2025-02-12",
+     "actual_units": 21229,
+     "forecast_units": 20120,
+     "wape": 0.117,
+     "bias_pct": -0.0522,
+     "vs_validation": -0.0999,
+     "breach": false
+    },
+    {
+     "week": 8,
+     "from_date": "2025-02-19",
+     "actual_units": 21814,
+     "forecast_units": 20002,
+     "wape": 0.1543,
+     "bias_pct": -0.083,
+     "vs_validation": 0.1867,
+     "breach": false
+    }
+   ],
+   "data_quality": {
+    "ok": true,
+    "checks": [
+     [
+      "schema",
+      true,
+      "all required columns present"
+     ],
+     [
+      "duplicates",
+      true,
+      "0 duplicated (date, product, store) rows"
+     ],
+     [
+      "sales_negative",
+      true,
+      "0 rows with negative sales"
+     ],
+     [
+      "null_rate_sales",
+      true,
+      "sales null rate 1.1% (limit 5%)"
+     ],
+     [
+      "null_rate_price",
+      true,
+      "price null rate 0.0% (limit 1%)"
+     ],
+     [
+      "null_rate_forecast_temp",
+      true,
+      "forecast_temp null rate 1.7% (limit 10%)"
+     ],
+     [
+      "price_range",
+      true,
+      "0 rows outside 0 < price <= 5000"
+     ],
+     [
+      "price_unit",
+      true,
+      "median price ratio vs reference is 0.5-2.0 for every product"
+     ],
+     [
+      "unknown_ids",
+      true,
+      "all ids known"
+     ],
+     [
+      "calendar_gaps",
+      true,
+      "largest share of missing days in any series: 0.0% (limit 5%)"
+     ]
+    ]
+   },
+   "perf_drop": -0.0999,
+   "lag_drift": true,
+   "business": {
+    "under_units": 15135.789822303792,
+    "over_units": 7733.1983255361065,
+    "impact_high": false
+   }
+  },
+  "drifted": {
+   "prod": "data/production/batch_drifted.csv",
+   "ref_window": "all",
+   "table": [
+    {
+     "feature": "lag_1",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.2397,
+     "p_value": 1.0936983162882667e-55,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "rolling_mean_7",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.2632,
+     "p_value": 3.690432382469167e-67,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "rolling_mean_30",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.2189,
+     "p_value": 2.1197067750845667e-46,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "price",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.2133,
+     "p_value": 4.648410022044854e-44,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "discount_pct",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.0291,
+     "p_value": 0.3043892517412001,
+     "statistically_significant": false,
+     "practically_significant": false,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "forecast_temp",
+     "n_ref": 4931,
+     "n_prod": 1376,
+     "ks_statistic": 0.4835,
+     "p_value": 1.6814057239400554e-229,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "sales",
+     "n_ref": 5000,
+     "n_prod": 1400,
+     "ks_statistic": 0.2464,
+     "p_value": 7.8186452992306285e-59,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    }
+   ],
+   "decision": {
+    "decision": "RETRAIN_CANDIDATE",
+    "reasons": [
+     "Drift (significant AND large) in: ['lag_1', 'rolling_mean_7', 'rolling_mean_30', 'price', 'forecast_temp'].",
+     "Labelled performance fell by 0.702 (>= 0.25).",
+     "Train a challenger; promote only if it beats the champion."
+    ]
+   },
+   "weekly": [
+    {
+     "week": 1,
+     "from_date": "2025-01-01",
+     "actual_units": 23960,
+     "forecast_units": 20745,
+     "wape": 0.1742,
+     "bias_pct": -0.1342,
+     "vs_validation": 0.3404,
+     "breach": true
+    },
+    {
+     "week": 2,
+     "from_date": "2025-01-08",
+     "actual_units": 22653,
+     "forecast_units": 20309,
+     "wape": 0.1586,
+     "bias_pct": -0.1034,
+     "vs_validation": 0.2201,
+     "breach": false
+    },
+    {
+     "week": 3,
+     "from_date": "2025-01-15",
+     "actual_units": 25442,
+     "forecast_units": 21309,
+     "wape": 0.1981,
+     "bias_pct": -0.1624,
+     "vs_validation": 0.5238,
+     "breach": true
+    },
+    {
+     "week": 4,
+     "from_date": "2025-01-22",
+     "actual_units": 26263,
+     "forecast_units": 23740,
+     "wape": 0.1569,
+     "bias_pct": -0.096,
+     "vs_validation": 0.2066,
+     "breach": false
+    },
+    {
+     "week": 5,
+     "from_date": "2025-01-29",
+     "actual_units": 29022,
+     "forecast_units": 24784,
+     "wape": 0.1912,
+     "bias_pct": -0.146,
+     "vs_validation": 0.4708,
+     "breach": true
+    },
+    {
+     "week": 6,
+     "from_date": "2025-02-05",
+     "actual_units": 26988,
+     "forecast_units": 22975,
+     "wape": 0.2151,
+     "bias_pct": -0.1487,
+     "vs_validation": 0.655,
+     "breach": true
+    },
+    {
+     "week": 7,
+     "from_date": "2025-02-12",
+     "actual_units": 31003,
+     "forecast_units": 24743,
+     "wape": 0.2315,
+     "bias_pct": -0.2019,
+     "vs_validation": 0.7809,
+     "breach": true
+    },
+    {
+     "week": 8,
+     "from_date": "2025-02-19",
+     "actual_units": 30320,
+     "forecast_units": 24475,
+     "wape": 0.2212,
+     "bias_pct": -0.1928,
+     "vs_validation": 0.7016,
+     "breach": true
+    }
+   ],
+   "data_quality": {
+    "ok": true,
+    "checks": [
+     [
+      "schema",
+      true,
+      "all required columns present"
+     ],
+     [
+      "duplicates",
+      true,
+      "0 duplicated (date, product, store) rows"
+     ],
+     [
+      "sales_negative",
+      true,
+      "0 rows with negative sales"
+     ],
+     [
+      "null_rate_sales",
+      true,
+      "sales null rate 1.1% (limit 5%)"
+     ],
+     [
+      "null_rate_price",
+      true,
+      "price null rate 0.0% (limit 1%)"
+     ],
+     [
+      "null_rate_forecast_temp",
+      true,
+      "forecast_temp null rate 1.7% (limit 10%)"
+     ],
+     [
+      "price_range",
+      true,
+      "0 rows outside 0 < price <= 5000"
+     ],
+     [
+      "price_unit",
+      true,
+      "median price ratio vs reference is 0.5-2.0 for every product"
+     ],
+     [
+      "unknown_ids",
+      true,
+      "all ids known"
+     ],
+     [
+      "calendar_gaps",
+      true,
+      "largest share of missing days in any series: 0.0% (limit 5%)"
+     ]
+    ]
+   },
+   "perf_drop": 0.7016,
+   "lag_drift": true,
+   "business": {
+    "under_units": 39858.157083383136,
+    "over_units": 4955.816506955962,
+    "impact_high": true
+   }
+  },
+  "festival": {
+   "prod": "data/production/batch_festival.csv",
+   "ref_window": "all",
+   "table": [
+    {
+     "feature": "lag_1",
+     "n_ref": 5000,
+     "n_prod": 528,
+     "ks_statistic": 0.0941,
+     "p_value": 0.00038913657819427127,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "rolling_mean_7",
+     "n_ref": 5000,
+     "n_prod": 528,
+     "ks_statistic": 0.1251,
+     "p_value": 5.642394976588802e-07,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "rolling_mean_30",
+     "n_ref": 5000,
+     "n_prod": 528,
+     "ks_statistic": 0.1455,
+     "p_value": 2.7208000507384522e-09,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "price",
+     "n_ref": 5000,
+     "n_prod": 528,
+     "ks_statistic": 0.1282,
+     "p_value": 2.619365640865141e-07,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "discount_pct",
+     "n_ref": 5000,
+     "n_prod": 528,
+     "ks_statistic": 0.0297,
+     "p_value": 0.7805630975598092,
+     "statistically_significant": false,
+     "practically_significant": false,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "forecast_temp",
+     "n_ref": 4931,
+     "n_prod": 504,
+     "ks_statistic": 0.2838,
+     "p_value": 4.8309705458787035e-33,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "sales",
+     "n_ref": 5000,
+     "n_prod": 528,
+     "ks_statistic": 0.0983,
+     "p_value": 0.0001787790483385425,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    }
+   ],
+   "decision": {
+    "decision": "MONITOR",
+    "reasons": [
+     "Drift (significant AND large) in: ['rolling_mean_7', 'rolling_mean_30', 'price', 'forecast_temp'].",
+     "Statistically significant but small shift in: ['lag_1'] (watch, do not act alone).",
+     "Labelled performance is stable (drop 0.070 < 0.25).",
+     "Inputs moved but the model still performs: monitor, do not retrain yet."
+    ]
+   },
+   "weekly": [
+    {
+     "week": 1,
+     "from_date": "2024-10-20",
+     "actual_units": 19846,
+     "forecast_units": 19429,
+     "wape": 0.1212,
+     "bias_pct": -0.021,
+     "vs_validation": -0.0676,
+     "breach": false
+    },
+    {
+     "week": 2,
+     "from_date": "2024-10-27",
+     "actual_units": 23006,
+     "forecast_units": 21289,
+     "wape": 0.1714,
+     "bias_pct": -0.0746,
+     "vs_validation": 0.3186,
+     "breach": true
+    },
+    {
+     "week": 3,
+     "from_date": "2024-11-03",
+     "actual_units": 19433,
+     "forecast_units": 20231,
+     "wape": 0.1391,
+     "bias_pct": 0.0411,
+     "vs_validation": 0.0702,
+     "breach": false
+    }
+   ],
+   "data_quality": {
+    "ok": true,
+    "checks": [
+     [
+      "schema",
+      true,
+      "all required columns present"
+     ],
+     [
+      "duplicates",
+      true,
+      "0 duplicated (date, product, store) rows"
+     ],
+     [
+      "sales_negative",
+      true,
+      "0 rows with negative sales"
+     ],
+     [
+      "null_rate_sales",
+      true,
+      "sales null rate 0.0% (limit 5%)"
+     ],
+     [
+      "null_rate_price",
+      true,
+      "price null rate 0.0% (limit 1%)"
+     ],
+     [
+      "null_rate_forecast_temp",
+      true,
+      "forecast_temp null rate 4.5% (limit 10%)"
+     ],
+     [
+      "price_range",
+      true,
+      "0 rows outside 0 < price <= 5000"
+     ],
+     [
+      "price_unit",
+      true,
+      "median price ratio vs reference is 0.5-2.0 for every product"
+     ],
+     [
+      "unknown_ids",
+      true,
+      "all ids known"
+     ],
+     [
+      "calendar_gaps",
+      true,
+      "largest share of missing days in any series: 0.0% (limit 5%)"
+     ]
+    ]
+   },
+   "perf_drop": 0.0702,
+   "lag_drift": true,
+   "business": {
+    "under_units": 5308.923770203277,
+    "over_units": 4177.172098256967,
+    "impact_high": false
+   }
+  },
+  "festival_seasonal_reference": {
+   "prod": "data/production/batch_festival.csv",
+   "ref_window": "seasonal",
+   "table": [
+    {
+     "feature": "lag_1",
+     "n_ref": 476,
+     "n_prod": 528,
+     "ks_statistic": 0.0882,
+     "p_value": 0.03766910723708529,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "rolling_mean_7",
+     "n_ref": 476,
+     "n_prod": 528,
+     "ks_statistic": 0.0985,
+     "p_value": 0.014256260517269935,
+     "statistically_significant": true,
+     "practically_significant": false,
+     "status": "significant_but_small"
+    },
+    {
+     "feature": "rolling_mean_30",
+     "n_ref": 476,
+     "n_prod": 528,
+     "ks_statistic": 0.1592,
+     "p_value": 5.159584056294946e-06,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "price",
+     "n_ref": 476,
+     "n_prod": 528,
+     "ks_statistic": 0.1429,
+     "p_value": 6.272864440145326e-05,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "discount_pct",
+     "n_ref": 476,
+     "n_prod": 528,
+     "ks_statistic": 0.0237,
+     "p_value": 0.9981848160149843,
+     "statistically_significant": false,
+     "practically_significant": false,
+     "status": "no_evidence_of_drift"
+    },
+    {
+     "feature": "forecast_temp",
+     "n_ref": 466,
+     "n_prod": 504,
+     "ks_statistic": 0.2284,
+     "p_value": 1.4265311673729388e-11,
+     "statistically_significant": true,
+     "practically_significant": true,
+     "status": "drift"
+    },
+    {
+     "feature": "sales",
+     "n_ref": 476,
+     "n_prod": 528,
+     "ks_statistic": 0.0819,
+     "p_value": 0.06465716472552234,
+     "statistically_significant": false,
+     "practically_significant": false,
+     "status": "no_evidence_of_drift"
+    }
+   ],
+   "decision": {
+    "decision": "MONITOR",
+    "reasons": [
+     "Drift (significant AND large) in: ['rolling_mean_30', 'price', 'forecast_temp'].",
+     "Statistically significant but small shift in: ['lag_1', 'rolling_mean_7'] (watch, do not act alone).",
+     "Labelled performance is stable (drop 0.070 < 0.25).",
+     "Inputs moved but the model still performs: monitor, do not retrain yet."
+    ]
+   },
+   "weekly": [
+    {
+     "week": 1,
+     "from_date": "2024-10-20",
+     "actual_units": 19846,
+     "forecast_units": 19429,
+     "wape": 0.1212,
+     "bias_pct": -0.021,
+     "vs_validation": -0.0676,
+     "breach": false
+    },
+    {
+     "week": 2,
+     "from_date": "2024-10-27",
+     "actual_units": 23006,
+     "forecast_units": 21289,
+     "wape": 0.1714,
+     "bias_pct": -0.0746,
+     "vs_validation": 0.3186,
+     "breach": true
+    },
+    {
+     "week": 3,
+     "from_date": "2024-11-03",
+     "actual_units": 19433,
+     "forecast_units": 20231,
+     "wape": 0.1391,
+     "bias_pct": 0.0411,
+     "vs_validation": 0.0702,
+     "breach": false
+    }
+   ],
+   "data_quality": {
+    "ok": true,
+    "checks": [
+     [
+      "schema",
+      true,
+      "all required columns present"
+     ],
+     [
+      "duplicates",
+      true,
+      "0 duplicated (date, product, store) rows"
+     ],
+     [
+      "sales_negative",
+      true,
+      "0 rows with negative sales"
+     ],
+     [
+      "null_rate_sales",
+      true,
+      "sales null rate 0.0% (limit 5%)"
+     ],
+     [
+      "null_rate_price",
+      true,
+      "price null rate 0.0% (limit 1%)"
+     ],
+     [
+      "null_rate_forecast_temp",
+      true,
+      "forecast_temp null rate 4.5% (limit 10%)"
+     ],
+     [
+      "price_range",
+      true,
+      "0 rows outside 0 < price <= 5000"
+     ],
+     [
+      "price_unit",
+      true,
+      "median price ratio vs reference is 0.5-2.0 for every product"
+     ],
+     [
+      "unknown_ids",
+      true,
+      "all ids known"
+     ],
+     [
+      "calendar_gaps",
+      true,
+      "largest share of missing days in any series: 0.0% (limit 5%)"
+     ]
+    ]
+   },
+   "perf_drop": 0.0702,
+   "lag_drift": true,
+   "business": {
+    "under_units": 5308.923770203277,
+    "over_units": 4177.172098256967,
+    "impact_high": false
+   }
+  },
+  "performance": {
+   "normal": {
+    "weekly": [
+     {
+      "week": 1,
+      "from_date": "2025-01-01",
+      "actual_units": 19992,
+      "forecast_units": 19754,
+      "wape": 0.126,
+      "bias_pct": -0.0119,
+      "vs_validation": -0.0309,
+      "breach": false
+     },
+     {
+      "week": 2,
+      "from_date": "2025-01-08",
+      "actual_units": 19193,
+      "forecast_units": 17857,
+      "wape": 0.1622,
+      "bias_pct": -0.0696,
+      "vs_validation": 0.2479,
+      "breach": false
+     },
+     {
+      "week": 3,
+      "from_date": "2025-01-15",
+      "actual_units": 20626,
+      "forecast_units": 19791,
+      "wape": 0.123,
+      "bias_pct": -0.0405,
+      "vs_validation": -0.0542,
+      "breach": false
+     },
+     {
+      "week": 4,
+      "from_date": "2025-01-22",
+      "actual_units": 21281,
+      "forecast_units": 20758,
+      "wape": 0.1201,
+      "bias_pct": -0.0245,
+      "vs_validation": -0.0759,
+      "breach": false
+     },
+     {
+      "week": 5,
+      "from_date": "2025-01-29",
+      "actual_units": 20526,
+      "forecast_units": 19972,
+      "wape": 0.1212,
+      "bias_pct": -0.0269,
+      "vs_validation": -0.0679,
+      "breach": false
+     },
+     {
+      "week": 6,
+      "from_date": "2025-02-05",
+      "actual_units": 19503,
+      "forecast_units": 18847,
+      "wape": 0.134,
+      "bias_pct": -0.0336,
+      "vs_validation": 0.0309,
+      "breach": false
+     },
+     {
+      "week": 7,
+      "from_date": "2025-02-12",
+      "actual_units": 21229,
+      "forecast_units": 20120,
+      "wape": 0.117,
+      "bias_pct": -0.0522,
+      "vs_validation": -0.0999,
+      "breach": false
+     },
+     {
+      "week": 8,
+      "from_date": "2025-02-19",
+      "actual_units": 21814,
+      "forecast_units": 20002,
+      "wape": 0.1543,
+      "bias_pct": -0.083,
+      "vs_validation": 0.1867,
+      "breach": false
+     }
+    ],
+    "status": {
+     "perf_drop": -0.0999,
+     "breaches_in_a_row": 0,
+     "last_weeks_bias_pct": -0.06760000000000001
+    }
+   },
+   "drifted": {
+    "weekly": [
+     {
+      "week": 1,
+      "from_date": "2025-01-01",
+      "actual_units": 23960,
+      "forecast_units": 20745,
+      "wape": 0.1742,
+      "bias_pct": -0.1342,
+      "vs_validation": 0.3404,
+      "breach": true
+     },
+     {
+      "week": 2,
+      "from_date": "2025-01-08",
+      "actual_units": 22653,
+      "forecast_units": 20309,
+      "wape": 0.1586,
+      "bias_pct": -0.1034,
+      "vs_validation": 0.2201,
+      "breach": false
+     },
+     {
+      "week": 3,
+      "from_date": "2025-01-15",
+      "actual_units": 25442,
+      "forecast_units": 21309,
+      "wape": 0.1981,
+      "bias_pct": -0.1624,
+      "vs_validation": 0.5238,
+      "breach": true
+     },
+     {
+      "week": 4,
+      "from_date": "2025-01-22",
+      "actual_units": 26263,
+      "forecast_units": 23740,
+      "wape": 0.1569,
+      "bias_pct": -0.096,
+      "vs_validation": 0.2066,
+      "breach": false
+     },
+     {
+      "week": 5,
+      "from_date": "2025-01-29",
+      "actual_units": 29022,
+      "forecast_units": 24784,
+      "wape": 0.1912,
+      "bias_pct": -0.146,
+      "vs_validation": 0.4708,
+      "breach": true
+     },
+     {
+      "week": 6,
+      "from_date": "2025-02-05",
+      "actual_units": 26988,
+      "forecast_units": 22975,
+      "wape": 0.2151,
+      "bias_pct": -0.1487,
+      "vs_validation": 0.655,
+      "breach": true
+     },
+     {
+      "week": 7,
+      "from_date": "2025-02-12",
+      "actual_units": 31003,
+      "forecast_units": 24743,
+      "wape": 0.2315,
+      "bias_pct": -0.2019,
+      "vs_validation": 0.7809,
+      "breach": true
+     },
+     {
+      "week": 8,
+      "from_date": "2025-02-19",
+      "actual_units": 30320,
+      "forecast_units": 24475,
+      "wape": 0.2212,
+      "bias_pct": -0.1928,
+      "vs_validation": 0.7016,
+      "breach": true
+     }
+    ],
+    "status": {
+     "perf_drop": 0.7016,
+     "breaches_in_a_row": 4,
+     "last_weeks_bias_pct": -0.19735
+    }
+   }
+  }
+ },
+ "retraining": {
+  "retrain_scheduled_rolling_not_promoted": {
+   "prod": "data/production/batch_normal.csv",
+   "outcome": "NOT_PROMOTED",
+   "record": {
+    "record_id": "retrain-20261007-v2-rolling",
+    "champion": "v1",
+    "challenger": "v2-rolling",
+    "challenger_model": "ridge_log",
+    "strategy": "rolling",
+    "mode": "scheduled",
+    "trigger": "MONITOR",
+    "holdout": {
+     "start": "2025-02-01",
+     "end": "2025-02-28"
+    },
+    "champion_metrics": {
+     "wape": 0.1346,
+     "bias_pct": -0.0521
+    },
+    "challenger_metrics": {
+     "wape": 0.134,
+     "bias_pct": -0.0168
+    },
+    "rules_pass": false,
+    "checks": {
+     "wape_improvement>=0.005": false,
+     "guardrail_abs_bias_pct_worsening<=0.01": true,
+     "limit_abs_bias_pct<=0.08": true
+    },
+    "approved_by": null,
+    "signoff_offered_by": null,
+    "features_gate": "all features Approved in configs/feature_registry.yaml"
+   },
+   "champion_holdout": {
+    "mae": 16.9336,
+    "rmse": 35.7208,
+    "wape": 0.1346,
+    "bias": -6.5504,
+    "bias_pct": -0.0521,
+    "roc_auc": 0.8908,
+    "abs_bias_pct": 0.0521
+   },
+   "challenger_holdout": {
+    "mae": 16.8561,
+    "rmse": 35.6318,
+    "wape": 0.134,
+    "bias": -2.1121,
+    "bias_pct": -0.0168,
+    "roc_auc": 0.8877,
+    "abs_bias_pct": 0.0168,
+    "val_wape": 0.1143,
+    "val_bias_pct": 0.0078
+   },
+   "windows": {
+    "train": "2024-01-18..2025-01-17 (8,720 rows)",
+    "valid": "2025-01-18..2025-01-31 (336 rows)",
+    "hold": "2025-02-01..2025-02-28 (664 rows)"
+   },
+   "delta": 0.0006,
+   "checks": {
+    "wape_improvement>=0.005": false,
+    "guardrail_abs_bias_pct_worsening<=0.01": true,
+    "limit_abs_bias_pct<=0.08": true
+   },
+   "strategies": null
+  },
+  "retrain_trigger": {
+   "prod": "data/production/batch_normal.csv",
+   "stopped_at": "ladder",
+   "ladder": {
+    "decision": "MONITOR",
+    "reasons": [
+     "Drift (significant AND large) in: ['rolling_mean_7', 'rolling_mean_30', 'price', 'forecast_temp'].",
+     "Statistically significant but small shift in: ['lag_1'] (watch, do not act alone).",
+     "Labelled performance is stable (drop -0.100 < 0.25).",
+     "Inputs moved but the model still performs: monitor, do not retrain yet."
+    ]
+   }
+  },
+  "retrain_trigger_rolling_awaiting_approval": {
+   "prod": "data/production/batch_drifted.csv",
+   "outcome": "AWAITING_APPROVAL",
+   "record": {
+    "record_id": "retrain-20261007-v2-rolling",
+    "champion": "v1",
+    "challenger": "v2-rolling",
+    "challenger_model": "ridge_log",
+    "strategy": "rolling",
+    "mode": "trigger",
+    "trigger": "RETRAIN_CANDIDATE",
+    "holdout": {
+     "start": "2025-02-01",
+     "end": "2025-02-28"
+    },
+    "champion_metrics": {
+     "wape": 0.2135,
+     "bias_pct": -0.1728
+    },
+    "challenger_metrics": {
+     "wape": 0.123,
+     "bias_pct": -0.0618
+    },
+    "rules_pass": true,
+    "checks": {
+     "wape_improvement>=0.005": true,
+     "guardrail_abs_bias_pct_worsening<=0.01": true,
+     "limit_abs_bias_pct<=0.08": true
+    },
+    "approved_by": null,
+    "signoff_offered_by": null,
+    "features_gate": "all features Approved in configs/feature_registry.yaml"
+   },
+   "champion_holdout": {
+    "mae": 37.9988,
+    "rmse": 58.2054,
+    "wape": 0.2135,
+    "bias": -30.7463,
+    "bias_pct": -0.1728,
+    "roc_auc": 0.807,
+    "abs_bias_pct": 0.1728
+   },
+   "challenger_holdout": {
+    "mae": 21.8937,
+    "rmse": 37.5811,
+    "wape": 0.123,
+    "bias": -10.9973,
+    "bias_pct": -0.0618,
+    "roc_auc": 0.8887,
+    "abs_bias_pct": 0.0618,
+    "val_wape": 0.132,
+    "val_bias_pct": -0.0444
+   },
+   "windows": {
+    "train": "2024-01-18..2025-01-17 (8,720 rows)",
+    "valid": "2025-01-18..2025-01-31 (336 rows)",
+    "hold": "2025-02-01..2025-02-28 (664 rows)"
+   },
+   "delta": 0.0905,
+   "checks": {
+    "wape_improvement>=0.005": true,
+    "guardrail_abs_bias_pct_worsening<=0.01": true,
+    "limit_abs_bias_pct<=0.08": true
+   },
+   "strategies": {
+    "rolling": {
+     "model": "ridge_log",
+     "train_rows": 8720,
+     "valid_wape": 0.132,
+     "holdout_wape": 0.123,
+     "holdout_bias_pct": -0.0618
+    },
+    "expanding": {
+     "model": "hgb",
+     "train_rows": 17144,
+     "valid_wape": 0.1312,
+     "holdout_wape": 0.1599,
+     "holdout_bias_pct": -0.1055
+    }
+   }
+  },
+  "retrain_trigger_rolling_hgb_not_promoted": {
+   "prod": "data/production/batch_drifted.csv",
+   "outcome": "NOT_PROMOTED",
+   "record": {
+    "record_id": "retrain-20261007-v2-rolling",
+    "champion": "v1",
+    "challenger": "v2-rolling",
+    "challenger_model": "hgb",
+    "strategy": "rolling",
+    "mode": "trigger",
+    "trigger": "RETRAIN_CANDIDATE",
+    "holdout": {
+     "start": "2025-02-01",
+     "end": "2025-02-28"
+    },
+    "champion_metrics": {
+     "wape": 0.2135,
+     "bias_pct": -0.1728
+    },
+    "challenger_metrics": {
+     "wape": 0.1719,
+     "bias_pct": -0.122
+    },
+    "rules_pass": false,
+    "checks": {
+     "wape_improvement>=0.005": true,
+     "guardrail_abs_bias_pct_worsening<=0.01": true,
+     "limit_abs_bias_pct<=0.08": false
+    },
+    "approved_by": null,
+    "signoff_offered_by": "planner_asha",
+    "features_gate": "all features Approved in configs/feature_registry.yaml"
+   },
+   "champion_holdout": {
+    "mae": 37.9988,
+    "rmse": 58.2054,
+    "wape": 0.2135,
+    "bias": -30.7463,
+    "bias_pct": -0.1728,
+    "roc_auc": 0.807,
+    "abs_bias_pct": 0.1728
+   },
+   "challenger_holdout": {
+    "mae": 30.5974,
+    "rmse": 46.8122,
+    "wape": 0.1719,
+    "bias": -21.7182,
+    "bias_pct": -0.122,
+    "roc_auc": 0.8472,
+    "abs_bias_pct": 0.122,
+    "val_wape": 0.1325,
+    "val_bias_pct": -0.0336
+   },
+   "windows": {
+    "train": "2024-01-18..2025-01-17 (8,720 rows)",
+    "valid": "2025-01-18..2025-01-31 (336 rows)",
+    "hold": "2025-02-01..2025-02-28 (664 rows)"
+   },
+   "delta": 0.0416,
+   "checks": {
+    "wape_improvement>=0.005": true,
+    "guardrail_abs_bias_pct_worsening<=0.01": true,
+    "limit_abs_bias_pct<=0.08": false
+   },
+   "strategies": null
+  },
+  "retrain_trigger_rolling_promoted_then_rolled_back": {
+   "prod": "data/production/batch_drifted.csv",
+   "outcome": "PROMOTED_THEN_ROLLED_BACK",
+   "record": {
+    "record_id": "retrain-20261007-v2-rolling",
+    "champion": "v1",
+    "challenger": "v2-rolling",
+    "challenger_model": "ridge_log",
+    "strategy": "rolling",
+    "mode": "trigger",
+    "trigger": "RETRAIN_CANDIDATE",
+    "holdout": {
+     "start": "2025-02-01",
+     "end": "2025-02-28"
+    },
+    "champion_metrics": {
+     "wape": 0.2135,
+     "bias_pct": -0.1728
+    },
+    "challenger_metrics": {
+     "wape": 0.123,
+     "bias_pct": -0.0618
+    },
+    "rules_pass": true,
+    "checks": {
+     "wape_improvement>=0.005": true,
+     "guardrail_abs_bias_pct_worsening<=0.01": true,
+     "limit_abs_bias_pct<=0.08": true
+    },
+    "approved_by": "planner_asha",
+    "signoff_offered_by": "planner_asha",
+    "features_gate": "all features Approved in configs/feature_registry.yaml"
+   },
+   "champion_holdout": {
+    "mae": 37.9988,
+    "rmse": 58.2054,
+    "wape": 0.2135,
+    "bias": -30.7463,
+    "bias_pct": -0.1728,
+    "roc_auc": 0.807,
+    "abs_bias_pct": 0.1728
+   },
+   "challenger_holdout": {
+    "mae": 21.8937,
+    "rmse": 37.5811,
+    "wape": 0.123,
+    "bias": -10.9973,
+    "bias_pct": -0.0618,
+    "roc_auc": 0.8887,
+    "abs_bias_pct": 0.0618,
+    "val_wape": 0.132,
+    "val_bias_pct": -0.0444
+   },
+   "windows": {
+    "train": "2024-01-18..2025-01-17 (8,720 rows)",
+    "valid": "2025-01-18..2025-01-31 (336 rows)",
+    "hold": "2025-02-01..2025-02-28 (664 rows)"
+   },
+   "delta": 0.0905,
+   "checks": {
+    "wape_improvement>=0.005": true,
+    "guardrail_abs_bias_pct_worsening<=0.01": true,
+    "limit_abs_bias_pct<=0.08": true
+   },
+   "strategies": null
+  }
+ },
+ "rolling_origin_optional": [
+  {
+   "fold": 1,
+   "train_to": "2024-03-06",
+   "test_from": "2024-03-07",
+   "test_to": "2024-05-05",
+   "moving_average_7": 0.1883,
+   "ridge_log": 0.1332,
+   "hgb": 0.1236
+  },
+  {
+   "fold": 2,
+   "train_to": "2024-05-05",
+   "test_from": "2024-05-06",
+   "test_to": "2024-07-04",
+   "moving_average_7": 0.1901,
+   "ridge_log": 0.1294,
+   "hgb": 0.124
+  },
+  {
+   "fold": 3,
+   "train_to": "2024-07-04",
+   "test_from": "2024-07-05",
+   "test_to": "2024-09-02",
+   "moving_average_7": 0.1769,
+   "ridge_log": 0.1278,
+   "hgb": 0.1248
+  },
+  {
+   "fold": 4,
+   "train_to": "2024-09-02",
+   "test_from": "2024-09-03",
+   "test_to": "2024-11-01",
+   "moving_average_7": 0.1935,
+   "ridge_log": 0.1403,
+   "hgb": 0.1363
+  },
+  {
+   "fold": 5,
+   "train_to": "2024-11-01",
+   "test_from": "2024-11-02",
+   "test_to": "2024-12-31",
+   "moving_average_7": 0.1863,
+   "ridge_log": 0.1349,
+   "hgb": 0.1303
+  }
+ ],
+ "batch_forecast": {
+  "as_of": "2025-02-28",
+  "rows": 168,
+  "per_product": [
+   {
+    "product_id": "P01",
+    "last_7_days_actual": 2871.0,
+    "predicted_units": 2869.0,
+    "lower": 1822.0,
+    "upper": 4078.0
+   },
+   {
+    "product_id": "P02",
+    "last_7_days_actual": 1737.0,
+    "predicted_units": 1610.0,
+    "lower": 1030.0,
+    "upper": 2280.0
+   },
+   {
+    "product_id": "P03",
+    "last_7_days_actual": 3578.0,
+    "predicted_units": 3334.0,
+    "lower": 2114.0,
+    "upper": 4742.0
+   },
+   {
+    "product_id": "P04",
+    "last_7_days_actual": 4983.0,
+    "predicted_units": 3812.0,
+    "lower": 2403.0,
+    "upper": 5441.0
+   },
+   {
+    "product_id": "P05",
+    "last_7_days_actual": 3769.0,
+    "predicted_units": 3482.0,
+    "lower": 2196.0,
+    "upper": 4968.0
+   },
+   {
+    "product_id": "P06",
+    "last_7_days_actual": 1664.0,
+    "predicted_units": 1498.0,
+    "lower": 952.0,
+    "upper": 2128.0
+   },
+   {
+    "product_id": "P07",
+    "last_7_days_actual": 1118.0,
+    "predicted_units": 1135.0,
+    "lower": 722.0,
+    "upper": 1612.0
+   },
+   {
+    "product_id": "P08",
+    "last_7_days_actual": 1684.0,
+    "predicted_units": 1647.0,
+    "lower": 1051.0,
+    "upper": 2336.0
+   }
+  ]
+ },
+ "batch_backtest": [
+  {
+   "horizon": 1,
+   "rows": 288,
+   "wape": 0.1464,
+   "bias_pct": -0.0571,
+   "seasonal_naive_wape": 0.1877,
+   "interval_coverage": 0.7188
+  },
+  {
+   "horizon": 2,
+   "rows": 288,
+   "wape": 0.152,
+   "bias_pct": -0.0538,
+   "seasonal_naive_wape": 0.1925,
+   "interval_coverage": 0.8368
+  },
+  {
+   "horizon": 3,
+   "rows": 288,
+   "wape": 0.1627,
+   "bias_pct": -0.0782,
+   "seasonal_naive_wape": 0.2054,
+   "interval_coverage": 0.8819
+  },
+  {
+   "horizon": 4,
+   "rows": 288,
+   "wape": 0.1703,
+   "bias_pct": -0.0636,
+   "seasonal_naive_wape": 0.2304,
+   "interval_coverage": 0.9097
+  },
+  {
+   "horizon": 5,
+   "rows": 288,
+   "wape": 0.1566,
+   "bias_pct": -0.0736,
+   "seasonal_naive_wape": 0.2276,
+   "interval_coverage": 0.9236
+  },
+  {
+   "horizon": 6,
+   "rows": 288,
+   "wape": 0.1602,
+   "bias_pct": -0.0583,
+   "seasonal_naive_wape": 0.2017,
+   "interval_coverage": 0.9479
+  },
+  {
+   "horizon": 7,
+   "rows": 288,
+   "wape": 0.1523,
+   "bias_pct": -0.039,
+   "seasonal_naive_wape": 0.2042,
+   "interval_coverage": 0.9722
+  }
+ ],
+ "pytest_summary": "84 passed in 9.93s",
+ "api_latency_ms": {
+  "n": 200,
+  "p50_ms": 53.3,
+  "p95_ms": 66.1,
+  "max_ms": 161.3
+ },
+ "components": {
+  "CORE": [
+   "chronological time split",
+   "lag/rolling features with shift(1)",
+   "baseline comparison (naive, seasonal naive, moving average)",
+   "Ridge-on-log and gradient boosting in sklearn Pipelines",
+   "WAPE / bias / MAE",
+   "feature registry + approval gate",
+   "KS drift + decision ladder",
+   "scheduled (monthly) + trigger-based retraining",
+   "champion/challenger on the same recent hold-out",
+   "batch forecast (recursive, 7 days)",
+   "FastAPI real-time endpoint + history store",
+   "MLflow, DVC, Docker, Kubernetes, Prometheus/Grafana, CI"
+  ],
+  "OPTIONAL": [
+   "TimeSeriesSplit rolling-origin evaluation",
+   "quantile-style prediction intervals (relative residual quantiles)",
+   "SHAP",
+   "cyclical sin/cos encodings"
+  ]
+ },
+ "failure_scenarios_reproduced": [
+  "(a) stale history store -> degraded forecasts, staleness warning, refusal beyond 3 days",
+  "(b) MAPE infinite on zero-sales days -> use WAPE",
+  "(c) duplicated dates after a pipeline retry -> data test + idempotent upsert",
+  "(d) price unit change x100 -> data-quality price_unit check + API range check",
+  "tree model cannot extrapolate on the level shift",
+  "festival drift without model failure (expected seasonal shift)",
+  "guardrail blocks a biased challenger even with human sign-off"
+ ],
+ "failure_scenarios": {
+  "stale_history": {
+   "table": [
+    {
+     "date": "2024-11-02",
+     "stale_days": 0,
+     "actual_units": 3108,
+     "fresh_forecast": 3852,
+     "stale_forecast": 3852,
+     "fresh_wape": 0.241,
+     "stale_wape": 0.241
+    },
+    {
+     "date": "2024-11-03",
+     "stale_days": 1,
+     "actual_units": 3118,
+     "fresh_forecast": 3264,
+     "stale_forecast": 3347,
+     "fresh_wape": 0.152,
+     "stale_wape": 0.166
+    },
+    {
+     "date": "2024-11-04",
+     "stale_days": 2,
+     "actual_units": 2357,
+     "fresh_forecast": 2653,
+     "stale_forecast": 2705,
+     "fresh_wape": 0.163,
+     "stale_wape": 0.171
+    },
+    {
+     "date": "2024-11-05",
+     "stale_days": 3,
+     "actual_units": 2298,
+     "fresh_forecast": 2529,
+     "stale_forecast": 2771,
+     "fresh_wape": 0.183,
+     "stale_wape": 0.258
+    }
+   ],
+   "refused": "history store is 5 days behind forecast_date 2024-11-07 (last history day 2024-11-01, limit 3); refresh the hi"
+  },
+  "mape_vs_wape": {
+   "tiny": {
+    "mape": Infinity,
+    "wape": 0.16666666666666666
+   },
+   "real": {
+    "zero_rows": 42,
+    "share": 0.0023939808481532147
+   }
+  },
+  "duplicates": {
+   "rolling_wrong": 213.57142857142858,
+   "rolling_right": 208.42857142857142,
+   "check_history": "3 duplicated (date, product_id, store_id) rows - did a pipeline step run twice?",
+   "dq_failed": [
+    "duplicates: 3 duplicated (date, product, store) rows"
+   ]
+  },
+  "price_unit": {
+   "dq": [
+    "price_range: 126 rows outside 0 < price <= 5000",
+    "price_unit: median price ratio out of range: P01=108x, P02=108x, P03=108x, P04=108x, P05=108x, P06=108x, P07=108x, P08=108x"
+   ],
+   "models": {
+    "hgb (champion)": [
+     123.74636648958167,
+     102.08242953662686
+    ],
+    "ridge_log": [
+     127.09360452361162,
+     0.0
+    ]
+   },
+   "actual": 114.0
+  }
+ }
+}

@@ -1,0 +1,20 @@
+$ python -m pytest -v -p no:cacheprovider
+============================= test session starts ==============================
+platform linux -- Python 3.11.15, pytest-9.1.1, pluggy-1.6.0
+rootdir: <project root>
+configfile: pytest.ini
+testpaths: tests
+plugins: anyio-4.13.0, hydra-core-1.3.7
+collected 84 items
+
+tests/test_api.py .........                                              [ 10%]
+tests/test_common.py .........                                           [ 21%]
+tests/test_data.py ..........                                            [ 33%]
+tests/test_features.py ..........                                        [ 45%]
+tests/test_history_store.py ........                                     [ 54%]
+tests/test_leakage.py .......                                            [ 63%]
+tests/test_model.py ..........                                           [ 75%]
+tests/test_registry.py ........                                          [ 84%]
+tests/test_retrain.py .............                                      [100%]
+
+============================== 84 passed in 9.93s ==============================

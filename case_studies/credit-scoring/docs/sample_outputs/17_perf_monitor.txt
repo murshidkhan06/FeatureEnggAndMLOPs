@@ -1,0 +1,19 @@
+$ python -m src.monitoring.perf_monitor --prod data/production/batch_normal.csv
+champion v1 on labelled production batch data/production/batch_normal.csv
+  metrics: {'roc_auc': 0.7539, 'gini': 0.5078, 'ks_stat': 0.4007, 'pr_auc': 0.353, 'recall_at_80_approval': 0.4897, 'brier': 0.0878, 'n': 3000, 'default_rate': 0.1137}
+  reference_auc: 0.7683
+  perf_drop: 0.0144
+  mean_predicted_pd: 0.1141
+  observed_default_rate: 0.1137
+  calibration_gap: 0.0004
+  band_shares: {'LOW': 0.622, 'MEDIUM': 0.2503, 'HIGH': 0.1277}
+
+$ python -m src.monitoring.perf_monitor --prod data/production/batch_drifted.csv
+champion v1 on labelled production batch data/production/batch_drifted.csv
+  metrics: {'roc_auc': 0.6998, 'gini': 0.3997, 'ks_stat': 0.3087, 'pr_auc': 0.4046, 'recall_at_80_approval': 0.3877, 'brier': 0.1583, 'n': 3000, 'default_rate': 0.2167}
+  reference_auc: 0.7683
+  perf_drop: 0.0685
+  mean_predicted_pd: 0.1589
+  observed_default_rate: 0.2167
+  calibration_gap: -0.0578
+  band_shares: {'LOW': 0.469, 'MEDIUM': 0.3057, 'HIGH': 0.2253}

@@ -1,0 +1,111 @@
+$ python -m src.features.select_features
+=== 1. CORRELATION FILTER (Spearman, eligible features, threshold 0.8) ===
+           feature_a             feature_b  abs_spearman
+       annual_income            log_income         1.000
+    employment_years  employment_stability         0.943
+credit_history_years credit_history_bucket         0.925
+         loan_amount          emi_estimate         0.832
+      monthly_income            log_income         0.825
+       annual_income        monthly_income         0.825
+        monthly_debt  debt_to_income_ratio         0.811
+
+=== 2. FILTER statistics on TRAIN (all columns, including the ones we will reject) ===
+                      feature    kind  missing_pct  scaled_variance  anova_F  anova_p   chi2_p  mutual_info  filter_pass
+days_past_due_after_disbursal numeric          0.0           0.0391  29048.6  0.0e+00      nan       0.3490         True
+ post_disbursal_payment_ratio numeric          0.0           0.0421  33903.2  0.0e+00  0.0e+00       0.3331         True
+           collections_status nominal          0.0           0.1502      NaN      nan  0.0e+00       0.3001         True
+        interest_rate_offered numeric          0.0           0.0336   4296.1  0.0e+00  0.0e+00       0.1583         True
+      credit_officer_override nominal          0.0           0.1286      NaN      nan 1.5e-206       0.0365         True
+                loan_approved  binary          0.0           0.1247    665.4 4.0e-141 2.5e-135       0.0290         True
+         debt_to_income_ratio numeric          0.0           0.0431    388.2  1.8e-84  2.8e-59       0.0224         True
+           debt_service_ratio numeric          0.0           0.0430    449.7  3.4e-97  9.6e-78       0.0212         True
+               loan_to_income numeric         12.2           0.0372    313.5  7.2e-69  1.1e-45       0.0198         True
+                 bureau_score numeric          8.1           0.0398    104.3  2.5e-24  4.2e-20       0.0151         True
+         credit_history_years numeric          0.0           0.0502     77.1  1.9e-18  2.4e-15       0.0059         True
+                 monthly_debt numeric          0.0           0.0367    164.0  3.5e-37  4.8e-29       0.0057         True
+        credit_history_bucket ordinal          0.0           0.5072     70.4  5.7e-17  8.3e-17       0.0048         True
+                  loan_amount numeric          0.0           0.0368     68.5  1.5e-16  2.3e-11       0.0045         True
+                 emi_estimate numeric          0.0           0.0345     27.6  1.6e-07  2.3e-06       0.0036         True
+                     location nominal          0.0           0.8511      NaN      nan  1.4e-05       0.0029         True
+                emi_to_income numeric          0.0           0.0359    122.5  2.9e-28  4.6e-25       0.0025         True
+              employment_type nominal          0.0           0.4757      NaN      nan  8.7e-08       0.0020         True
+             loan_term_months numeric          0.0           0.0919      5.3  2.2e-02  8.7e-02       0.0018        False
+             employment_years numeric          0.0           0.0496     21.0  4.6e-06  2.5e-06       0.0013        False
+         employment_stability ordinal          0.0           0.5987     18.9  1.4e-05  1.9e-04       0.0012        False
+         bureau_score_missing  binary          0.0           0.0744     19.9  8.4e-06  1.1e-05       0.0011        False
+               existing_loans numeric          0.0           0.0669     23.3  1.4e-06  2.0e-04       0.0011        False
+               marital_status nominal          0.0           0.3970      NaN      nan  6.5e-03       0.0006        False
+                   log_income numeric         12.2           0.0404     44.5  2.8e-11  2.7e-07       0.0005        False
+                       gender nominal          0.0           0.3728      NaN      nan  1.4e-02       0.0004        False
+                annual_income numeric         12.2           0.0369     21.1  4.4e-06  2.7e-07       0.0003        False
+                    education ordinal          0.0           0.5404      3.0  8.5e-02  3.1e-01       0.0002        False
+               monthly_income numeric          0.0           0.0401     34.0  5.8e-09  3.8e-08       0.0000        False
+         number_of_dependents numeric          0.0           0.0711      4.0  4.6e-02  1.6e-01       0.0000        False
+                          age numeric          0.0           0.0584     32.1  1.5e-08  3.6e-09       0.0000        False
+               income_missing  binary          0.0           0.1069      0.4  5.2e-01  5.6e-01       0.0000        False
+                    city_tier nominal          0.0           0.4025      NaN      nan  6.9e-01       0.0000        False
+
+  WARNING: leakage columns have by far the largest scores. 'Too good to be true' is the signal to ask:
+  'would this information exist at the moment of the decision?'
+
+=== 3. WRAPPER (RFE) and EMBEDDED (L1 / Elastic Net) on the features that survived the correlation filter ===
+             feature rfe_selected  rfe_best_rank  lasso_max_abs_coef lasso_nonzero  enet_max_abs_coef enet_nonzero
+    employment_years         True            1.0               0.124          True              0.147         True
+         loan_amount         True            1.0               0.054          True              0.106         True
+    loan_term_months        False            3.0               0.064          True              0.097         True
+credit_history_years         True            1.0               0.294          True              0.315         True
+        bureau_score         True            1.0               0.324          True              0.347         True
+      existing_loans         True            1.0               0.157          True              0.182         True
+debt_to_income_ratio         True            1.0               0.525          True              0.520         True
+number_of_dependents        False            6.0               0.045          True              0.065         True
+     employment_type         True            1.0               0.083          True              0.108         True
+           education        False           10.0               0.000         False              0.006         True
+          log_income         True            1.0               0.240          True              0.287         True
+      loan_to_income         True            1.0               0.458          True              0.435         True
+       emi_to_income         True            1.0               0.000         False              0.000        False
+  debt_service_ratio         True            1.0               0.024          True              0.053         True
+      income_missing        False            4.0               0.057          True              0.070         True
+bureau_score_missing        False            5.0               0.054          True              0.069         True
+           city_tier        False            8.0               0.000         False              0.019         True
+
+=== 4. FINAL DECISION PER FEATURE (statistics + governance) ===
+                      feature  filter_pass rfe_selected lasso_nonzero  votes                                                                      decision
+                 bureau_score         True         True          True    3.0                                                                      SELECTED
+         credit_history_years         True         True          True    3.0                                                                      SELECTED
+         debt_to_income_ratio         True         True          True    3.0                                                                      SELECTED
+              employment_type         True         True          True    3.0                                                                      SELECTED
+             employment_years        False         True          True    2.0                                                                      SELECTED
+               existing_loans        False         True          True    2.0                                                                      SELECTED
+                  loan_amount         True         True          True    3.0                                                                      SELECTED
+               loan_to_income         True         True          True    3.0                                                                      SELECTED
+                   log_income        False         True          True    2.0                                                                      SELECTED
+                annual_income        False          NaN           NaN    NaN                  REJECTED (correlated: correlated with log_income (|r|=1.00))
+         bureau_score_missing        False        False          True    1.0                                             REJECTED (weak signal: 1/3 votes)
+                    city_tier        False        False         False    0.0                                             REJECTED (weak signal: 0/3 votes)
+        credit_history_bucket         True          NaN           NaN    NaN        REJECTED (correlated: correlated with credit_history_years (|r|=0.93))
+           debt_service_ratio         True         True          True    3.0 REJECTED (counter-intuitive sign (coef -0.06, expected +): multicollinearity)
+                    education        False        False         False    0.0                                             REJECTED (weak signal: 0/3 votes)
+                 emi_estimate         True          NaN           NaN    NaN                 REJECTED (correlated: correlated with loan_amount (|r|=0.83))
+                emi_to_income         True         True         False    2.0 REJECTED (counter-intuitive sign (coef -0.17, expected +): multicollinearity)
+         employment_stability        False          NaN           NaN    NaN            REJECTED (correlated: correlated with employment_years (|r|=0.94))
+               income_missing        False        False          True    1.0                                             REJECTED (weak signal: 1/3 votes)
+             loan_term_months        False        False          True    1.0                                             REJECTED (weak signal: 1/3 votes)
+                 monthly_debt         True          NaN           NaN    NaN        REJECTED (correlated: correlated with debt_to_income_ratio (|r|=0.81))
+               monthly_income        False          NaN           NaN    NaN                  REJECTED (correlated: correlated with log_income (|r|=0.82))
+         number_of_dependents        False        False          True    1.0                                             REJECTED (weak signal: 1/3 votes)
+                          age        False          NaN           NaN    NaN                                       REQUIRES GOVERNANCE (default: excluded)
+           collections_status         True          NaN           NaN    NaN                                                            REJECTED (leakage)
+      credit_officer_override         True          NaN           NaN    NaN                                   REJECTED (not available at prediction time)
+days_past_due_after_disbursal         True          NaN           NaN    NaN                                                            REJECTED (leakage)
+                       gender        False          NaN           NaN    NaN                                                  REJECTED (sensitive, policy)
+        interest_rate_offered         True          NaN           NaN    NaN                                                            REJECTED (leakage)
+                loan_approved         True          NaN           NaN    NaN                                                            REJECTED (leakage)
+                     location         True          NaN           NaN    NaN                                       REQUIRES GOVERNANCE (default: excluded)
+               marital_status        False          NaN           NaN    NaN                                                  REJECTED (sensitive, policy)
+ post_disbursal_payment_ratio         True          NaN           NaN    NaN                                                            REJECTED (leakage)
+
+=== 5. SIGN / BUSINESS-SENSE CHECK on the shortlist ===
+   removed emi_to_income: counter-intuitive sign (coef -0.17, expected +): multicollinearity
+   removed debt_service_ratio: counter-intuitive sign (coef -0.06, expected +): multicollinearity
+
+SELECTED (9): ['employment_years', 'loan_amount', 'credit_history_years', 'bureau_score', 'existing_loans', 'debt_to_income_ratio', 'employment_type', 'log_income', 'loan_to_income']

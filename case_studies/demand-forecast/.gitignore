@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+mlruns/
+mlflow.db
+logs/
+reports/
+/data/raw
+/data/processed
+/data/production
+models/*.joblib
+.env
+models/registry.json

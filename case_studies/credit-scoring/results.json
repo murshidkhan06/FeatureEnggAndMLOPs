@@ -1,0 +1,2063 @@
+{
+  "project": "credit-scoring",
+  "dataset": {
+    "shape": [
+      12000,
+      26
+    ],
+    "target_rate": 0.1127,
+    "missing_rates_pct": {
+      "annual_income": 12.2,
+      "bureau_score": 8.1
+    },
+    "top_correlations": [
+      {
+        "a": "annual_income",
+        "b": "monthly_income",
+        "pearson": 0.65,
+        "spearman": 0.89
+      },
+      {
+        "a": "monthly_debt",
+        "b": "debt_to_income_ratio",
+        "pearson": 0.75,
+        "spearman": 0.81
+      },
+      {
+        "a": "annual_income",
+        "b": "loan_amount",
+        "pearson": 0.45,
+        "spearman": 0.65
+      },
+      {
+        "a": "monthly_income",
+        "b": "loan_amount",
+        "pearson": 0.58,
+        "spearman": 0.6
+      },
+      {
+        "a": "annual_income",
+        "b": "monthly_debt",
+        "pearson": 0.36,
+        "spearman": 0.52
+      }
+    ],
+    "income": {
+      "median": 603000.0,
+      "mean": 656699.8765432099,
+      "skew_raw": 20.83,
+      "skew_log": 0.2,
+      "iqr_outliers": 305,
+      "iqr_fence": 1316000,
+      "reported_over_5x_monthly_x12": 11
+    },
+    "repeat_applications": 840,
+    "income_missing_by_employment": {
+      "business": 0.218,
+      "gig": 0.062,
+      "salaried": 0.082,
+      "self_employed": 0.204
+    },
+    "splits": "time-based 70/15/15 by application_date, applicant-disjoint; see 00_make_data_and_split.txt"
+  },
+  "feature_table": [
+    {
+      "name": "log_income",
+      "formula": "log(1 + annual_income)",
+      "definition": "Natural log of (1 + annual income): tames the right-skewed income distribution.",
+      "example_input": {
+        "annual_income": 600000
+      },
+      "example_output": 13.304687
+    },
+    {
+      "name": "loan_to_income",
+      "formula": "loan_amount / annual_income",
+      "definition": "How many years of income the loan equals.",
+      "example_input": {
+        "loan_amount": 300000,
+        "annual_income": 600000
+      },
+      "example_output": 0.5
+    },
+    {
+      "name": "emi_estimate",
+      "formula": "EMI = P*r*(1+r)^n / ((1+r)^n - 1),  r = annual_rate/12",
+      "definition": "Monthly instalment if the loan were charged the ASSUMED rate (14% p.a.).",
+      "example_input": {
+        "loan_amount": 300000,
+        "loan_term_months": 24
+      },
+      "example_output": 14404.0
+    },
+    {
+      "name": "emi_to_income",
+      "formula": "emi_estimate / monthly_income",
+      "definition": "Share of monthly income the NEW loan instalment would take.",
+      "example_input": {
+        "emi_estimate": 14404,
+        "monthly_income": 50000
+      },
+      "example_output": 0.2881
+    },
+    {
+      "name": "debt_service_ratio",
+      "formula": "(monthly_debt + emi_estimate) / monthly_income",
+      "definition": "Share of monthly income going to ALL debt payments after this loan.",
+      "example_input": {
+        "monthly_debt": 10000,
+        "emi_estimate": 14404,
+        "monthly_income": 50000
+      },
+      "example_output": 0.4881
+    },
+    {
+      "name": "income_missing",
+      "formula": "1 if annual_income is missing else 0",
+      "definition": "1 if the applicant did not report annual income (missingness can itself be informative).",
+      "example_input": {
+        "annual_income": null
+      },
+      "example_output": 1
+    },
+    {
+      "name": "bureau_score_missing",
+      "formula": "1 if bureau_score is missing else 0",
+      "definition": "1 if there is no bureau score (thin-file applicant).",
+      "example_input": {
+        "bureau_score": null
+      },
+      "example_output": 1
+    },
+    {
+      "name": "employment_stability",
+      "formula": "cut(employment_years, [0,1,3,7,inf))",
+      "definition": "Bucket of employment_years: lt_1y / 1_3y / 3_7y / 7y_plus.",
+      "example_input": {
+        "employment_years": 2.0
+      },
+      "example_output": "1_3y"
+    },
+    {
+      "name": "credit_history_bucket",
+      "formula": "cut(credit_history_years, [0,1,3,8,inf))",
+      "definition": "Bucket of credit_history_years: thin / young / established / long.",
+      "example_input": {
+        "credit_history_years": 5.0
+      },
+      "example_output": "established"
+    },
+    {
+      "name": "city_tier",
+      "formula": "lookup(location)",
+      "definition": "Coarse city class (tier1/2/3) instead of the fine-grained city (proxy-risk control).",
+      "example_input": {
+        "location": "Mumbai"
+      },
+      "example_output": "tier1"
+    },
+    {
+      "name": "debt_to_income_ratio",
+      "formula": "monthly_debt / monthly_income",
+      "definition": "Monthly debt payments divided by monthly income.",
+      "example_input": {
+        "monthly_debt": 10000,
+        "monthly_income": 50000
+      },
+      "example_output": 0.2
+    }
+  ],
+  "feature_hand_calculation": {
+    "applicant": {
+      "annual_income": 600000.0,
+      "monthly_income": 50000.0,
+      "monthly_debt": 10000.0,
+      "loan_amount": 300000.0,
+      "loan_term_months": 24,
+      "employment_years": 2.0,
+      "credit_history_years": 5.0,
+      "bureau_score": 680.0,
+      "location": "Mumbai"
+    },
+    "assumed_rate_pct": 14.0,
+    "emi_steps": {
+      "r": 0.011666666666666667,
+      "growth": 1.320987100102027,
+      "emi": 14403.864980516388
+    },
+    "table": [
+      {
+        "feature": "debt_to_income_ratio",
+        "hand_calculation": 0.2,
+        "engineer_code": 0.2,
+        "agree": "YES"
+      },
+      {
+        "feature": "log_income",
+        "hand_calculation": 13.3047,
+        "engineer_code": 13.3047,
+        "agree": "YES"
+      },
+      {
+        "feature": "loan_to_income",
+        "hand_calculation": 0.5,
+        "engineer_code": 0.5,
+        "agree": "YES"
+      },
+      {
+        "feature": "emi_estimate",
+        "hand_calculation": 14403.865,
+        "engineer_code": 14403.865,
+        "agree": "YES"
+      },
+      {
+        "feature": "emi_to_income",
+        "hand_calculation": 0.2881,
+        "engineer_code": 0.2881,
+        "agree": "YES"
+      },
+      {
+        "feature": "debt_service_ratio",
+        "hand_calculation": 0.4881,
+        "engineer_code": 0.4881,
+        "agree": "YES"
+      },
+      {
+        "feature": "income_missing",
+        "hand_calculation": 0,
+        "engineer_code": 0.0,
+        "agree": "YES"
+      },
+      {
+        "feature": "employment_stability",
+        "hand_calculation": "1_3y",
+        "engineer_code": "1_3y",
+        "agree": "YES"
+      },
+      {
+        "feature": "credit_history_bucket",
+        "hand_calculation": "established",
+        "engineer_code": "established",
+        "agree": "YES"
+      },
+      {
+        "feature": "city_tier",
+        "hand_calculation": "tier1",
+        "engineer_code": "tier1",
+        "agree": "YES"
+      }
+    ]
+  },
+  "selection": {
+    "selected": [
+      "employment_years",
+      "loan_amount",
+      "credit_history_years",
+      "bureau_score",
+      "existing_loans",
+      "debt_to_income_ratio",
+      "employment_type",
+      "log_income",
+      "loan_to_income"
+    ],
+    "rejected": {
+      "annual_income": "REJECTED (correlated: correlated with log_income (|r|=1.00))",
+      "monthly_income": "REJECTED (correlated: correlated with log_income (|r|=0.82))",
+      "loan_term_months": "REJECTED (weak signal: 1/3 votes)",
+      "monthly_debt": "REJECTED (correlated: correlated with debt_to_income_ratio (|r|=0.81))",
+      "number_of_dependents": "REJECTED (weak signal: 1/3 votes)",
+      "education": "REJECTED (weak signal: 0/3 votes)",
+      "location": "REQUIRES GOVERNANCE (default: excluded)",
+      "emi_estimate": "REJECTED (correlated: correlated with loan_amount (|r|=0.83))",
+      "emi_to_income": "REJECTED (counter-intuitive sign (coef -0.17, expected +): multicollinearity)",
+      "debt_service_ratio": "REJECTED (counter-intuitive sign (coef -0.06, expected +): multicollinearity)",
+      "income_missing": "REJECTED (weak signal: 1/3 votes)",
+      "bureau_score_missing": "REJECTED (weak signal: 1/3 votes)",
+      "employment_stability": "REJECTED (correlated: correlated with employment_years (|r|=0.94))",
+      "credit_history_bucket": "REJECTED (correlated: correlated with credit_history_years (|r|=0.93))",
+      "city_tier": "REJECTED (weak signal: 0/3 votes)",
+      "age": "REQUIRES GOVERNANCE (default: excluded)",
+      "gender": "REJECTED (sensitive, policy)",
+      "marital_status": "REJECTED (sensitive, policy)",
+      "interest_rate_offered": "REJECTED (leakage)",
+      "loan_approved": "REJECTED (leakage)",
+      "days_past_due_after_disbursal": "REJECTED (leakage)",
+      "collections_status": "REJECTED (leakage)",
+      "post_disbursal_payment_ratio": "REJECTED (leakage)",
+      "credit_officer_override": "REJECTED (not available at prediction time)"
+    },
+    "table": [
+      {
+        "feature": "annual_income",
+        "kind": "numeric",
+        "missing_pct": 12.2,
+        "scaled_variance": 0.0369,
+        "near_constant": false,
+        "anova_F": 21.091528688,
+        "anova_p": 4.4441e-06,
+        "chi2": 36.1206677383,
+        "chi2_p": 2.733e-07,
+        "mutual_info": 0.0003456025,
+        "filter_pass": false,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (correlated: correlated with log_income (|r|=1.00))"
+      },
+      {
+        "feature": "monthly_income",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0401,
+        "near_constant": false,
+        "anova_F": 33.9752641779,
+        "anova_p": 5.8e-09,
+        "chi2": 40.2567805448,
+        "chi2_p": 3.83e-08,
+        "mutual_info": 0.0,
+        "filter_pass": false,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (correlated: correlated with log_income (|r|=0.82))"
+      },
+      {
+        "feature": "employment_years",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0496,
+        "near_constant": false,
+        "anova_F": 21.045284167,
+        "anova_p": 4.5524e-06,
+        "chi2": 31.4379074024,
+        "chi2_p": 2.492e-06,
+        "mutual_info": 0.0012832618,
+        "filter_pass": false,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.1235274335,
+        "enet_max_abs_coef": 0.1472001319,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 2.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "loan_amount",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0368,
+        "near_constant": false,
+        "anova_F": 68.5190021697,
+        "anova_p": 1.455640794e-16,
+        "chi2": 55.7503675496,
+        "chi2_p": 0.0,
+        "mutual_info": 0.0045037908,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.0542894463,
+        "enet_max_abs_coef": 0.1064028454,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 3.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "loan_term_months",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0919,
+        "near_constant": false,
+        "anova_F": 5.253029753,
+        "anova_p": 0.0219339085,
+        "chi2": 6.5599403091,
+        "chi2_p": 0.0873283445,
+        "mutual_info": 0.0017515161,
+        "filter_pass": false,
+        "rfe_selected": false,
+        "rfe_best_rank": 3.0,
+        "lasso_max_abs_coef": 0.0643121797,
+        "enet_max_abs_coef": 0.0972867893,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 1.0,
+        "decision": "REJECTED (weak signal: 1/3 votes)"
+      },
+      {
+        "feature": "credit_history_years",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0502,
+        "near_constant": false,
+        "anova_F": 77.1086286211,
+        "anova_p": 1.947874384e-18,
+        "chi2": 74.5905362321,
+        "chi2_p": 0.0,
+        "mutual_info": 0.0059134023,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.2943253964,
+        "enet_max_abs_coef": 0.3152339116,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 3.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "bureau_score",
+        "kind": "numeric",
+        "missing_pct": 8.1,
+        "scaled_variance": 0.0398,
+        "near_constant": false,
+        "anova_F": 104.2524619464,
+        "anova_p": 2.492697531e-24,
+        "chi2": 97.0279425985,
+        "chi2_p": 4.220634359e-20,
+        "mutual_info": 0.0150811691,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.3239960279,
+        "enet_max_abs_coef": 0.3473613376,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 3.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "existing_loans",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0669,
+        "near_constant": false,
+        "anova_F": 23.2521139198,
+        "anova_p": 1.4466e-06,
+        "chi2": 16.9927766294,
+        "chi2_p": 0.0002042046,
+        "mutual_info": 0.0010681297,
+        "filter_pass": false,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.1574675928,
+        "enet_max_abs_coef": 0.1818670786,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 2.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "monthly_debt",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0367,
+        "near_constant": false,
+        "anova_F": 163.9854910793,
+        "anova_p": 3.466824351e-37,
+        "chi2": 138.9052265139,
+        "chi2_p": 4.841839795e-29,
+        "mutual_info": 0.0056655688,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (correlated: correlated with debt_to_income_ratio (|r|=0.81))"
+      },
+      {
+        "feature": "debt_to_income_ratio",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0431,
+        "near_constant": false,
+        "anova_F": 388.2366043424,
+        "anova_p": 1.794157131e-84,
+        "chi2": 279.5742779909,
+        "chi2_p": 2.752833069e-59,
+        "mutual_info": 0.0223692846,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.5252685902,
+        "enet_max_abs_coef": 0.5203593423,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 3.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "number_of_dependents",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0711,
+        "near_constant": false,
+        "anova_F": 3.967382894,
+        "anova_p": 0.0464230557,
+        "chi2": 3.6247083885,
+        "chi2_p": 0.1632693163,
+        "mutual_info": 0.0,
+        "filter_pass": false,
+        "rfe_selected": false,
+        "rfe_best_rank": 6.0,
+        "lasso_max_abs_coef": 0.0450636104,
+        "enet_max_abs_coef": 0.0651471497,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 1.0,
+        "decision": "REJECTED (weak signal: 1/3 votes)"
+      },
+      {
+        "feature": "employment_type",
+        "kind": "nominal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.4757,
+        "near_constant": false,
+        "anova_F": null,
+        "anova_p": null,
+        "chi2": 35.6870415885,
+        "chi2_p": 8.72e-08,
+        "mutual_info": 0.0020366466,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.0828281803,
+        "enet_max_abs_coef": 0.1081006288,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 3.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "education",
+        "kind": "ordinal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.5404,
+        "near_constant": false,
+        "anova_F": 2.9698791331,
+        "anova_p": 0.0848660325,
+        "chi2": 3.5479148462,
+        "chi2_p": 0.3146006909,
+        "mutual_info": 0.0002166287,
+        "filter_pass": false,
+        "rfe_selected": false,
+        "rfe_best_rank": 10.0,
+        "lasso_max_abs_coef": 0.0,
+        "enet_max_abs_coef": 0.0057384459,
+        "lasso_nonzero": false,
+        "enet_nonzero": true,
+        "votes": 0.0,
+        "decision": "REJECTED (weak signal: 0/3 votes)"
+      },
+      {
+        "feature": "location",
+        "kind": "nominal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.8511,
+        "near_constant": false,
+        "anova_F": null,
+        "anova_p": null,
+        "chi2": 47.8041536299,
+        "chi2_p": 1.41638e-05,
+        "mutual_info": 0.0029043481,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REQUIRES GOVERNANCE (default: excluded)"
+      },
+      {
+        "feature": "log_income",
+        "kind": "numeric",
+        "missing_pct": 12.2,
+        "scaled_variance": 0.0404,
+        "near_constant": false,
+        "anova_F": 44.465277398,
+        "anova_p": 0.0,
+        "chi2": 36.1206677383,
+        "chi2_p": 2.733e-07,
+        "mutual_info": 0.0004897978,
+        "filter_pass": false,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.2400907171,
+        "enet_max_abs_coef": 0.287299473,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 2.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "loan_to_income",
+        "kind": "numeric",
+        "missing_pct": 12.2,
+        "scaled_variance": 0.0372,
+        "near_constant": false,
+        "anova_F": 313.5109195875,
+        "anova_p": 7.185159906e-69,
+        "chi2": 216.5166998853,
+        "chi2_p": 1.053053988e-45,
+        "mutual_info": 0.0198292546,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.4581907379,
+        "enet_max_abs_coef": 0.4350970529,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 3.0,
+        "decision": "SELECTED"
+      },
+      {
+        "feature": "emi_estimate",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0345,
+        "near_constant": false,
+        "anova_F": 27.5549433892,
+        "anova_p": 1.565e-07,
+        "chi2": 31.5968889083,
+        "chi2_p": 2.3126e-06,
+        "mutual_info": 0.0035587089,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (correlated: correlated with loan_amount (|r|=0.83))"
+      },
+      {
+        "feature": "emi_to_income",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0359,
+        "near_constant": false,
+        "anova_F": 122.4506417633,
+        "anova_p": 2.918762773e-28,
+        "chi2": 120.307432761,
+        "chi2_p": 4.591935347e-25,
+        "mutual_info": 0.0024518809,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.0,
+        "enet_max_abs_coef": 0.0,
+        "lasso_nonzero": false,
+        "enet_nonzero": false,
+        "votes": 2.0,
+        "decision": "REJECTED (counter-intuitive sign (coef -0.17, expected +): multicollinearity)"
+      },
+      {
+        "feature": "debt_service_ratio",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.043,
+        "near_constant": false,
+        "anova_F": 449.6924304467,
+        "anova_p": 3.385896645e-97,
+        "chi2": 365.1071079303,
+        "chi2_p": 9.588742561e-78,
+        "mutual_info": 0.0212035502,
+        "filter_pass": true,
+        "rfe_selected": true,
+        "rfe_best_rank": 1.0,
+        "lasso_max_abs_coef": 0.0235544694,
+        "enet_max_abs_coef": 0.0529595671,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 3.0,
+        "decision": "REJECTED (counter-intuitive sign (coef -0.06, expected +): multicollinearity)"
+      },
+      {
+        "feature": "income_missing",
+        "kind": "binary",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.1069,
+        "near_constant": false,
+        "anova_F": 0.407392613,
+        "anova_p": 0.5233137795,
+        "chi2": 0.3422586435,
+        "chi2_p": 0.5585283825,
+        "mutual_info": 2.46122e-05,
+        "filter_pass": false,
+        "rfe_selected": false,
+        "rfe_best_rank": 4.0,
+        "lasso_max_abs_coef": 0.0573791816,
+        "enet_max_abs_coef": 0.0702980315,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 1.0,
+        "decision": "REJECTED (weak signal: 1/3 votes)"
+      },
+      {
+        "feature": "bureau_score_missing",
+        "kind": "binary",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0744,
+        "near_constant": false,
+        "anova_F": 19.8796562116,
+        "anova_p": 8.3575e-06,
+        "chi2": 19.2711084094,
+        "chi2_p": 1.1341e-05,
+        "mutual_info": 0.0010926423,
+        "filter_pass": false,
+        "rfe_selected": false,
+        "rfe_best_rank": 5.0,
+        "lasso_max_abs_coef": 0.0540396279,
+        "enet_max_abs_coef": 0.0688757444,
+        "lasso_nonzero": true,
+        "enet_nonzero": true,
+        "votes": 1.0,
+        "decision": "REJECTED (weak signal: 1/3 votes)"
+      },
+      {
+        "feature": "employment_stability",
+        "kind": "ordinal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.5987,
+        "near_constant": false,
+        "anova_F": 18.9104961657,
+        "anova_p": 1.38659e-05,
+        "chi2": 19.7648568596,
+        "chi2_p": 0.000189893,
+        "mutual_info": 0.0011666012,
+        "filter_pass": false,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (correlated: correlated with employment_years (|r|=0.94))"
+      },
+      {
+        "feature": "credit_history_bucket",
+        "kind": "ordinal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.5072,
+        "near_constant": false,
+        "anova_F": 70.4008250491,
+        "anova_p": 5.651860107e-17,
+        "chi2": 77.9786187486,
+        "chi2_p": 8.32821526e-17,
+        "mutual_info": 0.0047881253,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (correlated: correlated with credit_history_years (|r|=0.93))"
+      },
+      {
+        "feature": "city_tier",
+        "kind": "nominal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.4025,
+        "near_constant": false,
+        "anova_F": null,
+        "anova_p": null,
+        "chi2": 0.7419137193,
+        "chi2_p": 0.6900737109,
+        "mutual_info": 4.52541e-05,
+        "filter_pass": false,
+        "rfe_selected": false,
+        "rfe_best_rank": 8.0,
+        "lasso_max_abs_coef": 0.0,
+        "enet_max_abs_coef": 0.0194510255,
+        "lasso_nonzero": false,
+        "enet_nonzero": true,
+        "votes": 0.0,
+        "decision": "REJECTED (weak signal: 0/3 votes)"
+      },
+      {
+        "feature": "age",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0584,
+        "near_constant": false,
+        "anova_F": 32.0969014422,
+        "anova_p": 1.52e-08,
+        "chi2": 45.1885343743,
+        "chi2_p": 3.6e-09,
+        "mutual_info": 0.0,
+        "filter_pass": false,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REQUIRES GOVERNANCE (default: excluded)"
+      },
+      {
+        "feature": "gender",
+        "kind": "nominal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.3728,
+        "near_constant": false,
+        "anova_F": null,
+        "anova_p": null,
+        "chi2": 6.0703961579,
+        "chi2_p": 0.0137466125,
+        "mutual_info": 0.0003783043,
+        "filter_pass": false,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (sensitive, policy)"
+      },
+      {
+        "feature": "marital_status",
+        "kind": "nominal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.397,
+        "near_constant": false,
+        "anova_F": null,
+        "anova_p": null,
+        "chi2": 10.0754885701,
+        "chi2_p": 0.0064883677,
+        "mutual_info": 0.0006037078,
+        "filter_pass": false,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (sensitive, policy)"
+      },
+      {
+        "feature": "interest_rate_offered",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0336,
+        "near_constant": false,
+        "anova_F": 4296.1153265308,
+        "anova_p": 0.0,
+        "chi2": 2580.5067444336,
+        "chi2_p": 0.0,
+        "mutual_info": 0.1582938614,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (leakage)"
+      },
+      {
+        "feature": "loan_approved",
+        "kind": "binary",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.1247,
+        "near_constant": false,
+        "anova_F": 665.3979308034,
+        "anova_p": 3.988533903e-141,
+        "chi2": 612.9855179475,
+        "chi2_p": 2.508391755e-135,
+        "mutual_info": 0.0289866528,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (leakage)"
+      },
+      {
+        "feature": "days_past_due_after_disbursal",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0391,
+        "near_constant": false,
+        "anova_F": 29048.6210294574,
+        "anova_p": 0.0,
+        "chi2": null,
+        "chi2_p": null,
+        "mutual_info": 0.3489524969,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (leakage)"
+      },
+      {
+        "feature": "collections_status",
+        "kind": "nominal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.1502,
+        "near_constant": false,
+        "anova_F": null,
+        "anova_p": null,
+        "chi2": 6592.8583876572,
+        "chi2_p": 0.0,
+        "mutual_info": 0.3001418353,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (leakage)"
+      },
+      {
+        "feature": "post_disbursal_payment_ratio",
+        "kind": "numeric",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.0421,
+        "near_constant": false,
+        "anova_F": 33903.1801583434,
+        "anova_p": 0.0,
+        "chi2": 4063.9171431908,
+        "chi2_p": 0.0,
+        "mutual_info": 0.3330941463,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (leakage)"
+      },
+      {
+        "feature": "credit_officer_override",
+        "kind": "nominal",
+        "missing_pct": 0.0,
+        "scaled_variance": 0.1286,
+        "near_constant": false,
+        "anova_F": null,
+        "anova_p": null,
+        "chi2": 947.8997403536,
+        "chi2_p": 1.466177949e-206,
+        "mutual_info": 0.0365321502,
+        "filter_pass": true,
+        "rfe_selected": null,
+        "rfe_best_rank": null,
+        "lasso_max_abs_coef": null,
+        "enet_max_abs_coef": null,
+        "lasso_nonzero": null,
+        "enet_nonzero": null,
+        "votes": null,
+        "decision": "REJECTED (not available at prediction time)"
+      }
+    ]
+  },
+  "leakage_demo": {
+    "part_a": [
+      {
+        "model": "HONEST: approved features only",
+        "valid_auc": 0.792,
+        "test_auc": 0.7683,
+        "test_ks": 0.4394
+      },
+      {
+        "model": "+ interest_rate_offered",
+        "valid_auc": 0.9535,
+        "test_auc": 0.9351,
+        "test_ks": 0.745
+      },
+      {
+        "model": "+ days_past_due_after_disbursal",
+        "valid_auc": 0.9999,
+        "test_auc": 0.9998,
+        "test_ks": 0.9862
+      },
+      {
+        "model": "+ both leaky columns",
+        "valid_auc": 1.0,
+        "test_auc": 0.9999,
+        "test_ks": 0.995
+      }
+    ],
+    "part_a_production_collapse": {
+      "offline_auc": 0.9351,
+      "production_auc": 0.2261
+    },
+    "part_b": [
+      {
+        "mistake": "B1 imputer+scaler fitted on ALL data",
+        "wrong_test_auc": 0.7684,
+        "right_test_auc": 0.7683,
+        "inflation": 0.0001
+      },
+      {
+        "mistake": "B2 target encoding of segment (uses test labels)",
+        "wrong_test_auc": 0.8366,
+        "right_test_auc": 0.7682,
+        "inflation": 0.0684
+      },
+      {
+        "mistake": "B3 random row split, logistic regression (mean of 3 splits)",
+        "wrong_test_auc": 0.7744,
+        "right_test_auc": 0.7724,
+        "inflation": 0.002
+      },
+      {
+        "mistake": "B3 random row split, flexible boosting (can memorise) (mean of 3 splits)",
+        "wrong_test_auc": 0.7376,
+        "right_test_auc": 0.726,
+        "inflation": 0.0116
+      }
+    ],
+    "b3_overlap_share": 0.067
+  },
+  "models": {
+    "comparison": [
+      {
+        "model": "baseline_logreg_raw",
+        "n_features": 12,
+        "valid_roc_auc": 0.7934,
+        "valid_ks_stat": 0.4754,
+        "test_roc_auc": 0.7534,
+        "test_gini": 0.5068,
+        "test_ks_stat": 0.405,
+        "test_pr_auc": 0.2941,
+        "test_recall_at_80_approval": 0.475
+      },
+      {
+        "model": "candidate_logreg_selected",
+        "n_features": 9,
+        "valid_roc_auc": 0.792,
+        "valid_ks_stat": 0.4544,
+        "test_roc_auc": 0.7683,
+        "test_gini": 0.5365,
+        "test_ks_stat": 0.4394,
+        "test_pr_auc": 0.3305,
+        "test_recall_at_80_approval": 0.515
+      },
+      {
+        "model": "benchmark_hgb_selected",
+        "n_features": 9,
+        "valid_roc_auc": 0.778,
+        "valid_ks_stat": 0.4387,
+        "test_roc_auc": 0.7596,
+        "test_gini": 0.5192,
+        "test_ks_stat": 0.4263,
+        "test_pr_auc": 0.3097,
+        "test_recall_at_80_approval": 0.48
+      }
+    ],
+    "champion_test": {
+      "roc_auc": 0.7683,
+      "gini": 0.5365,
+      "ks_stat": 0.4394,
+      "pr_auc": 0.3305,
+      "recall_at_80_approval": 0.515,
+      "brier": 0.0869
+    },
+    "feature_engineering_gain": {
+      "valid": -0.0014,
+      "test": 0.0149
+    },
+    "boosting_gain_valid_auc": -0.014,
+    "decision": "keep logistic-regression scorecard (boosting does not win by >= 0.02 AUC)"
+  },
+  "evaluation": {
+    "version": "v1",
+    "features": [
+      "employment_years",
+      "loan_amount",
+      "credit_history_years",
+      "bureau_score",
+      "existing_loans",
+      "debt_to_income_ratio",
+      "employment_type",
+      "log_income",
+      "loan_to_income"
+    ],
+    "metrics": {
+      "train": {
+        "roc_auc": 0.7696,
+        "gini": 0.5392,
+        "ks_stat": 0.4035,
+        "pr_auc": 0.3503,
+        "recall_at_80_approval": 0.5145,
+        "brier": 0.0876,
+        "n": 8171,
+        "default_rate": 0.1137
+      },
+      "valid": {
+        "roc_auc": 0.792,
+        "gini": 0.584,
+        "ks_stat": 0.4544,
+        "pr_auc": 0.3984,
+        "recall_at_80_approval": 0.5798,
+        "brier": 0.0835,
+        "n": 1667,
+        "default_rate": 0.1128
+      },
+      "test": {
+        "roc_auc": 0.7683,
+        "gini": 0.5365,
+        "ks_stat": 0.4394,
+        "pr_auc": 0.3305,
+        "recall_at_80_approval": 0.515,
+        "brier": 0.0869,
+        "n": 1800,
+        "default_rate": 0.1111
+      }
+    },
+    "score_stability_ks_train_vs_test": {
+      "D": 0.0154,
+      "p_value": 0.8692677472328527
+    },
+    "calibration_test": [
+      {
+        "bin": 1,
+        "n": 180,
+        "mean_predicted_pd": 0.0166,
+        "observed_default_rate": 0.0278
+      },
+      {
+        "bin": 2,
+        "n": 180,
+        "mean_predicted_pd": 0.0298,
+        "observed_default_rate": 0.0389
+      },
+      {
+        "bin": 3,
+        "n": 180,
+        "mean_predicted_pd": 0.0411,
+        "observed_default_rate": 0.0556
+      },
+      {
+        "bin": 4,
+        "n": 180,
+        "mean_predicted_pd": 0.053,
+        "observed_default_rate": 0.0056
+      },
+      {
+        "bin": 5,
+        "n": 180,
+        "mean_predicted_pd": 0.068,
+        "observed_default_rate": 0.0333
+      },
+      {
+        "bin": 6,
+        "n": 180,
+        "mean_predicted_pd": 0.0846,
+        "observed_default_rate": 0.1056
+      },
+      {
+        "bin": 7,
+        "n": 180,
+        "mean_predicted_pd": 0.1085,
+        "observed_default_rate": 0.0889
+      },
+      {
+        "bin": 8,
+        "n": 180,
+        "mean_predicted_pd": 0.1408,
+        "observed_default_rate": 0.1833
+      },
+      {
+        "bin": 9,
+        "n": 180,
+        "mean_predicted_pd": 0.2013,
+        "observed_default_rate": 0.1833
+      },
+      {
+        "bin": 10,
+        "n": 180,
+        "mean_predicted_pd": 0.3902,
+        "observed_default_rate": 0.3889
+      }
+    ],
+    "bands_test": [
+      {
+        "band": "LOW",
+        "applicants": 1124,
+        "mean_pd": 0.0508,
+        "observed_default_rate": 0.0463,
+        "share_of_applicants": 0.6244,
+        "decision": "APPROVE"
+      },
+      {
+        "band": "MEDIUM",
+        "applicants": 446,
+        "mean_pd": 0.1458,
+        "observed_default_rate": 0.1592,
+        "share_of_applicants": 0.2478,
+        "decision": "REFER_TO_UNDERWRITER"
+      },
+      {
+        "band": "HIGH",
+        "applicants": 230,
+        "mean_pd": 0.3568,
+        "observed_default_rate": 0.3348,
+        "share_of_applicants": 0.1278,
+        "decision": "DECLINE"
+      }
+    ],
+    "business_test": {
+      "approval_rate": 0.8,
+      "declined": 360,
+      "defaulters_declined": 103,
+      "good_customers_declined": 257,
+      "expected_loss_without_model": 51670200,
+      "loss_avoided": 31285200,
+      "margin_lost": 8931920,
+      "net_benefit": 22353280
+    },
+    "comparison_test": {
+      "baseline_logreg_raw": {
+        "roc_auc": 0.7534,
+        "gini": 0.5068,
+        "ks_stat": 0.405,
+        "pr_auc": 0.2941,
+        "recall_at_80_approval": 0.475,
+        "brier": 0.0895,
+        "n": 1800,
+        "default_rate": 0.1111
+      },
+      "champion": {
+        "roc_auc": 0.7683,
+        "gini": 0.5365,
+        "ks_stat": 0.4394,
+        "pr_auc": 0.3305,
+        "recall_at_80_approval": 0.515,
+        "brier": 0.0869,
+        "n": 1800,
+        "default_rate": 0.1111
+      },
+      "benchmark_hgb": {
+        "roc_auc": 0.7596,
+        "gini": 0.5192,
+        "ks_stat": 0.4263,
+        "pr_auc": 0.3097,
+        "recall_at_80_approval": 0.48,
+        "brier": 0.0887,
+        "n": 1800,
+        "default_rate": 0.1111
+      }
+    }
+  },
+  "explainability": {
+    "standardized_coefficients": [
+      {
+        "feature": "debt_to_income_ratio",
+        "encoded": "num__debt_to_income_ratio",
+        "coef": 0.5691
+      },
+      {
+        "feature": "loan_to_income",
+        "encoded": "num__loan_to_income",
+        "coef": 0.4204
+      },
+      {
+        "feature": "credit_history_years",
+        "encoded": "num__credit_history_years",
+        "coef": -0.3573
+      },
+      {
+        "feature": "bureau_score",
+        "encoded": "num__bureau_score",
+        "coef": -0.3406
+      },
+      {
+        "feature": "log_income",
+        "encoded": "num__log_income",
+        "coef": -0.3345
+      },
+      {
+        "feature": "existing_loans",
+        "encoded": "num__existing_loans",
+        "coef": 0.1925
+      },
+      {
+        "feature": "loan_amount",
+        "encoded": "num__loan_amount",
+        "coef": 0.1685
+      },
+      {
+        "feature": "employment_years",
+        "encoded": "num__employment_years",
+        "coef": -0.1496
+      },
+      {
+        "feature": "employment_type",
+        "encoded": "nom__employment_type_salaried",
+        "coef": -0.1009
+      },
+      {
+        "feature": "employment_type",
+        "encoded": "nom__employment_type_gig",
+        "coef": 0.0904
+      }
+    ],
+    "permutation_top": [
+      {
+        "feature": "debt_to_income_ratio",
+        "auc_drop": 0.1003,
+        "std": 0.0076
+      },
+      {
+        "feature": "loan_to_income",
+        "auc_drop": 0.0448,
+        "std": 0.0077
+      },
+      {
+        "feature": "log_income",
+        "auc_drop": 0.0285,
+        "std": 0.0073
+      },
+      {
+        "feature": "bureau_score",
+        "auc_drop": 0.0245,
+        "std": 0.0079
+      },
+      {
+        "feature": "credit_history_years",
+        "auc_drop": 0.0191,
+        "std": 0.0069
+      },
+      {
+        "feature": "existing_loans",
+        "auc_drop": 0.0083,
+        "std": 0.0031
+      }
+    ],
+    "shap_top": [
+      {
+        "feature": "debt_to_income_ratio",
+        "mean_abs_shap": 0.4301
+      },
+      {
+        "feature": "loan_to_income",
+        "mean_abs_shap": 0.3207
+      },
+      {
+        "feature": "credit_history_years",
+        "mean_abs_shap": 0.2705
+      },
+      {
+        "feature": "bureau_score",
+        "mean_abs_shap": 0.2412
+      },
+      {
+        "feature": "log_income",
+        "mean_abs_shap": 0.177
+      },
+      {
+        "feature": "employment_type",
+        "mean_abs_shap": 0.1605
+      }
+    ],
+    "reason_code_examples": [
+      {
+        "pd": 0.0411,
+        "band": "LOW",
+        "codes": [
+          {
+            "feature": "existing_loans",
+            "reason": "Number of existing loans is high (3)",
+            "contribution": 0.349
+          },
+          {
+            "feature": "loan_amount",
+            "reason": "Large loan amount",
+            "contribution": 0.241
+          },
+          {
+            "feature": "employment_years",
+            "reason": "Time in current employment is short (2.0 years)",
+            "contribution": 0.141
+          }
+        ]
+      },
+      {
+        "pd": 0.152,
+        "band": "MEDIUM",
+        "codes": [
+          {
+            "feature": "credit_history_years",
+            "reason": "Credit history is short (1.4 years)",
+            "contribution": 0.396
+          },
+          {
+            "feature": "loan_to_income",
+            "reason": "The loan amount is large relative to annual income (0.78x)",
+            "contribution": 0.388
+          },
+          {
+            "feature": "loan_amount",
+            "reason": "Large loan amount",
+            "contribution": 0.235
+          }
+        ]
+      },
+      {
+        "pd": 0.4196,
+        "band": "HIGH",
+        "codes": [
+          {
+            "feature": "debt_to_income_ratio",
+            "reason": "Monthly debt payments are high relative to income (DTI 101%)",
+            "contribution": 1.983
+          },
+          {
+            "feature": "loan_to_income",
+            "reason": "The loan amount is large relative to annual income (0.71x)",
+            "contribution": 0.267
+          },
+          {
+            "feature": "loan_amount",
+            "reason": "Large loan amount",
+            "contribution": 0.103
+          }
+        ]
+      }
+    ]
+  },
+  "fairness": {
+    "decline_cutoff": 0.22,
+    "min_air": 0.8,
+    "gate_attribute": "gender",
+    "pass_": true,
+    "overall_decline_rate": 0.1278,
+    "denial_rate_ratio": 1.165,
+    "auto_approval_by_gender": {
+      "female": 0.6032,
+      "male": 0.6378
+    },
+    "auto_approval_air": 0.9458,
+    "gender": [
+      {
+        "group": "female",
+        "n": 693,
+        "approval_rate": 0.86,
+        "default_rate": 0.1299,
+        "approved_among_repaid": 0.9055
+      },
+      {
+        "group": "male",
+        "n": 1107,
+        "approval_rate": 0.8799,
+        "default_rate": 0.0994,
+        "approved_among_repaid": 0.9037
+      }
+    ],
+    "gender_summary": {
+      "air": 0.9774,
+      "eo_gap": 0.0018,
+      "lowest_group": "female",
+      "highest_group": "male"
+    },
+    "age": [
+      {
+        "group": "25-34",
+        "n": 626,
+        "approval_rate": 0.8706,
+        "default_rate": 0.123,
+        "approved_among_repaid": 0.9053
+      },
+      {
+        "group": "35-49",
+        "n": 866,
+        "approval_rate": 0.8903,
+        "default_rate": 0.097,
+        "approved_among_repaid": 0.9182
+      },
+      {
+        "group": "50+",
+        "n": 101,
+        "approval_rate": 0.8416,
+        "default_rate": 0.0792,
+        "approved_among_repaid": 0.871
+      },
+      {
+        "group": "<25",
+        "n": 207,
+        "approval_rate": 0.8164,
+        "default_rate": 0.1498,
+        "approved_among_repaid": 0.858
+      }
+    ],
+    "age_summary": {
+      "air": 0.917,
+      "eo_gap": 0.0602,
+      "lowest_group": "<25",
+      "highest_group": "35-49"
+    },
+    "variants": [
+      {
+        "variant": "V0 + fine location + age",
+        "n_features": 11,
+        "test_auc": 0.7722,
+        "test_ks": 0.4313,
+        "gender_AIR": 0.959,
+        "gender_AIR_auto": 0.886,
+        "gender_decline_ratio": 1.318,
+        "gender_EO_gap": 0.0065,
+        "age_AIR": 0.8506
+      },
+      {
+        "variant": "V1 + fine location (no age)",
+        "n_features": 10,
+        "test_auc": 0.7702,
+        "test_ks": 0.4412,
+        "gender_AIR": 0.9565,
+        "gender_AIR_auto": 0.8757,
+        "gender_decline_ratio": 1.342,
+        "gender_EO_gap": 0.0125,
+        "age_AIR": 0.9039
+      },
+      {
+        "variant": "V2 FINAL: no age, no location at all",
+        "n_features": 9,
+        "test_auc": 0.7683,
+        "test_ks": 0.4394,
+        "gender_AIR": 0.9774,
+        "gender_AIR_auto": 0.9458,
+        "gender_decline_ratio": 1.165,
+        "gender_EO_gap": 0.0018,
+        "age_AIR": 0.917
+      },
+      {
+        "variant": "V2b + coarse city_tier only",
+        "n_features": 10,
+        "test_auc": 0.7687,
+        "test_ks": 0.44,
+        "gender_AIR": 0.9774,
+        "gender_AIR_auto": 0.9458,
+        "gender_decline_ratio": 1.165,
+        "gender_EO_gap": 0.0018,
+        "age_AIR": 0.9182
+      },
+      {
+        "variant": "V3 + age (no location)",
+        "n_features": 10,
+        "test_auc": 0.7699,
+        "test_ks": 0.4381,
+        "gender_AIR": 0.9801,
+        "gender_AIR_auto": 0.9639,
+        "gender_decline_ratio": 1.144,
+        "gender_EO_gap": 0.0074,
+        "age_AIR": 0.8647
+      },
+      {
+        "variant": "V4 + gender (NOT ALLOWED, illustration)",
+        "n_features": 10,
+        "test_auc": 0.768,
+        "test_ks": 0.4363,
+        "gender_AIR": 0.959,
+        "gender_AIR_auto": 0.8622,
+        "gender_decline_ratio": 1.318,
+        "gender_EO_gap": 0.0092,
+        "age_AIR": 0.905
+      }
+    ]
+  },
+  "age_experiment": {
+    "table": [
+      {
+        "model": "WITHOUT age (production policy)",
+        "test_auc": 0.7683,
+        "test_ks": 0.4394,
+        "gender_AIR": 0.9774,
+        "age_AIR": 0.917,
+        "approval_under25": 0.8164,
+        "approval_25_34": 0.8706,
+        "approval_35_49": 0.8903,
+        "approval_50plus": 0.8416
+      },
+      {
+        "model": "WITH age (experiment only)",
+        "test_auc": 0.7699,
+        "test_ks": 0.4381,
+        "gender_AIR": 0.9801,
+        "age_AIR": 0.8647,
+        "approval_under25": 0.7778,
+        "approval_25_34": 0.8674,
+        "approval_35_49": 0.8995,
+        "approval_50plus": 0.8614
+      }
+    ],
+    "auc_gain": {
+      "mean": 0.0014717269901950451,
+      "lo": -0.0022621076474426656,
+      "hi": 0.004825359477124169
+    },
+    "decision": "age excluded (policy)"
+  },
+  "drift": {
+    "normal": {
+      "batch": "batch_normal.csv",
+      "h0": "reference and production values come from the same distribution",
+      "alpha": 0.05,
+      "practical_threshold_D": 0.1,
+      "rows": [
+        {
+          "feature": "monthly_income",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.0333,
+          "p_value": 0.07134,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "log_income",
+          "n_ref": 2621,
+          "n_prod": 2636,
+          "ks_statistic": 0.0322,
+          "p_value": 0.12805,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "loan_to_income",
+          "n_ref": 2621,
+          "n_prod": 2636,
+          "ks_statistic": 0.0157,
+          "p_value": 0.8952,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "debt_to_income_ratio",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.0193,
+          "p_value": 0.62931,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "emi_to_income",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.0243,
+          "p_value": 0.33692,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "credit_history_years",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.049,
+          "p_value": 0.00149,
+          "statistically_significant": true,
+          "practically_significant": false,
+          "status": "significant_but_small"
+        },
+        {
+          "feature": "bureau_score",
+          "n_ref": 2757,
+          "n_prod": 2784,
+          "ks_statistic": 0.0333,
+          "p_value": 0.08957,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        }
+      ]
+    },
+    "drifted": {
+      "batch": "batch_drifted.csv",
+      "h0": "reference and production values come from the same distribution",
+      "alpha": 0.05,
+      "practical_threshold_D": 0.1,
+      "rows": [
+        {
+          "feature": "monthly_income",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.1797,
+          "p_value": 0.0,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        },
+        {
+          "feature": "log_income",
+          "n_ref": 2621,
+          "n_prod": 2636,
+          "ks_statistic": 0.2011,
+          "p_value": 0.0,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        },
+        {
+          "feature": "loan_to_income",
+          "n_ref": 2621,
+          "n_prod": 2636,
+          "ks_statistic": 0.0178,
+          "p_value": 0.79099,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "debt_to_income_ratio",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.159,
+          "p_value": 0.0,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        },
+        {
+          "feature": "emi_to_income",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.015,
+          "p_value": 0.88854,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "credit_history_years",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.0497,
+          "p_value": 0.00122,
+          "statistically_significant": true,
+          "practically_significant": false,
+          "status": "significant_but_small"
+        },
+        {
+          "feature": "bureau_score",
+          "n_ref": 2757,
+          "n_prod": 2781,
+          "ks_statistic": 0.1216,
+          "p_value": 0.0,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        }
+      ]
+    },
+    "last_check_report": {
+      "batch": "data/production/batch_drifted.csv",
+      "table": [
+        {
+          "feature": "monthly_income",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.1797,
+          "p_value": 1.0512116822408383e-42,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        },
+        {
+          "feature": "log_income",
+          "n_ref": 2621,
+          "n_prod": 2636,
+          "ks_statistic": 0.2011,
+          "p_value": 5.603993659416637e-47,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        },
+        {
+          "feature": "loan_to_income",
+          "n_ref": 2621,
+          "n_prod": 2636,
+          "ks_statistic": 0.0178,
+          "p_value": 0.7909895004571756,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "debt_to_income_ratio",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.159,
+          "p_value": 1.691162774366437e-33,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        },
+        {
+          "feature": "emi_to_income",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.015,
+          "p_value": 0.8885385545623582,
+          "statistically_significant": false,
+          "practically_significant": false,
+          "status": "no_evidence_of_drift"
+        },
+        {
+          "feature": "credit_history_years",
+          "n_ref": 3000,
+          "n_prod": 3000,
+          "ks_statistic": 0.0497,
+          "p_value": 0.001219887204216492,
+          "statistically_significant": true,
+          "practically_significant": false,
+          "status": "significant_but_small"
+        },
+        {
+          "feature": "bureau_score",
+          "n_ref": 2757,
+          "n_prod": 2781,
+          "ks_statistic": 0.1216,
+          "p_value": 2.7581903566369e-18,
+          "statistically_significant": true,
+          "practically_significant": true,
+          "status": "drift"
+        }
+      ],
+      "data_quality": {
+        "ok": true,
+        "problems": [],
+        "checks": {
+          "schema": "OK",
+          "ranges": "OK",
+          "null_rates": "OK",
+          "categories": "OK",
+          "unit_sanity": "OK"
+        },
+        "income_unit_ratio": 1.005
+      },
+      "performance": {
+        "metrics": {
+          "roc_auc": 0.6998,
+          "gini": 0.3997,
+          "ks_stat": 0.3087,
+          "pr_auc": 0.4046,
+          "recall_at_80_approval": 0.3877,
+          "brier": 0.1583,
+          "n": 3000,
+          "default_rate": 0.2167
+        },
+        "reference_auc": 0.7683,
+        "perf_drop": 0.0685,
+        "mean_predicted_pd": 0.1589,
+        "observed_default_rate": 0.2167,
+        "calibration_gap": -0.0578,
+        "band_shares": {
+          "LOW": 0.469,
+          "MEDIUM": 0.3057,
+          "HIGH": 0.2253
+        }
+      },
+      "business": {
+        "band_shares": {
+          "LOW": 0.469,
+          "MEDIUM": 0.306,
+          "HIGH": 0.225
+        },
+        "high_band_change_vs_training": 0.098,
+        "calibration_gap": -0.0578
+      },
+      "decision": {
+        "decision": "RETRAIN_CANDIDATE",
+        "reasons": [
+          "Drift (significant AND large) in: ['monthly_income', 'log_income', 'debt_to_income_ratio', 'bureau_score'].",
+          "Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).",
+          "Labelled performance fell by 0.069 (>= 0.03).",
+          "Train a challenger; promote only if it beats the champion."
+        ]
+      }
+    },
+    "significant_but_small_example": "credit_history_years in batch_normal.csv: D about 0.05, p about 0.001 -> statistically significant, practically small -> NO_ACTION"
+  },
+  "labelled_performance_drifted": {
+    "metrics": {
+      "roc_auc": 0.6998,
+      "gini": 0.3997,
+      "ks_stat": 0.3087,
+      "pr_auc": 0.4046,
+      "recall_at_80_approval": 0.3877,
+      "brier": 0.1583,
+      "n": 3000,
+      "default_rate": 0.2167
+    },
+    "reference_auc": 0.7683,
+    "perf_drop": 0.0685,
+    "mean_predicted_pd": 0.1589,
+    "observed_default_rate": 0.2167,
+    "calibration_gap": -0.0578,
+    "band_shares": {
+      "LOW": 0.469,
+      "MEDIUM": 0.3057,
+      "HIGH": 0.2253
+    }
+  },
+  "retraining": {
+    "record": {
+      "timestamp": "2026-10-07T13:51:58+00:00",
+      "champion": "v1",
+      "challenger": "v2",
+      "reason": [
+        "Drift (significant AND large) in: ['monthly_income', 'log_income', 'debt_to_income_ratio', 'bureau_score'].",
+        "Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).",
+        "Labelled performance fell by 0.069 (>= 0.03).",
+        "Train a challenger; promote only if it beats the champion."
+      ],
+      "checks": {
+        "roc_auc_improvement>=0.005": true,
+        "guardrail_ks_stat_worsening<=0.03": true,
+        "guardrail_recall_at_80_approval_worsening<=0.03": true,
+        "fairness_AIR>=0.8": true,
+        "old_test_AUC_drop<=0.02": true
+      },
+      "rules_pass": true,
+      "holdout_delta_auc": 0.0108,
+      "required_signoffs": [
+        "Model owner",
+        "Model risk / independent validation",
+        "Compliance (fairness)"
+      ],
+      "approved_by": null
+    },
+    "result": {
+      "decision": "RETRAIN_CANDIDATE",
+      "promoted": false,
+      "rules_pass": true,
+      "delta_auc": 0.0108,
+      "champion_holdout": {
+        "roc_auc": 0.7187,
+        "gini": 0.4374,
+        "ks_stat": 0.3801,
+        "pr_auc": 0.4242,
+        "recall_at_80_approval": 0.4274,
+        "brier": 0.1443,
+        "n": 1200,
+        "default_rate": 0.2008
+      },
+      "challenger_holdout": {
+        "roc_auc": 0.7295,
+        "gini": 0.4591,
+        "ks_stat": 0.3864,
+        "pr_auc": 0.4354,
+        "recall_at_80_approval": 0.4398,
+        "brier": 0.141,
+        "n": 1200,
+        "default_rate": 0.2008
+      },
+      "checks": {
+        "roc_auc_improvement>=0.005": true,
+        "guardrail_ks_stat_worsening<=0.03": true,
+        "guardrail_recall_at_80_approval_worsening<=0.03": true,
+        "fairness_AIR>=0.8": true,
+        "old_test_AUC_drop<=0.02": true
+      },
+      "challenger_version": "v2",
+      "air_champion": 0.9678,
+      "air_challenger": 0.9914
+    }
+  },
+  "pytest": {
+    "passed": 97,
+    "other": null,
+    "seconds": 17.27,
+    "raw": "97 passed in 17.27s"
+  },
+  "api_latency_ms": {
+    "n": 200,
+    "mean_ms": 70.1,
+    "p50_ms": 64.9,
+    "p95_ms": 126.8,
+    "max_ms": 190.1
+  },
+  "core_components": [
+    "synthetic data generator",
+    "feature engineering (engineer)",
+    "filter/wrapper/embedded selection",
+    "feature registry + approval guard",
+    "logistic-regression scorecard (sklearn Pipeline)",
+    "MLflow tracking (local sqlite)",
+    "metrics: AUC, KS, Gini, PR-AUC, recall@80% approval, calibration",
+    "reason codes",
+    "FastAPI service + Prometheus metrics",
+    "drift check (KS) + decision ladder",
+    "champion/challenger + approval + rollback",
+    "fairness audit (pandas only)",
+    "review gate + review pack",
+    "pytest suite",
+    "Dockerfile",
+    "GitHub Actions CI",
+    "DVC pipeline"
+  ],
+  "optional_components": [
+    "SHAP on the gradient-boosting benchmark",
+    "HistGradientBoosting challenger (kept for monitoring, not shipped)",
+    "formal fairness libraries (not used)",
+    "Kubernetes / Minikube manifests",
+    "docker-compose Prometheus + Grafana stack",
+    "matplotlib figures (profile_data.py --plots)"
+  ],
+  "failure_scenarios_reproduced": [
+    "(a) approval rate jumps: income unit changed upstream -> data quality FAILED -> FIX_DATA_PIPELINE (16_failure_scenarios.txt)",
+    "(b) AUC fell after a new feature: leaky column absent in production, offline 0.935 -> production ~0.25 (04_leakage_demo.txt, 16_failure_scenarios.txt)",
+    "(c) API 422 spike after schema change: renamed field + capitalised category (16_failure_scenarios.txt)",
+    "drift significant but small: credit_history_years, NO_ACTION (10_drift_normal.txt)",
+    "downturn: drift + AUC drop 0.069 -> RETRAIN_CANDIDATE -> challenger -> approval -> promote -> rollback (11, 12)"
+  ],
+  "sample_outputs": [
+    "00_make_data_and_split.txt",
+    "01_data_profile.txt",
+    "02_feature_manual_examples.txt",
+    "03_feature_selection.txt",
+    "04_leakage_demo.txt",
+    "05_train_mlflow.txt",
+    "06_evaluation.txt",
+    "07_explainability.txt",
+    "08_pytest.txt",
+    "09_api_session.txt",
+    "09b_traffic_and_drift_exporter.txt",
+    "10_drift_normal.txt",
+    "11_drift_shifted.txt",
+    "12_retrain_promotion.txt",
+    "13_fairness_audit.txt",
+    "14_age_experiment.txt",
+    "15_review_pack_and_gate.txt",
+    "16_failure_scenarios.txt",
+    "17_perf_monitor.txt"
+  ]
+}

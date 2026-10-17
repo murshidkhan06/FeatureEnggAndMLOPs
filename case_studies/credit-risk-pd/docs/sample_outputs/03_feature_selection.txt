@@ -1,0 +1,26 @@
+$ python -m src.features.select_features
+Training rows: 11,807  (as_of 2021-06-30 .. 2022-03-31), default rate 3.82%
+
+                          missing_%  variance_scaled  anova_F   anova_p  mutual_info                      corr_dropped FILTER_keep  rfe_rank WRAPPER_keep  l1_coef EMBEDDED_keep  votes SELECTED  oot_perm_imp_val OOT_VETO
+credit_utilization             16.4           0.0139   1091.9  4.3e-229       0.0387                                          KEEP         1         KEEP    0.852          KEEP      3     KEEP            0.1293        -
+loan_payment_ratio              0.0           0.0101   1467.3  1.1e-302       0.0333                                          KEEP         1         KEEP   -0.759          KEEP      3     KEEP            0.0893        -
+salary_credit_frequency         0.0           0.0101   1209.1  2.6e-252       0.0279                                          KEEP         1         KEEP   -0.145          KEEP      3     KEEP            0.0043        -
+balance_trend                   0.0           0.0012    866.7  6.8e-184       0.0220                                          KEEP         1         KEEP   -0.382          KEEP      3     KEEP            0.0136        -
+income_stability                0.0           0.0075    639.7  1.7e-137       0.0185                                          KEEP         1         KEEP    0.323          KEEP      3     KEEP            0.0188        -
+recent_transaction_count        0.0           0.0198    141.5   1.9e-32       0.0109                                          KEEP         1         KEEP   -0.146          KEEP      3     KEEP            0.0016        -
+account_age                     0.0           0.0827     32.4   1.3e-08       0.0012                                          KEEP         1         KEEP    0.314          KEEP      3        -           -0.0106     KEEP
+balance_trend_norm              0.0           0.0053    733.7  8.1e-157       0.0291                                          KEEP         5            -   -0.051          KEEP      2     KEEP            0.0010        -
+util_x_missed                  16.4           0.0026    817.4  7.1e-174       0.0158                                          KEEP         4            -   -0.077          KEEP      2     KEEP            0.0004        -
+log_average_balance             0.0           0.0189    474.6  3.3e-103       0.0136                                          KEEP         2            -   -0.091          KEEP      2     KEEP            0.0015        -
+missed_payment_count            0.0           0.0143    405.7   9.5e-89       0.0090  |r|=0.84 with loan_payment_ratio           -         1         KEEP   -0.251          KEEP      2     KEEP            0.0089        -
+average_balance                 0.0           0.0137     85.1   3.3e-20       0.0155                                          KEEP         3            -    0.000             -      1        -               NaN        -
+
+Filter drops for correlation: {'missed_payment_count': '|r|=0.84 with loan_payment_ratio'}
+
+OUT-OF-TIME VETO (validation permutation importance < -0.003): ['account_age']
+
+SELECTED (10 of 12; kept by >= 2 of 3 families, minus the out-of-time veto):
+  ['balance_trend', 'salary_credit_frequency', 'loan_payment_ratio', 'missed_payment_count', 'credit_utilization', 'recent_transaction_count', 'income_stability', 'util_x_missed', 'balance_trend_norm', 'log_average_balance']
+NOT selected: ['average_balance', 'account_age']
+
+wrote selected_features.yaml

@@ -1,0 +1,143 @@
+$ python -m src.models.retrain
+CHAMPION: v1 (test AUC 0.7683)   batch: data/production/batch_drifted.csv (3000 applications)
+
+STEP 1  data quality: OK
+STEP 2  drift (KS test): {'monthly_income': 'D=0.18 drift', 'log_income': 'D=0.20 drift', 'loan_to_income': 'D=0.02 no_evidence_of_drift', 'debt_to_income_ratio': 'D=0.16 drift', 'emi_to_income': 'D=0.01 no_evidence_of_drift', 'credit_history_years': 'D=0.05 significant_but_small', 'bureau_score': 'D=0.12 drift'}
+STEP 3  labelled performance: labels not available yet (defaults are known 12 months after disbursal)
+
+DECISION LADDER -> INVESTIGATE
+   * Drift (significant AND large) in: ['monthly_income', 'log_income', 'debt_to_income_ratio', 'bureau_score'].
+   * Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).
+   * Labels are not available yet, so performance is unknown. Investigate cause (seasonality? upstream change? real population change?), estimate business impact, and wait for labels before retraining.
+
+No challenger is trained: the ladder says INVESTIGATE.  (Drift alone never triggers retraining.)
+
+$ python -m src.models.retrain --labels-available
+CHAMPION: v1 (test AUC 0.7683)   batch: data/production/batch_drifted.csv (3000 applications)
+
+STEP 1  data quality: OK
+STEP 2  drift (KS test): {'monthly_income': 'D=0.18 drift', 'log_income': 'D=0.20 drift', 'loan_to_income': 'D=0.02 no_evidence_of_drift', 'debt_to_income_ratio': 'D=0.16 drift', 'emi_to_income': 'D=0.01 no_evidence_of_drift', 'credit_history_years': 'D=0.05 significant_but_small', 'bureau_score': 'D=0.12 drift'}
+STEP 3  labelled performance: AUC 0.6998 vs 0.7683 -> drop 0.0685; predicted PD 0.1589 vs observed 0.2167
+
+DECISION LADDER -> RETRAIN_CANDIDATE
+   * Drift (significant AND large) in: ['monthly_income', 'log_income', 'debt_to_income_ratio', 'bureau_score'].
+   * Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).
+   * Labelled performance fell by 0.069 (>= 0.03).
+   * Train a challenger; promote only if it beats the champion.
+
+STEP 4  train CHALLENGER v2: 9838 old rows + 1800 fresh rows (weight x3.0), hold-out = newest 1200 rows (2024-07-17 .. 2024-09-30), same features as champion
+
+STEP 5  champion vs challenger on the SAME newer hold-out
+                       champion  challenger
+roc_auc                  0.7187      0.7295
+gini                     0.4374      0.4591
+ks_stat                  0.3801      0.3864
+pr_auc                   0.4242      0.4354
+recall_at_80_approval    0.4274      0.4398
+brier                    0.1443      0.1410
+   gender AIR on hold-out: champion 0.968 | challenger 0.991;   AUC on the OLD test set: champion 0.7683 | challenger 0.7625
+
+STEP 6  promotion rules (all must be True)
+   [PASS] roc_auc_improvement>=0.005
+   [PASS] guardrail_ks_stat_worsening<=0.03
+   [PASS] guardrail_recall_at_80_approval_worsening<=0.03
+   [PASS] fairness_AIR>=0.8
+   [PASS] old_test_AUC_drop<=0.02
+   AUC improvement on hold-out: +0.0108
+
+STEP 7  APPROVAL RECORD
+{
+  "timestamp": "2026-10-07T13:50:51+00:00",
+  "champion": "v1",
+  "challenger": "v2",
+  "reason": [
+    "Drift (significant AND large) in: ['monthly_income', 'log_income', 'debt_to_income_ratio', 'bureau_score'].",
+    "Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).",
+    "Labelled performance fell by 0.069 (>= 0.03).",
+    "Train a challenger; promote only if it beats the champion."
+  ],
+  "checks": {
+    "roc_auc_improvement>=0.005": true,
+    "guardrail_ks_stat_worsening<=0.03": true,
+    "guardrail_recall_at_80_approval_worsening<=0.03": true,
+    "fairness_AIR>=0.8": true,
+    "old_test_AUC_drop<=0.02": true
+  },
+  "rules_pass": true,
+  "holdout_delta_auc": 0.0108,
+  "required_signoffs": [
+    "Model owner",
+    "Model risk / independent validation",
+    "Compliance (fairness)"
+  ],
+  "approved_by": null
+}
+
+AWAITING HUMAN APPROVAL: every rule passed, but a named person must sign off.  Re-run with  --approve-as "NAME (ROLE)".
+
+$ python -m src.models.retrain --labels-available --approve-as A. Rao (Model owner), with Risk and Compliance sign-off
+CHAMPION: v1 (test AUC 0.7683)   batch: data/production/batch_drifted.csv (3000 applications)
+
+STEP 1  data quality: OK
+STEP 2  drift (KS test): {'monthly_income': 'D=0.18 drift', 'log_income': 'D=0.20 drift', 'loan_to_income': 'D=0.02 no_evidence_of_drift', 'debt_to_income_ratio': 'D=0.16 drift', 'emi_to_income': 'D=0.01 no_evidence_of_drift', 'credit_history_years': 'D=0.05 significant_but_small', 'bureau_score': 'D=0.12 drift'}
+STEP 3  labelled performance: AUC 0.6998 vs 0.7683 -> drop 0.0685; predicted PD 0.1589 vs observed 0.2167
+
+DECISION LADDER -> RETRAIN_CANDIDATE
+   * Drift (significant AND large) in: ['monthly_income', 'log_income', 'debt_to_income_ratio', 'bureau_score'].
+   * Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).
+   * Labelled performance fell by 0.069 (>= 0.03).
+   * Train a challenger; promote only if it beats the champion.
+
+STEP 4  train CHALLENGER v2: 9838 old rows + 1800 fresh rows (weight x3.0), hold-out = newest 1200 rows (2024-07-17 .. 2024-09-30), same features as champion
+
+STEP 5  champion vs challenger on the SAME newer hold-out
+                       champion  challenger
+roc_auc                  0.7187      0.7295
+gini                     0.4374      0.4591
+ks_stat                  0.3801      0.3864
+pr_auc                   0.4242      0.4354
+recall_at_80_approval    0.4274      0.4398
+brier                    0.1443      0.1410
+   gender AIR on hold-out: champion 0.968 | challenger 0.991;   AUC on the OLD test set: champion 0.7683 | challenger 0.7625
+
+STEP 6  promotion rules (all must be True)
+   [PASS] roc_auc_improvement>=0.005
+   [PASS] guardrail_ks_stat_worsening<=0.03
+   [PASS] guardrail_recall_at_80_approval_worsening<=0.03
+   [PASS] fairness_AIR>=0.8
+   [PASS] old_test_AUC_drop<=0.02
+   AUC improvement on hold-out: +0.0108
+
+STEP 7  APPROVAL RECORD
+{
+  "timestamp": "2026-10-07T13:50:58+00:00",
+  "champion": "v1",
+  "challenger": "v2",
+  "reason": [
+    "Drift (significant AND large) in: ['monthly_income', 'log_income', 'debt_to_income_ratio', 'bureau_score'].",
+    "Statistically significant but small shift in: ['credit_history_years'] (watch, do not act alone).",
+    "Labelled performance fell by 0.069 (>= 0.03).",
+    "Train a challenger; promote only if it beats the champion."
+  ],
+  "checks": {
+    "roc_auc_improvement>=0.005": true,
+    "guardrail_ks_stat_worsening<=0.03": true,
+    "guardrail_recall_at_80_approval_worsening<=0.03": true,
+    "fairness_AIR>=0.8": true,
+    "old_test_AUC_drop<=0.02": true
+  },
+  "rules_pass": true,
+  "holdout_delta_auc": 0.0108,
+  "required_signoffs": [
+    "Model owner",
+    "Model risk / independent validation",
+    "Compliance (fairness)"
+  ],
+  "approved_by": "A. Rao (Model owner), with Risk and Compliance sign-off"
+}
+
+PROMOTED: v2 is now the champion (approved by A. Rao (Model owner), with Risk and Compliance sign-off).  Previous champion archived as models/model_v1.joblib.
+Restart / reload the API (or roll the Kubernetes deployment) to serve it.  Roll back with:  python -m src.models.retrain --rollback
+
+$ python -m src.models.retrain --rollback
+ROLLED BACK: champion is now v1

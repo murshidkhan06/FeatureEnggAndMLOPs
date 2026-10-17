@@ -1,0 +1,14 @@
+name: demand-forecast
+python_env: python_env.yaml
+entry_points:
+  train:
+    parameters: {version: {type: string, default: v1}}
+    command: "python -m src.models.train --version {version}"
+  drift:
+    parameters: {prod: {type: string, default: data/production/batch_drifted.csv}}
+    command: "python -m src.monitoring.run_drift_check --prod {prod}"
+  retrain:
+    parameters:
+      prod: {type: string, default: data/production/batch_drifted.csv}
+      strategy: {type: string, default: rolling}
+    command: "python -m src.models.retrain --prod {prod} --strategy {strategy}"

@@ -1,0 +1,50 @@
+$ python -m src.monitoring.failure_scenarios
+====================================================================================================
+(a) STALE HISTORY STORE - forecasts after Diwali with a store frozen on 2024-11-01 (the festival peak)
+====================================================================================================
+      date  stale_days  actual_units  fresh_forecast  stale_forecast  fresh_wape  stale_wape
+2024-11-02           0          3108            3852            3852       0.241       0.241
+2024-11-03           1          3118            3264            3347       0.152       0.166
+2024-11-04           2          2357            2653            2705       0.163       0.171
+2024-11-05           3          2298            2529            2771       0.183       0.258
+
+SYMPTOM : accuracy decays with every missing day: stale WAPE 0.241 -> 0.166 -> 0.171 -> 0.258 (fresh: 0.241 -> 0.152 -> 0.163 -> 0.183).  On 2024-11-05 the stale forecast says 2771 units, actual demand was 2298 (+21%): it is still 'celebrating' the festival.
+CAUSE   : lag_1/lag_7/rolling means still describe the festival days; the model has no idea the festival is over.
+DETECT  : `history_stale_days` in every API response + warning; /health shows history_last_date; the store REFUSES beyond 3 days:
+          -> history store is 5 days behind forecast_date 2024-11-07 (last history day 2024-11-01, limit 3); refresh the hi
+FIX     : run the weekly/nightly refresh (src/models/weekly_job.py); alert when history_last_date < yesterday.
+
+====================================================================================================
+(b) MAPE EXPLODES ON ZERO-SALES DAYS
+====================================================================================================
+actual [100, 0, 50] vs forecast [90, 10, 55]:  MAPE = inf   WAPE = 0.167  (=25 units wrong / 150 units sold)
+real data: 42 of 17,544 store-days sold ZERO units (stock-outs) = 0.24%.
+SYMPTOM : the weekly MAPE chart jumps to infinity / absurd values after one stock-out.
+CAUSE   : MAPE divides by the actual value of each day; 0 -> division by zero, small values -> huge percentages.
+DETECT  : any metric that is inf/NaN in monitoring; our tests assert WAPE stays finite.
+FIX     : report WAPE (sum of |errors| / total units) and bias; never average per-day percentages.
+
+====================================================================================================
+(c) DUPLICATED DATES AFTER A PIPELINE RETRY
+====================================================================================================
+rolling_mean_7 for the last day of P04/S2:  correct = 208.4   with the last 3 days loaded twice = 213.6
+SYMPTOM : forecasts drift slightly and nobody knows why - every number still looks plausible.
+CAUSE   : the retry appended rows that already existed; the 7-row window now spans fewer real days.
+DETECT  : check_history() raises: 3 duplicated (date, product_id, store_id) rows - did a pipeline step run twice?
+          data_quality.validate() fails: ['duplicates: 3 duplicated (date, product, store) rows']
+FIX     : idempotent loads (upsert_history in weekly_job.py) + this data test in CI and in the retrain ladder.
+
+====================================================================================================
+(d) PRICE UNIT CHANGE (rupees -> paise, x100)
+====================================================================================================
+data quality on the week with prices x100:
+   FAIL price_range: 126 rows outside 0 < price <= 5000
+   FAIL price_unit: median price ratio out of range: P01=108x, P02=108x, P03=108x, P04=108x, P05=108x, P06=108x, P07=108x, P08=108x
+
+what the first row after the change would do (P03/S1, actual sales 114; price_change becomes +99 instead of ~0):
+   hgb (champion)   normal forecast   123.7 -> with unit error     102.1
+   ridge_log        normal forecast   127.1 -> with unit error       0.0
+SYMPTOM : forecasts for a few products collapse (linear model) or look odd; price drift alarm in the KS table.
+CAUSE   : a source system changed its unit; the code is still 'correct'.
+DETECT  : data-quality check price_unit (median ratio vs reference) + API field range (price <= 5000 -> HTTP 422) + KS drift on price.
+FIX     : fix/convert at the source or in the ingestion step, add a unit test; do NOT retrain on the bad week.

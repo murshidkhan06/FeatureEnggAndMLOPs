@@ -1,0 +1,36 @@
+$ python -m src.governance.fairness_audit
+FAIRNESS AUDIT of champion on the TEST set (1800 applicants); decision cutoff: decline if PD >= 0.22
+overall decline rate 12.8%
+
+1. BY GENDER (gender was NEVER a model input)
+ group    n  approval_rate  default_rate  approved_among_repaid
+female  693         0.8600        0.1299                 0.9055
+  male 1107         0.8799        0.0994                 0.9037
+   adverse impact ratio = female / male approval = 0.9774  (PASS vs four-fifths rule 0.8);  equal-opportunity gap = 0.0018
+   denial-rate ratio (higher/lower) = 1.165;  stricter view - share AUTO-approved (LOW band): {'female': 0.6032, 'male': 0.6378} -> AIR 0.9458
+
+2. BY AGE BAND (age was NEVER a model input; shown for monitoring)
+group   n  approval_rate  default_rate  approved_among_repaid
+25-34 626         0.8706        0.1230                 0.9053
+35-49 866         0.8903        0.0970                 0.9182
+  50+ 101         0.8416        0.0792                 0.8710
+  <25 207         0.8164        0.1498                 0.8580
+   adverse impact ratio = 0.917   equal-opportunity gap = 0.0602
+   Reading: younger applicants have thinner credit files and shorter employment, which the model legitimately uses;
+   whether that is acceptable for age is a POLICY question for Compliance (see docs/REGULATORY_REVIEW_FLOW.md).
+
+3. BEFORE / AFTER REMOVING PROXIES (same decline rate for every variant, trained on the same time-based train split)
+                                variant  n_features  test_auc  test_ks  gender_AIR  gender_AIR_auto  gender_decline_ratio  gender_EO_gap  age_AIR
+               V0 + fine location + age          11    0.7722   0.4313      0.9590           0.8860                 1.318         0.0065   0.8506
+            V1 + fine location (no age)          10    0.7702   0.4412      0.9565           0.8757                 1.342         0.0125   0.9039
+   V2 FINAL: no age, no location at all           9    0.7683   0.4394      0.9774           0.9458                 1.165         0.0018   0.9170
+            V2b + coarse city_tier only          10    0.7687   0.4400      0.9774           0.9458                 1.165         0.0018   0.9182
+                 V3 + age (no location)          10    0.7699   0.4381      0.9801           0.9639                 1.144         0.0074   0.8647
+V4 + gender (NOT ALLOWED, illustration)          10    0.7680   0.4363      0.9590           0.8622                 1.318         0.0092   0.9050
+   Reading: fine-grained location (V1) buys almost no accuracy but WIDENS the gap between women and men (auto-approval AIR and
+   denial ratio get worse): in this data some cities have more women applicants AND a local economic effect, so `location` acts as a
+   PROXY for gender.  The coarse city_tier (V2b) carries no such effect here.  Decision recorded in the registry: fine location excluded.
+   V4 is shown only to illustrate why gender is excluded: the audit would see its effect directly.  Age (V3) is studied in
+   `python -m src.governance.age_experiment`.
+
+written reports/fairness_report.json   (gate: gender AIR >= 0.8 -> PASS)

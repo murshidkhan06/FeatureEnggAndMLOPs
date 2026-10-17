@@ -1,0 +1,31 @@
+$ python scripts/traffic_demo.py
+
+=== NORMAL traffic: data/production/batch_normal.csv ===
+sent=400 ok=400 errors=0 in 88.6s
+predictions by risk band: ['risk_level="LOW"} 355.0', 'risk_level="MEDIUM"} 21.0', 'risk_level="HIGH"} 24.0']
+drift exporter gauges (window = last 400 logged requests):
+  feature                       KS D    p-value  flag
+  average_balance              0.041       0.64  0
+  balance_trend                0.036       0.77  0
+  salary_credit_frequency      0.013          1  0
+  loan_payment_ratio           0.012          1  0
+  missed_payment_count         0.013          1  0
+  credit_utilization           0.040       0.74  0
+  recent_transaction_count     0.054       0.28  0
+  income_stability             0.052       0.32  0
+  account_age                  0.067      0.097  0
+
+=== DRIFTED traffic: data/production/batch_drifted.csv ===
+sent=400 ok=400 errors=0 in 162.2s
+predictions by risk band: ['risk_level="LOW"} 277.0', 'risk_level="MEDIUM"} 65.0', 'risk_level="HIGH"} 58.0']
+drift exporter gauges (window = last 400 logged requests):
+  feature                       KS D    p-value  flag
+  average_balance              0.028       0.96  0
+  balance_trend                0.311    5.2e-29  1
+  salary_credit_frequency      0.276    7.5e-23  1
+  loan_payment_ratio           0.083      0.019  0
+  missed_payment_count         0.072      0.058  0
+  credit_utilization           0.156    2.6e-06  1
+  recent_transaction_count     0.042        0.6  0
+  income_stability             0.450    1.4e-61  1
+  account_age                  0.098     0.0031  0

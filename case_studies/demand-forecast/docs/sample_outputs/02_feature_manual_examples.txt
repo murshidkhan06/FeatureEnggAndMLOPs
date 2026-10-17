@@ -1,0 +1,43 @@
+$ python -m src.features.manual_examples
+=== 1. rolling_mean_7: shift(1) BEFORE rolling ===
+sales days 1..8 = [10, 12, 11, 13, 20, 22, 21, 14]
+hand : day 8 rolling_mean_7 = mean(10,12,11,13,20,22,21) = 15.57   (days 1..7, today excluded)
+code : compute_features day 8 rolling_mean_7             = 15.57   MATCH
+WRONG: rolling(7) without shift on day 8                 = 16.14   = mean(12,11,13,20,22,21,14): includes day 8's own sales (14)
+
+=== 2. lags ===
+hand : day 8 lag_1 = sales(day 7) = 21 ; lag_7 = sales(day 1) = 10
+code : lag_1 = 21 ; lag_7 = 10
+
+=== 3. a missing day (POS outage) - calendar completion + fallback ===
+sales for day 7 never arrived.  For day 8: lag_1 would be NaN -> filled with rolling_mean_7
+hand : rolling_mean_7 = mean(10,12,11,13,20,22) = 14.67 (6 valid days, min_periods=4 -> ok)
+code : lag_1 = 14.67, rolling_mean_7 = 14.67   (shift means 'previous CALENDAR day', not 'previous row')
+
+=== 4. price_change and discount_pct ===
+hand : price_change = 38/40 - 1 = -0.050 ; discount_pct = 2/(38+2) = 0.050
+code : price_change = -0.050 ; discount_pct = 0.050 ; promotion_flag = 1
+
+=== 5. cyclical encoding (optional): sin/cos of the weekday ===
+  Monday    day_of_week=0: sin=+0.000  cos=+1.000
+  Thursday  day_of_week=3: sin=+0.434  cos=-0.901
+  Sunday    day_of_week=6: sin=-0.782  cos=+0.623
+  distance Sunday->Monday = 0.868  (neighbours) vs Monday->Thursday = 1.950.  As plain numbers 6 and 0
+  look 6 apart; on the circle they are adjacent.  December/January work the same with month_sin/month_cos.
+
+=== 6. a REAL row, recomputed by hand from the raw history ===
+series P04 (milk) / S2 (Mumbai), day 2024-11-01 (Diwali, is_holiday=1), actual sales = 303
+previous 7 days: [195, 248, 204, 173, 212, 241, 200]
+  lag_1           hand =   200.00   code =   200.00   MATCH
+  lag_7           hand =   195.00   code =   195.00   MATCH
+  rolling_mean_7  hand =   210.43   code =   210.43   MATCH
+
+=== 7. offline (training) vs online (history store) - same function, same numbers ===
+  lag_1            offline =   200.000   online =   200.000
+  lag_7            offline =   195.000   online =   195.000
+  lag_14           offline =   186.000   online =   186.000
+  rolling_mean_7   offline =   210.429   online =   210.429
+  rolling_mean_30  offline =   197.333   online =   197.333
+  price_change     offline =     0.000   online =     0.000
+  discount_pct     offline =     0.000   online =     0.000
+  PARITY: OK (no training-serving skew)

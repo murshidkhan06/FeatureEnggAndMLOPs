@@ -1,0 +1,15 @@
+{
+  "annual_income": 360000.0,
+  "monthly_income": 31400.0,
+  "employment_years": 2.0,
+  "loan_amount": 159000.0,
+  "loan_term_months": 60,
+  "credit_history_years": 3.0,
+  "bureau_score": 661.0,
+  "existing_loans": 2,
+  "monthly_debt": 10600.0,
+  "number_of_dependents": 1,
+  "employment_type": "salaried",
+  "education": "graduate",
+  "location": "Nagpur"
+}

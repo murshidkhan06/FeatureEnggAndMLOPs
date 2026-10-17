@@ -1,0 +1,36 @@
+$ python -m src.features.leakage_demo
+====================================================================================================
+PART A - LEAKY COLUMNS (same model, same time-based split, only the feature list changes)
+====================================================================================================
+                          model  valid_auc  test_auc  test_ks
+ HONEST: approved features only     0.7920    0.7683   0.4394
+        + interest_rate_offered     0.9535    0.9351   0.7450
++ days_past_due_after_disbursal     0.9999    0.9998   0.9862
+           + both leaky columns     1.0000    0.9999   0.9950
+
+The registry blocks this at training time:
+Feature approval check FAILED:
+  - interest_rate_offered: Rejected [LEAKAGE] - TARGET LEAKAGE: set after (and as a function of) the risk assessment, so it leaks the score and the outcome.
+  - days_past_due_after_disbursal: Rejected [LEAKAGE] - FUTURE INFORMATION (look-ahead): this is practically the target.
+
+What happens in PRODUCTION: the column does not exist yet, so the pipeline receives a missing value (median-imputed).
+   leaky model AUC offline (column present) = 0.935   ->   in production (column missing) = 0.226
+   (below 0.5 is possible: the model learned to 'correct' the leaky column using the honest columns; remove the column and the corrections point the wrong way)
+
+====================================================================================================
+PART B - JUNIOR-ENGINEER MISTAKES
+====================================================================================================
+   (B2 segment = ['location', 'employment_type', 'education', 'loan_term_months']: 1136 segments for 11638 rows, about 10 rows each -> a test row's own label is ~1/10 of its segment mean; tiny segments leak the label almost completely)
+   (B3 random split: 6.7% of test applications belong to an applicant who is ALSO in train; 'right' = split by applicant_id, same rows)
+   (reference: honest TIME-based split, logistic regression test AUC = 0.7678; in this synthetic world the process is stable over time, so a random split does not inflate much - in real lending data with seasonality / policy changes it does)
+
+                                                                 mistake  wrong_test_auc  right_test_auc  inflation
+                                    B1 imputer+scaler fitted on ALL data          0.7684          0.7683     0.0001
+                        B2 target encoding of segment (uses test labels)          0.8366          0.7682     0.0684
+             B3 random row split, logistic regression (mean of 3 splits)          0.7744          0.7724     0.0020
+B3 random row split, flexible boosting (can memorise) (mean of 3 splits)          0.7376          0.7260     0.0116
+
+Takeaways
+ * A too-good AUC (0.95+) in lending is a SMELL, not a success: ask 'when does this column exist?'
+ * Fit imputers / scalers / encoders on TRAIN only (inside the Pipeline).  Effect is small for scaling, large for target-derived features.
+ * Split by TIME and by APPLICANT; never by random row when customers can apply more than once.
