@@ -1,0 +1,78 @@
+# docker-compose.yml -- the whole system with one command:  docker compose up --build
+#
+#   browser ──► frontend (nginx :8080, published as :5173)
+#   browser ──► orchestrator (:8002) ──► mcp-server (:8001) ──► ml-api (:8000)
+#                    │
+#                    └──► Groq (internet)   OR   Ollama (host machine, or the optional compose service)
+#
+# NETWORKING RULES TO REMEMBER
+#  * Containers reach each other by SERVICE NAME (http://ml-api:8000), never "localhost":
+#    inside a container, "localhost" means that container itself.
+#  * The BROWSER is not in Docker, so it uses the published host ports (http://localhost:8002).
+#  * Ollama running on your laptop is reached from a container as http://host.docker.internal:11434.
+
+name: exam-score-chat
+
+services:
+  # ---- 1. The EXISTING ML project, built from its own Dockerfile (unchanged) ----------------
+  ml-api:
+    build:
+      context: ${ML_API_DIR:-../exam-score-mlops}
+    image: exam-score-ml-api:local
+    ports:
+      - "127.0.0.1:8000:8000"       # published only so you can curl it; not needed by the other containers
+    restart: unless-stopped
+    # The healthcheck comes from the ML project's Dockerfile (GET /health).
+
+  # ---- 2. MCP server: the safe "tool" layer between the LLM and the ML API ----------------------
+  mcp-server:
+    build: ./mcp_server
+    image: exam-score-mcp-server:local
+    environment:
+      ML_API_BASE_URL: http://ml-api:8000          # service name, NOT localhost
+      MCP_HOST: 0.0.0.0
+      MCP_PORT: "8001"
+      MCP_ALLOWED_HOSTS: "localhost:*,127.0.0.1:*,mcp-server:*"
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    ports:
+      - "127.0.0.1:8001:8001"       # optional: lets you point the MCP Inspector at it
+    depends_on:
+      ml-api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---- 3. Orchestrator: the LLM brain + MCP client; the only thing the browser talks to ----------
+  orchestrator:
+    build: ./orchestrator
+    image: exam-score-orchestrator:local
+    environment:
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}               # read from your .env; never baked into the image
+      GROQ_MODEL: ${GROQ_MODEL:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-}
+      MCP_SERVER_URL: http://mcp-server:8001/mcp    # service name, NOT localhost
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"         # makes host.docker.internal work on Linux too
+    ports:
+      - "8002:8002"
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ---- 4. React UI (static files served by nginx) -------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8002}
+    image: exam-score-frontend:local
+    ports:
+      - "5173:8080"
+    depends_on:
+      orchestrator:
+        condition: service_healthy
+    restart: unless-stopped

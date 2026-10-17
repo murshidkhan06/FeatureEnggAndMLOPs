@@ -1,0 +1,8 @@
+# Orchestrator dependencies (pinned to the versions this project was tested with)
+fastapi==0.141.1
+uvicorn[standard]==0.54.0
+httpx==0.28.1
+pydantic==2.14.1
+pydantic-settings==2.14.0
+mcp==1.30.0          # official MCP Python SDK (client side)
+jsonschema==4.26.0   # validates LLM-produced tool arguments against the MCP tool schema

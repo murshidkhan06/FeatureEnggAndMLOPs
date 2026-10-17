@@ -1,0 +1,33 @@
+# docker-compose.ollama.yml -- OPTIONAL add-on: run Ollama as a Compose service instead of on your host.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.ollama.yml up --build
+#   docker compose exec ollama ollama pull llama3.1:8b        # one-time model download (several GB)
+#
+# Then set in .env:  LLM_PROVIDER=ollama   OLLAMA_MODEL=llama3.1:8b
+# (OLLAMA_BASE_URL is overridden below to the service name, so you don't set it.)
+#
+# Trade-off: simple and self-contained, but runs on CPU unless you add GPU support (see README).
+# Ollama on the HOST (the default) is usually faster on a laptop, and models are already downloaded.
+
+services:
+  ollama:
+    image: ollama/ollama:latest      # classroom convenience; pin a version for anything serious
+    volumes:
+      - ollama-models:/root/.ollama  # keeps downloaded models between restarts
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  orchestrator:
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434     # service name, NOT localhost, NOT host.docker.internal
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+volumes:
+  ollama-models:

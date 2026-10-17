@@ -1,0 +1,6 @@
+# Everything needed to run the automated tests (one virtual environment for all services).
+-r orchestrator/requirements.txt
+-r mcp_server/requirements.txt
+pytest==8.4.2
+pytest-asyncio==1.2.0
+pyyaml==6.0.3
